@@ -1,59 +1,65 @@
-import { Modal as RNModal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, Modal as RNModal, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { X } from 'lucide-react-native';
-import { colors, spacing, typography, borderRadius } from '../../constants/theme';
-import { Button } from './Button';
+import { Typography } from '../Typography';
+import { colors, spacing } from '../../constants/theme';
 
 interface ModalProps {
   visible: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
   children: React.ReactNode;
-  actions?: {
-    label: string;
-    onPress: () => void;
-    variant?: 'primary' | 'secondary' | 'outline';
-  }[];
 }
 
-export function Modal({ visible, onClose, title, children, actions }: ModalProps) {
+export function Modal({ visible, onClose, title, children }: ModalProps) {
   return (
     <RNModal
-      visible={visible}
       transparent
+      visible={visible}
       animationType="fade"
-      onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <X size={24} color={colors.gray[500]} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.body}>{children}</View>
-          {actions && (
-            <View style={styles.actions}>
-              {actions.map((action, index) => (
-                <Button
-                  key={index}
-                  title={action.label}
-                  onPress={action.onPress}
-                  variant={action.variant || 'primary'}
-                  style={[
-                    styles.actionButton,
-                    index < actions.length - 1 && styles.actionButtonMargin,
-                  ]}
-                />
-              ))}
+      onRequestClose={onClose}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          style={styles.container}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+        >
+          <View style={styles.overlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.header}>
+                {title ? (
+                  <Typography variant="title" style={styles.title}>
+                    {title}
+                  </Typography>
+                ) : (
+                  <View style={styles.titlePlaceholder} />
+                )}
+                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                  <X size={24} color={colors.gray[700]} />
+                </TouchableOpacity>
+              </View>
+              
+              <ScrollView
+                style={styles.contentScrollView}
+                contentContainerStyle={styles.contentContainer}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                {children}
+              </ScrollView>
             </View>
-          )}
-        </View>
-      </View>
+          </View>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </RNModal>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -61,42 +67,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.md,
   },
-  content: {
+  modalContainer: {
     backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
+    borderRadius: spacing.md,
     width: '100%',
     maxWidth: 500,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.gray[200],
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   title: {
-    fontFamily: typography.fontFamily.semiBold,
-    fontSize: typography.fontSize.lg,
-    color: colors.gray[800],
+    flex: 1,
+    textAlign: 'center',
+  },
+  titlePlaceholder: {
+    flex: 1,
   },
   closeButton: {
     padding: spacing.xs,
   },
-  body: {
-    padding: spacing.md,
+  contentScrollView: {
+    maxHeight: '100%',
   },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    padding: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.gray[200],
-  },
-  actionButton: {
-    minWidth: 100,
-  },
-  actionButtonMargin: {
-    marginRight: spacing.sm,
+  contentContainer: {
+    flexGrow: 1,
   },
 });

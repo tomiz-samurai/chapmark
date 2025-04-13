@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
 import { Book } from 'lucide-react-native';
 import { Typography } from '../Typography';
 import { EmptyState } from './EmptyState';
+import { ProgressBar } from './ProgressBar';
 import { colors, spacing } from '../../constants/theme';
 import { Book as BookType } from '../../lib/types';
 
@@ -19,6 +20,14 @@ export function BookSelector({
   onSelectBook,
   title = '読書中の本'
 }: BookSelectorProps) {
+  // 進捗率を計算
+  const calculateProgress = (book: BookType): number => {
+    if (!book.currentPage || !book.totalPages || book.totalPages === 0) {
+      return 0;
+    }
+    return Math.min(100, Math.round((book.currentPage / book.totalPages) * 100));
+  };
+
   return (
     <View style={styles.container}>
       <Typography variant="body" style={styles.sectionTitle}>
@@ -56,6 +65,19 @@ export function BookSelector({
                 <Typography variant="caption" style={styles.bookItemAuthor} numberOfLines={1}>
                   {book.author}
                 </Typography>
+                
+                {book.currentPage !== undefined && book.totalPages !== undefined && (
+                  <View style={styles.progressWrapper}>
+                    <ProgressBar 
+                      progress={calculateProgress(book)} 
+                      height={4} 
+                      showPercentage={false}
+                    />
+                    <Typography variant="caption" style={styles.progressText}>
+                      {book.currentPage} / {book.totalPages}ページ ({calculateProgress(book)}%)
+                    </Typography>
+                  </View>
+                )}
               </View>
             </Pressable>
           ))
@@ -115,5 +137,13 @@ const styles = StyleSheet.create({
   },
   bookItemAuthor: {
     color: colors.gray[600],
+  },
+  progressWrapper: {
+    marginTop: spacing.xs,
+  },
+  progressText: {
+    fontSize: 10,
+    color: colors.gray[500],
+    marginTop: 2,
   },
 }); 

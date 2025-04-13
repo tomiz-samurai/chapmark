@@ -8,6 +8,8 @@ export interface Book {
   author: string;
   status: BookStatus;
   coverImage?: string;
+  totalPages?: number;
+  currentPage?: number;
 }
 
 // 読書セッション情報
@@ -18,4 +20,6 @@ export interface ReadingSession {
   endTime?: Date;
   duration: number; // 秒単位
   completed: boolean;
+  startPage?: number;
+  endPage?: number;
 } 
