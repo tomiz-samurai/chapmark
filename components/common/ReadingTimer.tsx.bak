@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import { Typography } from '../Typography';
 import { Button } from './Button';
@@ -11,7 +11,6 @@ interface ReadingTimerProps {
   isRunning: boolean;
   onToggle: () => void;
   onReset: () => void;
-  onFinish?: () => void;
 }
 
 export function ReadingTimer({ 
@@ -19,8 +18,7 @@ export function ReadingTimer({
   seconds,
   isRunning,
   onToggle,
-  onReset,
-  onFinish
+  onReset
 }: ReadingTimerProps) {
   
   // タイマーのフォーマット変換（秒数 → 時:分:秒）
@@ -85,18 +83,6 @@ export function ReadingTimer({
           </>
         )}
       </View>
-      
-      {book && !isRunning && seconds > 0 && onFinish && (
-        <View style={styles.finishButtonContainer}>
-          <Button
-            onPress={onFinish}
-            title="読書終了"
-            variant="secondary"
-            size="large"
-            style={styles.finishButton}
-          />
-        </View>
-      )}
     </View>
   );
 }
@@ -146,18 +132,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: spacing.md,
-    width: '100%',
   },
   controlButton: {
     marginHorizontal: spacing.sm,
     minWidth: 120,
-  },
-  finishButtonContainer: {
-    marginTop: spacing.lg,
-    width: '100%',
-    alignItems: 'center',
-  },
-  finishButton: {
-    width: 260,
   },
 }); 
