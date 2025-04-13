@@ -1,18 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Alert, Image, TextInput, Keyboard } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Alert, Image, TextInput, Keyboard, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
+import { useSelector, useDispatch } from 'react-redux';
+import { Book as BookIcon } from 'lucide-react-native';
 import { Loading } from '../../components/common/Loading';
 import { Header } from '../../components/layouts/Header';
 import { ReadingTimer } from '../../components/common/ReadingTimer';
 import { BookSelector } from '../../components/common/BookSelector';
-import { PageInput } from '../../components/common/PageInput';
 import { ProgressBar } from '../../components/common/ProgressBar';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Typography } from '../../components/Typography';
-import { colors, spacing, typography } from '../../constants/theme';
-import { Book, ReadingSession } from '../../lib/types';
+import { Book } from '../../lib/types';
+import { RootState } from '../../lib/store';
+import { selectBook, updateCurrentPage, updateTotalPages, fetchBooksSuccess } from '../../lib/store/bookSlice';
+import { clearCurrentSession } from '../../lib/store/sessionSlice';
+import { resetTimer, finishSession } from '../../lib/store/timerSlice';
+import TimerService, { formatTime, calculateProgress, calculateReadPages } from '../../lib/services/TimerService';
+import { useTheme } from '../../lib/hooks/useTheme';
 
 // ダミーデータ（実際の実装では本のリストはストアまたはAPIから取得）
 const READING_BOOKS: Book[] = [
@@ -37,131 +43,103 @@ const READING_BOOKS: Book[] = [
 ];
 
 export default function TimerScreen() {
+  const { colors, spacing } = useTheme();
+  
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_600SemiBold,
     PlayfairDisplay_700Bold,
   });
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [seconds, setSeconds] = useState(0);
+  
+  const dispatch = useDispatch();
+  
+  // Redux状態の取得
+  const state = useSelector((state: RootState) => state);
+  
+  // Redux状態へのアクセス
+  // 型アサーションを使用して型エラーを回避
+  const books = (state as any).book?.books || [];
+  const selectedBookId = (state as any).book?.selectedBookId || null;
+  const displaySeconds = (state as any).timer?.displaySeconds || 0;
+  const startPage = (state as any).timer?.startPage || null;
+  const currentSession = (state as any).session?.currentSession || null;
+  
+  // ローカル状態
   const [showCompletionModal, setShowCompletionModal] = useState(false);
-  const [currentSession, setCurrentSession] = useState<ReadingSession | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const startTimeRef = useRef<Date | null>(null);
-  const startPageRef = useRef<number | null>(null);
+  const [showBookSelectorModal, setShowBookSelectorModal] = useState(false);
   const [modalCurrentPage, setModalCurrentPage] = useState<number | undefined>(undefined);
   const [modalTotalPages, setModalTotalPages] = useState<number | undefined>(undefined);
-
+  
+  // 選択中の書籍
+  const selectedBook = selectedBookId 
+    ? books.find((book: Book) => book.id === selectedBookId) || null
+    : null;
+  
+  // 初期データのロード
+  useEffect(() => {
+    if (books.length === 0) {
+      dispatch(fetchBooksSuccess(READING_BOOKS));
+    }
+  }, [dispatch, books.length]);
+  
   // 本の選択時に呼ばれる
   const handleSelectBook = (book: Book) => {
-    setSelectedBook(book);
-    setIsTimerRunning(false);
-    setSeconds(0);
-    startTimeRef.current = null;
+    dispatch(selectBook(book.id));
+    dispatch(resetTimer());
+    setShowBookSelectorModal(false);
+  };
+
+  // 本選択モーダルを開く
+  const handleOpenBookSelector = () => {
+    setShowBookSelectorModal(true);
+  };
+
+  // 本選択モーダルを閉じる
+  const handleCloseBookSelector = () => {
+    setShowBookSelectorModal(false);
   };
 
   // 現在のページ数更新
   const handleCurrentPageChange = (page: number) => {
     if (selectedBook) {
-      setSelectedBook({
-        ...selectedBook,
-        currentPage: page
-      });
+      dispatch(updateCurrentPage({ id: selectedBook.id, page }));
     }
   };
 
   // 全ページ数更新
   const handleTotalPagesChange = (pages: number) => {
     if (selectedBook) {
-      setSelectedBook({
-        ...selectedBook,
-        totalPages: pages
-      });
+      dispatch(updateTotalPages({ id: selectedBook.id, pages }));
     }
   };
 
-  // タイマー制御
-  useEffect(() => {
-    if (isTimerRunning) {
-      if (!startTimeRef.current) {
-        startTimeRef.current = new Date();
-        // 読書開始時の現在ページを記録
-        if (selectedBook?.currentPage !== undefined) {
-          startPageRef.current = selectedBook.currentPage;
-        }
-      }
-      
-      intervalRef.current = setInterval(() => {
-        setSeconds(prev => prev + 1);
-      }, 1000);
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-
-    // クリーンアップ
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isTimerRunning]);
-
-  const handleToggleTimer = () => {
-    if (!selectedBook) return;
-    setIsTimerRunning(!isTimerRunning);
-  };
-
-  const handleResetTimer = () => {
-    setIsTimerRunning(false);
-    setSeconds(0);
-    startTimeRef.current = null;
-    startPageRef.current = null;
-  };
-
+  // 読書セッション完了時の処理
   const handleFinishReading = () => {
-    if (!selectedBook || !startTimeRef.current) return;
+    if (!selectedBook) return;
     
-    // 読書セッション情報を作成
-    const endTime = new Date();
-    const newSession: ReadingSession = {
-      id: Date.now().toString(),
-      bookId: selectedBook.id,
-      startTime: startTimeRef.current,
-      endTime: endTime,
-      duration: seconds,
-      completed: true,
-      startPage: startPageRef.current || undefined,
-      endPage: selectedBook.currentPage,
-    };
+    // TimerServiceを使って読書セッションを完了
+    TimerService.completeReading(selectedBook.currentPage);
     
-    setCurrentSession(newSession);
-    
-    // モーダル表示前に現在のページと全ページ数をモーダル用の状態に設定
+    // モーダル表示用の状態を設定
     setModalCurrentPage(selectedBook.currentPage);
     setModalTotalPages(selectedBook.totalPages);
-    
     setShowCompletionModal(true);
-    
-    // リセット
-    setIsTimerRunning(false);
   };
 
+  // セッションの保存処理
   const handleSaveSession = () => {
     if (!selectedBook) return;
     
-    // ページ情報を更新
-    const updatedBook = {
-      ...selectedBook,
-      currentPage: modalCurrentPage,
-      totalPages: modalTotalPages
-    };
+    // 現在のページと総ページ数を更新
+    dispatch(updateCurrentPage({ 
+      id: selectedBook.id, 
+      page: modalCurrentPage || selectedBook.currentPage || 0 
+    }));
     
-    // 実際のアプリではここで本の情報を更新するAPI呼び出しなどを行う
-    // updateBookInfo(updatedBook);
-    
-    // 選択中の本を更新
-    setSelectedBook(updatedBook);
+    dispatch(updateTotalPages({ 
+      id: selectedBook.id, 
+      pages: modalTotalPages || selectedBook.totalPages || 0 
+    }));
     
     // モーダルを閉じる
     handleCloseCompletionModal();
@@ -170,79 +148,102 @@ export default function TimerScreen() {
     Alert.alert("保存しました", "読書の記録を保存しました。");
   };
 
+  // モーダルを閉じる処理
   const handleCloseCompletionModal = () => {
     setShowCompletionModal(false);
-    setSeconds(0);
-    startTimeRef.current = null;
-    startPageRef.current = null;
     
-    // ここで実際にはセッション情報をストアに保存するなどの処理を行う
-    console.log('読書セッション完了:', currentSession);
+    // セッション情報をクリア
+    dispatch(clearCurrentSession());
+    dispatch(resetTimer());
   };
 
-  // 時間のフォーマット変換（秒数 → 時:分:秒）表示用
-  const formatTime = (totalSeconds: number) => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    if (hours > 0) {
-      return `${hours}時間${minutes}分${seconds}秒`;
-    } else if (minutes > 0) {
-      return `${minutes}分${seconds}秒`;
-    } else {
-      return `${seconds}秒`;
+  // モーダルの現在のページ入力検証・更新
+  const validateAndUpdateModalCurrentPage = (text: string) => {
+    const page = parseInt(text, 10);
+    
+    if (!isNaN(page) && page >= 0) {
+      setModalCurrentPage(page);
+    } else if (text === '') {
+      setModalCurrentPage(undefined);
     }
   };
 
-  // 読書の進捗率を計算
-  const calculateProgress = (): number => {
-    if (!selectedBook?.currentPage || !selectedBook?.totalPages || selectedBook.totalPages === 0) {
-      return 0;
-    }
-    return Math.min(100, Math.round((selectedBook.currentPage / selectedBook.totalPages) * 100));
-  };
-
-  // 読書中に読んだページ数を計算
-  const calculateReadPages = (): number => {
-    if (!currentSession?.startPage || !currentSession?.endPage) {
-      return 0;
-    }
-    return currentSession.endPage - currentSession.startPage;
-  };
-
-  // モーダルでのページ入力処理
-  const validateAndUpdateModalCurrentPage = (value: string) => {
-    const numValue = parseInt(value, 10);
-    if (!isNaN(numValue) && numValue >= 0) {
-      if (modalTotalPages && numValue > modalTotalPages) {
-        setModalCurrentPage(modalTotalPages);
-      } else {
-        setModalCurrentPage(numValue);
-      }
-    } else if (value === '') {
-      setModalCurrentPage(0);
+  // モーダルの全ページ数入力検証・更新
+  const validateAndUpdateModalTotalPages = (text: string) => {
+    const pages = parseInt(text, 10);
+    
+    if (!isNaN(pages) && pages > 0) {
+      setModalTotalPages(pages);
+    } else if (text === '') {
+      setModalTotalPages(undefined);
     }
   };
-
-  const validateAndUpdateModalTotalPages = (value: string) => {
-    const numValue = parseInt(value, 10);
-    if (!isNaN(numValue) && numValue > 0) {
-      setModalTotalPages(numValue);
-      if (modalCurrentPage && modalCurrentPage > numValue) {
-        setModalCurrentPage(numValue);
-      }
-    } else if (value === '') {
-      setModalTotalPages(0);
-    }
-  };
-
-  // モーダル用の進捗率計算
+  
+  // モーダルの進捗率を計算
   const calculateModalProgress = (): number => {
-    if (!modalCurrentPage || !modalTotalPages || modalTotalPages === 0) {
-      return 0;
+    return calculateProgress(modalCurrentPage, modalTotalPages);
+  };
+
+  // 読んだページ数を計算
+  const getReadPages = (): number => {
+    return calculateReadPages(startPage, modalCurrentPage);
+  };
+
+  // 選択中の本表示コンポーネント
+  const renderSelectedBook = () => {
+    if (!selectedBook) {
+      return (
+        <TouchableOpacity 
+          style={[styles.selectBookButton, { backgroundColor: colors.card }]} 
+          onPress={handleOpenBookSelector}
+        >
+          <BookIcon size={24} color={colors.textSecondary} />
+          <Typography variant="body" style={{ color: colors.text, marginLeft: spacing.medium }}>
+            読書する本を選択
+          </Typography>
+        </TouchableOpacity>
+      );
     }
-    return Math.min(100, Math.round((modalCurrentPage / modalTotalPages) * 100));
+
+    return (
+      <TouchableOpacity 
+        style={[styles.selectedBookContainer, { backgroundColor: colors.card }]} 
+        onPress={handleOpenBookSelector}
+      >
+        {selectedBook.coverImage ? (
+          <Image source={{ uri: selectedBook.coverImage }} style={styles.bookCover} />
+        ) : (
+          <View style={[styles.placeholderCover, { backgroundColor: colors.border }]}>
+            <BookIcon size={24} color={colors.textSecondary} />
+          </View>
+        )}
+        <View style={styles.bookInfo}>
+          <Typography variant="body" style={[styles.bookTitle, { color: colors.text }]} numberOfLines={1}>
+            {selectedBook.title}
+          </Typography>
+          <Typography variant="caption" style={{ color: colors.textSecondary }} numberOfLines={1}>
+            {selectedBook.author}
+          </Typography>
+          {selectedBook.currentPage !== undefined && selectedBook.totalPages !== undefined && (
+            <View style={styles.bookProgress}>
+              <ProgressBar 
+                progress={calculateProgress(selectedBook.currentPage, selectedBook.totalPages)} 
+                height={4} 
+                showPercentage={false}
+              />
+              <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 10, marginTop: 2 }}>
+                {selectedBook.currentPage} / {selectedBook.totalPages}ページ
+              </Typography>
+            </View>
+          )}
+        </View>
+        <View style={styles.changeButton}>
+          <Typography variant="caption" style={{ color: colors.primary }}>
+            変更
+          </Typography>
+        </View>
+      </TouchableOpacity>
+    );
   };
 
   if (!fontsLoaded) {
@@ -250,161 +251,202 @@ export default function TimerScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Header title="読書タイマー" />
-
-      <View style={styles.content}>
-        {/* タイマーコンポーネント */}
-        <ReadingTimer 
-          book={selectedBook}
-          seconds={seconds}
-          isRunning={isTimerRunning}
-          onToggle={handleToggleTimer}
-          onReset={handleResetTimer}
-          onFinish={handleFinishReading}
-        />
-
-        {/* ページ入力コンポーネント */}
-        {selectedBook && (
-          <View style={styles.pageInputContainer}>
-            <PageInput
-              currentPage={selectedBook.currentPage}
-              totalPages={selectedBook.totalPages}
-              onCurrentPageChange={handleCurrentPageChange}
-              onTotalPagesChange={handleTotalPagesChange}
-            />
+      
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.mainContainer}
+      >
+        <View style={styles.contentContainer}>
+          {/* 本の選択表示 */}
+          <View style={styles.selectorContainer}>
+            {renderSelectedBook()}
           </View>
-        )}
+          
+          {/* タイマーと進捗表示エリア */}
+          <View style={styles.timerContainer}>
+            {/* タイマーコンポーネント */}
+            <ReadingTimer 
+              book={selectedBook}
+              onFinish={handleFinishReading}
+            />
+            
+            {/* ページ進捗コンポーネント */}
+            {selectedBook && (
+              <View style={[styles.pageProgressContainer, { backgroundColor: colors.card }]}>
+                <View style={styles.pageInputSection}>
+                  <View style={styles.inputRow}>
+                    <View style={styles.inputWrapper}>
+                      <Typography variant="caption" style={{ color: colors.textSecondary }}>
+                        現在
+                      </Typography>
+                      <TextInput
+                        style={[styles.pageInput, { 
+                          backgroundColor: colors.background,
+                          borderColor: colors.border,
+                          color: colors.text
+                        }]}
+                        value={selectedBook.currentPage?.toString()}
+                        onChangeText={(text) => {
+                          const page = parseInt(text, 10);
+                          if (!isNaN(page)) handleCurrentPageChange(page);
+                        }}
+                        keyboardType="number-pad"
+                        returnKeyType="done"
+                        placeholder="0"
+                      />
+                    </View>
+                    
+                    <Typography style={{ color: colors.textSecondary, marginHorizontal: 6 }}>
+                      /
+                    </Typography>
+                    
+                    <View style={styles.inputWrapper}>
+                      <Typography variant="caption" style={{ color: colors.textSecondary }}>
+                        全体
+                      </Typography>
+                      <TextInput
+                        style={[styles.pageInput, { 
+                          backgroundColor: colors.background,
+                          borderColor: colors.border,
+                          color: colors.text
+                        }]}
+                        value={selectedBook.totalPages?.toString()}
+                        onChangeText={(text) => {
+                          const pages = parseInt(text, 10);
+                          if (!isNaN(pages)) handleTotalPagesChange(pages);
+                        }}
+                        keyboardType="number-pad"
+                        returnKeyType="done"
+                        placeholder="0"
+                      />
+                    </View>
+                  </View>
+                  
+                  <View style={styles.progressSection}>
+                    <View style={styles.progressBarWithPercentage}>
+                      <View style={styles.progressBarContainer}>
+                        <ProgressBar progress={calculateProgress(selectedBook.currentPage, selectedBook.totalPages)} />
+                      </View>
+                      <Typography variant="caption" style={[styles.progressText, { color: colors.textSecondary }]}>
+                        {calculateProgress(selectedBook.currentPage, selectedBook.totalPages)}%
+                      </Typography>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+      </KeyboardAvoidingView>
 
-        {/* 読書中の本選択コンポーネント */}
-        <BookSelector 
-          books={READING_BOOKS}
-          selectedBookId={selectedBook?.id || null}
-          onSelectBook={handleSelectBook}
-        />
-      </View>
+      {/* 本選択モーダル */}
+      <Modal
+        visible={showBookSelectorModal}
+        onClose={handleCloseBookSelector}
+        title="読書する本を選択"
+      >
+        <View style={styles.bookSelectorModalContainer}>
+          <BookSelector 
+            books={books} 
+            selectedBookId={selectedBookId}
+            onSelectBook={handleSelectBook}
+            isModal={true}
+          />
+        </View>
+      </Modal>
 
       {/* 読書完了モーダル */}
-      {showCompletionModal && currentSession && selectedBook && (
-        <Modal
-          visible={showCompletionModal}
-          onClose={handleCloseCompletionModal}
-          title="読書完了！"
-        >
+      <Modal
+        visible={showCompletionModal}
+        onClose={handleCloseCompletionModal}
+        title="読書記録"
+      >
+        {currentSession && selectedBook && (
           <View style={styles.modalContent}>
-            <Typography variant="body" style={styles.modalText}>
-              読書お疲れ様でした！
-            </Typography>
-            
-            {/* 本の情報エリア - カバー画像と詳細を横並びに */}
+            {/* 書籍情報 */}
             <View style={styles.bookInfoContainer}>
               {selectedBook.coverImage && (
                 <Image 
                   source={{ uri: selectedBook.coverImage }} 
-                  style={styles.modalCoverImage}
-                  resizeMode="cover"
+                  style={styles.modalCoverImage} 
                 />
               )}
-              
-              <View style={styles.bookDetailsContainer}>
-                <Typography variant="body" style={styles.infoLabel}>本のタイトル:</Typography>
-                <Typography variant="body" style={styles.infoValue} numberOfLines={2}>
+              <View style={styles.modalBookInfo}>
+                <Typography variant="title" style={{ color: colors.text }}>
                   {selectedBook.title}
                 </Typography>
-                
-                <Typography variant="body" style={styles.infoLabel}>著者:</Typography>
-                <Typography variant="body" style={styles.infoValue} numberOfLines={1}>
+                <Typography variant="body" style={{ color: colors.textSecondary }}>
                   {selectedBook.author}
                 </Typography>
               </View>
             </View>
-            
-            {/* セッション情報 */}
-            <View style={styles.sessionInfo}>
-              <View style={styles.sessionRow}>
-                <View style={styles.sessionColumn}>
-                  <Typography variant="body" style={styles.infoLabel}>読書時間:</Typography>
-                  <Typography variant="body" style={styles.infoValue}>
-                    {formatTime(currentSession.duration)}
-                  </Typography>
-                </View>
-                
-                {currentSession.startPage !== undefined && currentSession.endPage !== undefined && (
-                  <View style={styles.sessionColumn}>
-                    <Typography variant="body" style={styles.infoLabel}>読了ページ:</Typography>
-                    <Typography variant="body" style={styles.infoValue}>
-                      {calculateReadPages()}ページ
-                    </Typography>
-                  </View>
-                )}
-              </View>
-            </View>
-            
-            {/* ページ数入力エリア */}
-            <View style={styles.modalPageInputContainer}>
-              <Typography variant="body" style={[styles.infoLabel, styles.pageInputLabel]}>
-                ページ数を更新:
-              </Typography>
-              
-              <View style={styles.modalInputRow}>
-                <View style={styles.modalInputGroup}>
-                  <Typography variant="caption" style={styles.modalInputLabel}>
-                    現在のページ
-                  </Typography>
-                  <TextInput
-                    style={styles.modalInput}
-                    value={modalCurrentPage?.toString() || ''}
-                    onChangeText={validateAndUpdateModalCurrentPage}
-                    keyboardType="number-pad"
-                    returnKeyType="done"
-                    onSubmitEditing={Keyboard.dismiss}
-                    placeholder="0"
-                    maxLength={5}
-                  />
-                </View>
 
-                <Typography variant="body" style={styles.modalSeparator}>
-                  /
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+            {/* 読書セッション情報 */}
+            <View style={styles.sessionInfoContainer}>
+              <View style={styles.sessionInfoRow}>
+                <Typography variant="label" style={{ color: colors.textSecondary }}>読書時間</Typography>
+                <Typography variant="title" style={{ color: colors.text }}>
+                  {formatTime(displaySeconds)}
                 </Typography>
-
-                <View style={styles.modalInputGroup}>
-                  <Typography variant="caption" style={styles.modalInputLabel}>
-                    全ページ数
-                  </Typography>
-                  <TextInput
-                    style={styles.modalInput}
-                    value={modalTotalPages?.toString() || ''}
-                    onChangeText={validateAndUpdateModalTotalPages}
-                    keyboardType="number-pad"
-                    returnKeyType="done"
-                    onSubmitEditing={Keyboard.dismiss}
-                    placeholder="0"
-                    maxLength={5}
-                  />
-                </View>
               </View>
               
-              <View style={styles.modalProgressContainer}>
+              <View style={styles.sessionInfoRow}>
+                <Typography variant="label" style={{ color: colors.textSecondary }}>読了ページ数</Typography>
+                <Typography variant="title" style={{ color: colors.text }}>
+                  {getReadPages()} ページ
+                </Typography>
+              </View>
+              
+              <View style={styles.sessionInfoRow}>
+                <Typography variant="label" style={{ color: colors.textSecondary }}>現在のページ</Typography>
+                <TextInput
+                  style={[styles.modalInput, { 
+                    borderColor: colors.border, 
+                    backgroundColor: colors.background,
+                    color: colors.text
+                  }]}
+                  value={modalCurrentPage !== undefined ? modalCurrentPage.toString() : ''}
+                  onChangeText={validateAndUpdateModalCurrentPage}
+                  keyboardType="number-pad"
+                  placeholder="ページ数"
+                />
+              </View>
+              
+              <View style={styles.sessionInfoRow}>
+                <Typography variant="label" style={{ color: colors.textSecondary }}>全ページ数</Typography>
+                <TextInput
+                  style={[styles.modalInput, { 
+                    borderColor: colors.border, 
+                    backgroundColor: colors.background,
+                    color: colors.text
+                  }]}
+                  value={modalTotalPages !== undefined ? modalTotalPages.toString() : ''}
+                  onChangeText={validateAndUpdateModalTotalPages}
+                  keyboardType="number-pad"
+                  placeholder="全ページ"
+                />
+              </View>
+              
+              <View style={styles.progressContainer}>
                 <ProgressBar progress={calculateModalProgress()} />
+                <Typography variant="caption" style={[styles.progressText, { color: colors.textSecondary }]}>
+                  進捗: {calculateModalProgress()}%
+                </Typography>
               </View>
             </View>
-            
-            <View style={styles.modalButtonContainer}>
-              <Button
-                title="キャンセル"
-                onPress={handleCloseCompletionModal}
-                variant="outline"
-                style={styles.modalCancelButton}
-              />
-              <Button
-                title="保存"
-                onPress={handleSaveSession}
-                style={styles.modalSaveButton}
-              />
-            </View>
+
+            <Button 
+              title="保存する" 
+              onPress={handleSaveSession} 
+              style={styles.saveButton}
+            />
           </View>
-        </Modal>
-      )}
+        )}
+      </Modal>
     </View>
   );
 }
@@ -412,129 +454,153 @@ export default function TimerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray[50],
   },
-  content: {
+  mainContainer: {
     flex: 1,
-    padding: spacing.md,
   },
-  pageInputContainer: {
-    backgroundColor: colors.white,
-    borderRadius: spacing.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+  contentContainer: {
+    flex: 1,
+    padding: 16,
   },
-  modalContent: {
-    padding: spacing.md,
-    paddingBottom: spacing.lg,
+  selectorContainer: {
+    marginBottom: 12,
   },
-  modalText: {
-    marginBottom: spacing.sm,
-    textAlign: 'center',
-    fontSize: typography.fontSize.sm,
+  timerContainer: {
+    flex: 1,
   },
-  coverImageContainer: {
-    alignItems: 'center',
-    marginVertical: spacing.md,
+  pageProgressContainer: {
+    borderRadius: 16,
+    padding: 12,
+    marginTop: 12,
   },
-  modalCoverImage: {
-    width: 80,
-    height: 110,
-    borderRadius: spacing.xs,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+  pageInputSection: {
+    width: '100%',
   },
-  sessionInfo: {
-    marginBottom: spacing.sm,
-  },
-  sessionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
-    paddingBottom: spacing.sm,
-  },
-  sessionColumn: {
-    alignItems: 'center',
-  },
-  infoLabel: {
-    fontWeight: 'bold',
-    marginTop: spacing.xs,
-    fontSize: typography.fontSize.sm,
-    color: colors.gray[700],
-  },
-  infoValue: {
-    marginBottom: spacing.xs,
-    fontSize: typography.fontSize.sm,
-  },
-  modalProgressContainer: {
-    marginVertical: spacing.xs,
-  },
-  modalPageInputContainer: {
-    marginTop: spacing.sm,
-    paddingTop: spacing.xs,
-  },
-  pageInputLabel: {
-    marginBottom: spacing.xs,
-    fontSize: typography.fontSize.sm,
-  },
-  modalInputRow: {
+  inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: 12,
   },
-  modalInputGroup: {
+  inputWrapper: {
     alignItems: 'center',
   },
-  modalInputLabel: {
-    marginBottom: spacing.xs,
-    color: colors.gray[600],
-    fontSize: typography.fontSize.xs,
-  },
-  modalInput: {
+  pageInput: {
     width: 60,
-    height: 35,
+    height: 36,
     borderWidth: 1,
-    borderColor: colors.gray[300],
-    borderRadius: spacing.xs,
+    borderRadius: 8,
     textAlign: 'center',
-    padding: spacing.xs,
-    fontSize: typography.fontSize.sm,
-    color: colors.gray[800],
+    fontSize: 16,
+    marginTop: 4,
   },
-  modalSeparator: {
-    marginHorizontal: spacing.md,
-    fontSize: typography.fontSize.lg,
-    color: colors.gray[500],
+  progressSection: {
+    width: '100%',
   },
-  modalButtonContainer: {
-    marginTop: spacing.md,
+  progressBarWithPercentage: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
   },
-  modalCancelButton: {
+  progressBarContainer: {
     flex: 1,
-    marginRight: spacing.xs,
+    marginRight: 8,
   },
-  modalSaveButton: {
-    flex: 1,
-    marginLeft: spacing.xs,
+  progressText: {
+    width: 50,
+    textAlign: 'right',
+  },
+  modalContent: {
+    padding: 16,
   },
   bookInfoContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
-    paddingBottom: spacing.sm,
+    marginBottom: 16,
   },
-  bookDetailsContainer: {
-    flex: 1,
-    marginLeft: spacing.md,
+  modalCoverImage: {
+    width: 70,
+    height: 100,
+    borderRadius: 8,
+  },
+  modalBookInfo: {
+    marginLeft: 16,
     justifyContent: 'center',
+    flex: 1,
+  },
+  divider: {
+    height: 1,
+    marginVertical: 16,
+  },
+  sessionInfoContainer: {
+    marginBottom: 24,
+  },
+  sessionInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalInput: {
+    width: 100,
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 8,
+    textAlign: 'center',
+  },
+  progressContainer: {
+    marginTop: 8,
+  },
+  saveButton: {
+    marginTop: 8,
+  },
+  // 選択中の本の表示用スタイル
+  selectedBookContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+  },
+  bookCover: {
+    width: 50,
+    height: 70,
+    borderRadius: 4,
+  },
+  placeholderCover: {
+    width: 50,
+    height: 70,
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bookInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  bookTitle: {
+    fontWeight: 'bold',
+  },
+  bookProgress: {
+    marginTop: 4,
+    width: '100%',
+  },
+  changeButton: {
+    paddingHorizontal: 8,
+  },
+  selectBookButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+  },
+  // 本選択モーダル用スタイル
+  bookSelectorModalContainer: {
+    height: 400,
+    paddingHorizontal: 8,
+    paddingTop: 8,
+    paddingBottom: 16,
   },
 }); 

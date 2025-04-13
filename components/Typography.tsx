@@ -2,7 +2,7 @@ import { Text, StyleSheet, TextProps } from 'react-native';
 import { colors, typography } from '../constants/theme';
 
 interface TypographyProps extends TextProps {
-  variant?: 'display' | 'title' | 'body' | 'caption';
+  variant?: 'display' | 'title' | 'body' | 'caption' | 'label';
   color?: string;
 }
 
@@ -43,5 +43,10 @@ const styles = StyleSheet.create({
   caption: {
     fontSize: typography.fontSize.sm,
     color: colors.gray[500],
+  },
+  label: {
+    fontSize: typography.fontSize.sm,
+    fontFamily: typography.fontFamily.semiBold,
+    color: colors.gray[600],
   },
 });

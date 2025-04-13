@@ -1,73 +1,97 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet, Animated } from 'react-native';
 import { Typography } from '../Typography';
-import { colors, spacing } from '../../constants/theme';
+import { useTheme } from '../../lib/hooks/useTheme';
 
 interface ProgressBarProps {
-  progress: number; // 0-100の値
+  progress: number; // 0から100の値
   height?: number;
-  showPercentage?: boolean;
-  colorFill?: string;
-  colorTrack?: string;
   style?: any;
+  showPercentage?: boolean;
+  backgroundColor?: string;
+  progressColor?: string;
+  animated?: boolean;
+  animationDuration?: number;
 }
 
-export function ProgressBar({
+export const ProgressBar: React.FC<ProgressBarProps> = ({
   progress,
-  height = 6,
-  showPercentage = true,
-  colorFill = colors.accent.main,
-  colorTrack = colors.gray[200],
+  height = 8,
   style,
-}: ProgressBarProps) {
-  // 0-100の範囲に収める
-  const safeProgress = Math.min(100, Math.max(0, progress));
+  showPercentage = false,
+  backgroundColor,
+  progressColor,
+  animated = true,
+  animationDuration = 500,
+}) => {
+  const { colors } = useTheme();
+  const animatedWidth = useRef(new Animated.Value(0)).current;
+  
+  // progressが変更されたときにアニメーションを実行
+  useEffect(() => {
+    // 値を0〜100から0〜1の範囲に変換
+    const normalizedProgress = progress / 100;
+    const clampedProgress = Math.min(Math.max(normalizedProgress, 0), 1);
+    
+    if (animated) {
+      Animated.timing(animatedWidth, {
+        toValue: clampedProgress,
+        duration: animationDuration,
+        useNativeDriver: false,
+      }).start();
+    } else {
+      animatedWidth.setValue(clampedProgress);
+    }
+  }, [progress, animated, animationDuration]);
 
   return (
-    <View style={[styles.container, style]}>
-      <View 
+    <View 
+      style={[
+        styles.container, 
+        style,
+        { 
+          height, 
+          backgroundColor: backgroundColor || colors.background,
+          borderRadius: height / 2,
+        }
+      ]}
+    >
+      <Animated.View 
         style={[
-          styles.track, 
-          { 
-            height, 
-            backgroundColor: colorTrack 
+          styles.progress,
+          {
+            width: animatedWidth.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['0%', '100%'],
+            }),
+            height,
+            backgroundColor: progressColor || colors.secondary,
+            borderRadius: height / 2,
           }
         ]}
-      >
-        <View
-          style={[
-            styles.fill,
-            {
-              width: `${safeProgress}%`,
-              height: '100%',
-              backgroundColor: colorFill,
-            },
-          ]}
-        />
-      </View>
+      />
       {showPercentage && (
         <Typography variant="caption" style={styles.progressText}>
-          {safeProgress}% 完了
+          {progress}%
         </Typography>
       )}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-  },
-  track: {
-    borderRadius: 3,
+    position: 'relative',
     overflow: 'hidden',
   },
-  fill: {
-    borderRadius: 3,
+  progress: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
   },
   progressText: {
-    marginTop: spacing.xs,
-    textAlign: 'center',
-    color: colors.gray[600],
+    position: 'absolute',
+    right: 8,
   },
 }); 

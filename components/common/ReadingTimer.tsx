@@ -1,98 +1,110 @@
-import React from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
 import { Typography } from '../Typography';
 import { Button } from './Button';
-import { colors, spacing } from '../../constants/theme';
 import { Book } from '../../lib/types';
+import { RootState } from '../../lib/store';
+import TimerService, { formatTime } from '../../lib/services/TimerService';
+import { useTheme } from '../../lib/hooks/useTheme';
 
 interface ReadingTimerProps {
   book: Book | null;
-  seconds: number;
-  isRunning: boolean;
-  onToggle: () => void;
-  onReset: () => void;
   onFinish?: () => void;
 }
 
 export function ReadingTimer({ 
   book, 
-  seconds,
-  isRunning,
-  onToggle,
-  onReset,
   onFinish
 }: ReadingTimerProps) {
-  
-  // タイマーのフォーマット変換（秒数 → 時:分:秒）
-  const formatTime = (totalSeconds: number) => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
+  const dispatch = useDispatch();
+  const { isRunning, displaySeconds } = useSelector((state: RootState) => (state as any).timer);
+  const { colors, spacing } = useTheme();
 
-    return [
-      hours.toString().padStart(2, '0'),
-      minutes.toString().padStart(2, '0'),
-      seconds.toString().padStart(2, '0')
-    ].join(':');
+  // コンポーネントのアンマウント時にタイマーリソースをクリーンアップ
+  useEffect(() => {
+    return () => {
+      // コンポーネントのアンマウント時にタイマーのクリーンアップを実行
+      TimerService.cleanup();
+    };
+  }, []);
+
+  // タイマーの開始/一時停止を切り替え
+  const handleToggleTimer = () => {
+    if (!book) return;
+    
+    if (isRunning) {
+      TimerService.pauseTimer();
+    } else {
+      if (book.id) {
+        TimerService.startTimer(book.id, book.currentPage);
+      }
+    }
   };
 
-  return (
-    <View style={styles.timerContainer}>
-      <Typography variant="display" style={styles.timerText}>
-        {formatTime(seconds)}
-      </Typography>
+  // タイマーのリセット
+  const handleResetTimer = () => {
+    TimerService.resetTimer();
+  };
 
-      {book ? (
-        <View style={styles.selectedBookContainer}>
-          {book.coverImage && (
-            <Image 
-              source={{ uri: book.coverImage }} 
-              style={styles.coverThumbnail} 
-            />
-          )}
-          <View style={styles.bookInfo}>
-            <Typography variant="body" style={styles.bookTitle}>
-              {book.title}
-            </Typography>
-            <Typography variant="caption" style={styles.bookAuthor}>
-              {book.author}
-            </Typography>
-          </View>
-        </View>
-      ) : (
-        <Typography variant="body" style={styles.selectPrompt}>
+  // 読書セッションの完了
+  const handleFinishReading = () => {
+    if (!book) return;
+    
+    // 読書セッションを完了し、必要に応じてページ情報を渡す
+    TimerService.completeReading(book.currentPage);
+    
+    // onFinishコールバックがあれば呼び出す（モーダル表示など）
+    if (onFinish) {
+      onFinish();
+    }
+  };
+
+  if (!book) {
+    return (
+      <View style={[styles.emptyContainer, { backgroundColor: colors.card }]}>
+        <Typography variant="body" style={[styles.selectPrompt, { color: colors.textSecondary }]}>
           本を選択してください
         </Typography>
-      )}
+      </View>
+    );
+  }
 
-      <View style={styles.controls}>
-        {book && (
-          <>
-            <Button
-              onPress={onToggle}
-              title={isRunning ? "一時停止" : "開始"}
-              variant="primary"
-              size="large"
-              style={styles.controlButton}
-            />
-            <Button
-              onPress={onReset}
-              title="リセット"
-              variant="outline"
-              size="large"
-              style={styles.controlButton}
-            />
-          </>
-        )}
+  return (
+    <View style={[styles.container, { backgroundColor: colors.card }]}>
+      {/* タイマー表示部分 */}
+      <View style={styles.timerSection}>
+        <Typography variant="display" style={[styles.timerText, { color: colors.secondary }]}>
+          {formatTime(displaySeconds)}
+        </Typography>
+      </View>
+
+      {/* コントロールボタン部分 */}
+      <View style={styles.controlsSection}>
+        <Button
+          onPress={handleToggleTimer}
+          title={isRunning ? "一時停止" : "開始"}
+          variant="primary"
+          size="medium"
+          style={styles.mainButton}
+        />
+        <Button
+          onPress={handleResetTimer}
+          title="リセット"
+          variant="outline"
+          size="medium"
+          style={styles.secondaryButton}
+        />
       </View>
       
-      {book && !isRunning && seconds > 0 && onFinish && (
-        <View style={styles.finishButtonContainer}>
+      {/* 読書終了ボタン（タイマーが一時停止で、かつ0秒より大きい場合のみ表示） */}
+      {!isRunning && displaySeconds > 0 && (
+        <View style={styles.finishSection}>
           <Button
-            onPress={onFinish}
+            onPress={handleFinishReading}
             title="読書終了"
             variant="secondary"
-            size="large"
+            size="medium"
             style={styles.finishButton}
           />
         </View>
@@ -102,62 +114,53 @@ export function ReadingTimer({
 }
 
 const styles = StyleSheet.create({
-  timerContainer: {
-    backgroundColor: colors.white,
-    borderRadius: spacing.md,
-    padding: spacing.lg,
+  container: {
+    borderRadius: 16,
+    marginVertical: 16,
+    padding: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  emptyContainer: {
+    borderRadius: 16,
+    padding: 24,
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    justifyContent: 'center',
+    marginVertical: 16,
+  },
+  timerSection: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
   timerText: {
-    fontSize: 48,
-    textAlign: 'center',
-    marginVertical: spacing.md,
-    color: colors.primary.main,
+    fontSize: 56,
+    fontWeight: '300',
+    letterSpacing: 2,
   },
-  selectedBookContainer: {
+  controlsSection: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.md,
-    paddingHorizontal: spacing.md,
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
-  coverThumbnail: {
-    width: 50,
-    height: 70,
-    borderRadius: spacing.xs,
-  },
-  bookInfo: {
-    marginLeft: spacing.md,
+  mainButton: {
     flex: 1,
+    marginRight: 8,
   },
-  bookTitle: {
-    color: colors.gray[800],
-    fontWeight: 'bold',
+  secondaryButton: {
+    flex: 1,
+    marginLeft: 8,
   },
-  bookAuthor: {
-    color: colors.gray[600],
-  },
-  selectPrompt: {
-    color: colors.gray[600],
-    marginVertical: spacing.md,
-    textAlign: 'center',
-  },
-  controls: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: spacing.md,
-    width: '100%',
-  },
-  controlButton: {
-    marginHorizontal: spacing.sm,
-    minWidth: 120,
-  },
-  finishButtonContainer: {
-    marginTop: spacing.lg,
-    width: '100%',
-    alignItems: 'center',
+  finishSection: {
+    marginTop: 8,
   },
   finishButton: {
-    width: 260,
+    width: '100%',
+  },
+  selectPrompt: {
+    fontSize: 16,
+    textAlign: 'center',
   },
 }); 

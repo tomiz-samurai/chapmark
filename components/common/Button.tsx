@@ -1,111 +1,186 @@
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
-import { colors, spacing, borderRadius, typography } from '../../constants/theme';
+import React from 'react';
+import { 
+  StyleSheet, 
+  View, 
+  Text, 
+  Pressable, 
+  ActivityIndicator,
+  StyleProp,
+  ViewStyle
+} from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { useTheme } from '../../lib/hooks/useTheme';
 
-interface ButtonProps {
-  onPress: () => void;
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'text';
+export type ButtonSize = 'small' | 'medium' | 'large';
+
+export interface ButtonProps {
   title: string;
-  variant?: 'primary' | 'secondary' | 'outline';
-  size?: 'small' | 'medium' | 'large';
+  onPress: () => void;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  icon?: string;
   disabled?: boolean;
   loading?: boolean;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  fullWidth?: boolean;
 }
 
 export function Button({
-  onPress,
   title,
+  onPress,
   variant = 'primary',
   size = 'medium',
+  icon,
   disabled = false,
   loading = false,
   style,
-  textStyle,
+  fullWidth = false,
 }: ButtonProps) {
+  const { colors, spacing } = useTheme();
+
+  // バリアントに基づいてスタイルを取得
+  const getVariantStyle = (isPressed: boolean) => {
+    switch (variant) {
+      case 'primary':
+        return {
+          container: {
+            backgroundColor: isPressed ? colors.primaryDark : colors.primary,
+            borderColor: colors.primary,
+            borderWidth: 1,
+          },
+          text: { color: colors.text === colors.primaryDark ? '#ffffff' : colors.neutralLight },
+          indicator: colors.text === colors.primaryDark ? '#ffffff' : colors.neutralLight,
+        };
+      case 'secondary':
+        return {
+          container: {
+            backgroundColor: isPressed ? colors.secondaryDark : colors.secondary,
+            borderColor: colors.secondary,
+            borderWidth: 1,
+          },
+          text: { color: colors.primary },
+          indicator: colors.primary,
+        };
+      case 'outline':
+        return {
+          container: {
+            backgroundColor: 'transparent',
+            borderColor: colors.border,
+            borderWidth: 1,
+          },
+          text: { color: colors.text },
+          indicator: colors.text,
+        };
+      case 'text':
+        return {
+          container: {
+            backgroundColor: isPressed ? colors.background : 'transparent',
+            borderColor: 'transparent',
+            borderWidth: 1,
+          },
+          text: { color: colors.primary },
+          indicator: colors.primary,
+        };
+      default:
+        return {
+          container: {},
+          text: {},
+          indicator: colors.text,
+        };
+    }
+  };
+
+  // サイズに基づいてスタイルを取得
+  const getSizeStyle = () => {
+    switch (size) {
+      case 'small':
+        return {
+          container: { paddingVertical: 8, paddingHorizontal: 12 },
+          text: { fontSize: 12 },
+          icon: 16,
+        };
+      case 'large':
+        return {
+          container: { paddingVertical: 16, paddingHorizontal: 24 },
+          text: { fontSize: 18 },
+          icon: 24,
+        };
+      default:
+        return {
+          container: { paddingVertical: 12, paddingHorizontal: 16 },
+          text: { fontSize: 16 },
+          icon: 20,
+        };
+    }
+  };
+
   return (
-    <TouchableOpacity
+    <Pressable
+      style={({ pressed }) => [
+        styles.button,
+        getVariantStyle(pressed).container,
+        getSizeStyle().container,
+        disabled && styles.disabled,
+        fullWidth && styles.fullWidth,
+        style,
+      ]}
       onPress={onPress}
       disabled={disabled || loading}
-      style={[
-        styles.base,
-        styles[variant],
-        styles[size],
-        disabled && styles.disabled,
-        style,
-      ]}>
+    >
       {loading ? (
-        <ActivityIndicator color={variant === 'outline' ? colors.primary.main : colors.white} />
+        <ActivityIndicator
+          color={getVariantStyle(false).indicator}
+          size={getSizeStyle().icon}
+        />
       ) : (
-        <Text
-          style={[
-            styles.text,
-            styles[`${variant}Text`],
-            styles[`${size}Text`],
-            disabled && styles.disabledText,
-            textStyle,
-          ]}>
-          {title}
-        </Text>
+        <View style={styles.buttonContent}>
+          {icon && (
+            <Feather
+              name={icon as any}
+              size={getSizeStyle().icon}
+              color={getVariantStyle(false).text.color as string}
+              style={styles.icon}
+            />
+          )}
+          <Text
+            style={[
+              styles.buttonText,
+              getVariantStyle(false).text,
+              getSizeStyle().text,
+            ]}
+          >
+            {title}
+          </Text>
+        </View>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {
-    borderRadius: borderRadius.md,
+  button: {
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  buttonContent: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primary: {
-    backgroundColor: colors.primary.main,
-  },
-  secondary: {
-    backgroundColor: colors.accent.main,
-  },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.primary.main,
-  },
-  small: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-  },
-  medium: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-  },
-  large: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+  buttonText: {
+    fontWeight: '600',
+    textAlign: 'center',
   },
   disabled: {
     opacity: 0.5,
   },
-  text: {
-    fontFamily: typography.fontFamily.semiBold,
-    textAlign: 'center',
+  fullWidth: {
+    width: '100%',
   },
-  primaryText: {
-    color: colors.white,
-  },
-  secondaryText: {
-    color: colors.white,
-  },
-  outlineText: {
-    color: colors.primary.main,
-  },
-  smallText: {
-    fontSize: typography.fontSize.sm,
-  },
-  mediumText: {
-    fontSize: typography.fontSize.md,
-  },
-  largeText: {
-    fontSize: typography.fontSize.lg,
-  },
-  disabledText: {
-    color: colors.gray[400],
-  },
+  icon: {
+    marginRight: 8,
+  }
 });

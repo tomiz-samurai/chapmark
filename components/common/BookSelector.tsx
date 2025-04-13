@@ -4,22 +4,27 @@ import { Book } from 'lucide-react-native';
 import { Typography } from '../Typography';
 import { EmptyState } from './EmptyState';
 import { ProgressBar } from './ProgressBar';
-import { colors, spacing } from '../../constants/theme';
+import { spacing } from '../../constants/theme';
 import { Book as BookType } from '../../lib/types';
+import { useTheme } from '../../lib/hooks/useTheme';
 
 interface BookSelectorProps {
   books: BookType[];
   selectedBookId: string | null;
   onSelectBook: (book: BookType) => void;
   title?: string;
+  isModal?: boolean;
 }
 
 export function BookSelector({
   books,
   selectedBookId,
   onSelectBook,
-  title = '読書中の本'
+  title = '読書中の本',
+  isModal = false
 }: BookSelectorProps) {
+  const { colors } = useTheme();
+  
   // 進捗率を計算
   const calculateProgress = (book: BookType): number => {
     if (!book.currentPage || !book.totalPages || book.totalPages === 0) {
@@ -30,14 +35,23 @@ export function BookSelector({
 
   return (
     <View style={styles.container}>
-      <Typography variant="body" style={styles.sectionTitle}>
-        {title}
-      </Typography>
+      {!isModal && (
+        <Typography variant="body" style={[styles.sectionTitle, { color: colors.text }]}>
+          {title}
+        </Typography>
+      )}
 
-      <ScrollView style={styles.booksList} contentContainerStyle={styles.booksListContent}>
+      <ScrollView 
+        style={styles.booksList} 
+        contentContainerStyle={[
+          styles.booksListContent,
+          isModal && styles.modalBooksListContent
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {books.length === 0 ? (
           <EmptyState
-            icon={<Book size={48} color={colors.gray[400]} />}
+            icon={<Book size={48} color={colors.textSecondary} />}
             title="読書中の本がありません"
             message="本棚から本を追加してください"
           />
@@ -47,22 +61,24 @@ export function BookSelector({
               key={book.id}
               style={[
                 styles.bookItem,
-                selectedBookId === book.id && styles.selectedBookItem,
+                { backgroundColor: colors.card },
+                selectedBookId === book.id && [styles.selectedBookItem, { borderColor: colors.primary }],
+                isModal && styles.modalBookItem
               ]}
               onPress={() => onSelectBook(book)}
             >
               {book.coverImage ? (
                 <Image source={{ uri: book.coverImage }} style={styles.bookCover} />
               ) : (
-                <View style={styles.placeholderCover}>
-                  <Book size={24} color={colors.gray[400]} />
+                <View style={[styles.placeholderCover, { backgroundColor: colors.border }]}>
+                  <Book size={24} color={colors.textSecondary} />
                 </View>
               )}
               <View style={styles.bookItemInfo}>
-                <Typography variant="body" style={styles.bookItemTitle} numberOfLines={1}>
+                <Typography variant="body" style={[styles.bookItemTitle, { color: colors.text }]} numberOfLines={1}>
                   {book.title}
                 </Typography>
-                <Typography variant="caption" style={styles.bookItemAuthor} numberOfLines={1}>
+                <Typography variant="caption" style={[styles.bookItemAuthor, { color: colors.textSecondary }]} numberOfLines={1}>
                   {book.author}
                 </Typography>
                 
@@ -73,12 +89,19 @@ export function BookSelector({
                       height={4} 
                       showPercentage={false}
                     />
-                    <Typography variant="caption" style={styles.progressText}>
+                    <Typography variant="caption" style={[styles.progressText, { color: colors.textSecondary }]}>
                       {book.currentPage} / {book.totalPages}ページ ({calculateProgress(book)}%)
                     </Typography>
                   </View>
                 )}
               </View>
+              {isModal && selectedBookId === book.id && (
+                <View style={[styles.selectedIndicator, { backgroundColor: colors.primary }]}>
+                  <Typography variant="caption" style={[styles.selectedText, { color: colors.card }]}>
+                    選択中
+                  </Typography>
+                </View>
+              )}
             </Pressable>
           ))
         )}
@@ -93,7 +116,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginBottom: spacing.sm,
-    color: colors.gray[800],
     fontWeight: 'bold',
   },
   booksList: {
@@ -102,17 +124,27 @@ const styles = StyleSheet.create({
   booksListContent: {
     paddingVertical: spacing.sm,
   },
+  modalBooksListContent: {
+    paddingBottom: spacing.md,
+  },
   bookItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
     borderRadius: spacing.md,
     padding: spacing.sm,
     marginBottom: spacing.sm,
   },
+  modalBookItem: {
+    marginBottom: spacing.md,
+    padding: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
   selectedBookItem: {
     borderWidth: 2,
-    borderColor: colors.primary.main,
   },
   bookCover: {
     width: 50,
@@ -122,7 +154,6 @@ const styles = StyleSheet.create({
   placeholderCover: {
     width: 50,
     height: 70,
-    backgroundColor: colors.gray[200],
     borderRadius: spacing.xs,
     justifyContent: 'center',
     alignItems: 'center',
@@ -132,18 +163,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bookItemTitle: {
-    color: colors.gray[800],
     fontWeight: 'bold',
   },
   bookItemAuthor: {
-    color: colors.gray[600],
   },
   progressWrapper: {
     marginTop: spacing.xs,
   },
   progressText: {
     fontSize: 10,
-    color: colors.gray[500],
     marginTop: 2,
+  },
+  selectedIndicator: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: spacing.sm,
+  },
+  selectedText: {
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 }); 
