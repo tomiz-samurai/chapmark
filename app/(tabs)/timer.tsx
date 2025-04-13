@@ -363,7 +363,7 @@ export default function TimerScreen() {
         onClose={handleCloseCompletionModal}
         title="読書記録"
       >
-        {currentSession && selectedBook && (
+        {selectedBook && (
           <View style={styles.modalContent}>
             {/* 書籍情報 */}
             <View style={styles.bookInfoContainer}>
@@ -387,61 +387,97 @@ export default function TimerScreen() {
 
             {/* 読書セッション情報 */}
             <View style={styles.sessionInfoContainer}>
-              <View style={styles.sessionInfoRow}>
-                <Typography variant="label" style={{ color: colors.textSecondary }}>読書時間</Typography>
-                <Typography variant="title" style={{ color: colors.text }}>
-                  {formatTime(displaySeconds)}
-                </Typography>
+              {/* 読書時間 - ハイライトセクション */}
+              <View style={[styles.sessionHighlight, { backgroundColor: colors.secondaryLight }]}>
+                <View style={styles.sessionHighlightContent}>
+                  <Typography variant="label" style={{ color: colors.primaryDark, marginBottom: 2 }}>
+                    読書時間
+                  </Typography>
+                  <Typography variant="display" style={{ color: colors.primaryDark, fontSize: 24 }}>
+                    {formatTime(displaySeconds)}
+                  </Typography>
+                </View>
               </View>
               
-              <View style={styles.sessionInfoRow}>
-                <Typography variant="label" style={{ color: colors.textSecondary }}>読了ページ数</Typography>
-                <Typography variant="title" style={{ color: colors.text }}>
-                  {getReadPages()} ページ
-                </Typography>
+              {/* 読了ページ数と進捗率 */}
+              <View style={styles.achievementSection}>
+                <View style={styles.achievementItem}>
+                  <View style={[styles.achievementIcon, { backgroundColor: colors.primary }]}>
+                    <Typography variant="title" style={{ color: colors.secondaryLight, fontSize: 16 }}>
+                      {getReadPages()}
+                    </Typography>
+                  </View>
+                  <Typography variant="caption" style={{ color: colors.textSecondary, marginTop: 2, fontSize: 10 }}>
+                    読了ページ
+                  </Typography>
+                </View>
+                
+                <View style={styles.achievementItem}>
+                  <View style={[styles.achievementIcon, { backgroundColor: colors.secondaryDark }]}>
+                    <Typography variant="title" style={{ color: colors.background, fontSize: 16 }}>
+                      {calculateModalProgress()}%
+                    </Typography>
+                  </View>
+                  <Typography variant="caption" style={{ color: colors.textSecondary, marginTop: 2, fontSize: 10 }}>
+                    進捗率
+                  </Typography>
+                </View>
               </View>
               
-              <View style={styles.sessionInfoRow}>
-                <Typography variant="label" style={{ color: colors.textSecondary }}>現在のページ</Typography>
-                <TextInput
-                  style={[styles.modalInput, { 
-                    borderColor: colors.border, 
-                    backgroundColor: colors.background,
-                    color: colors.text
-                  }]}
-                  value={modalCurrentPage !== undefined ? modalCurrentPage.toString() : ''}
-                  onChangeText={validateAndUpdateModalCurrentPage}
-                  keyboardType="number-pad"
-                  placeholder="ページ数"
-                />
-              </View>
-              
-              <View style={styles.sessionInfoRow}>
-                <Typography variant="label" style={{ color: colors.textSecondary }}>全ページ数</Typography>
-                <TextInput
-                  style={[styles.modalInput, { 
-                    borderColor: colors.border, 
-                    backgroundColor: colors.background,
-                    color: colors.text
-                  }]}
-                  value={modalTotalPages !== undefined ? modalTotalPages.toString() : ''}
-                  onChangeText={validateAndUpdateModalTotalPages}
-                  keyboardType="number-pad"
-                  placeholder="全ページ"
-                />
-              </View>
-              
-              <View style={styles.progressContainer}>
-                <ProgressBar progress={calculateModalProgress()} />
-                <Typography variant="caption" style={[styles.progressText, { color: colors.textSecondary }]}>
-                  進捗: {calculateModalProgress()}%
-                </Typography>
+              {/* 入力フィールド */}
+              <View style={[styles.inputSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View style={styles.inputRow}>
+                  <View style={styles.inputColumn}>
+                    <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>
+                      現在のページ
+                    </Typography>
+                    <TextInput
+                      style={[styles.modalInput, { 
+                        borderColor: colors.border, 
+                        backgroundColor: colors.background,
+                        color: colors.text
+                      }]}
+                      value={modalCurrentPage !== undefined ? modalCurrentPage.toString() : ''}
+                      onChangeText={validateAndUpdateModalCurrentPage}
+                      keyboardType="number-pad"
+                      placeholder="ページ数"
+                    />
+                  </View>
+                  
+                  <View style={styles.inputColumn}>
+                    <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>
+                      全ページ数
+                    </Typography>
+                    <TextInput
+                      style={[styles.modalInput, { 
+                        borderColor: colors.border, 
+                        backgroundColor: colors.background,
+                        color: colors.text
+                      }]}
+                      value={modalTotalPages !== undefined ? modalTotalPages.toString() : ''}
+                      onChangeText={validateAndUpdateModalTotalPages}
+                      keyboardType="number-pad"
+                      placeholder="全ページ"
+                    />
+                  </View>
+                </View>
+                
+                <View style={styles.progressContainer}>
+                  <ProgressBar 
+                    progress={calculateModalProgress()} 
+                    height={6}
+                    progressColor={colors.secondary}
+                    backgroundColor={colors.neutralLight}
+                  />
+                </View>
               </View>
             </View>
 
             <Button 
               title="保存する" 
               onPress={handleSaveSession} 
+              variant="primary"
+              size="medium"
               style={styles.saveButton}
             />
           </View>
@@ -478,8 +514,8 @@ const styles = StyleSheet.create({
   },
   inputRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 12,
   },
   inputWrapper: {
@@ -521,6 +557,11 @@ const styles = StyleSheet.create({
     width: 70,
     height: 100,
     borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   modalBookInfo: {
     marginLeft: 16,
@@ -534,25 +575,69 @@ const styles = StyleSheet.create({
   sessionInfoContainer: {
     marginBottom: 24,
   },
+  sessionHighlight: {
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  sessionHighlightContent: {
+    alignItems: 'center',
+  },
+  achievementSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 12,
+  },
+  achievementItem: {
+    alignItems: 'center',
+  },
+  achievementIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  inputSection: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
   sessionInfoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  inputColumn: {
+    alignItems: 'center',
+    width: '48%',
   },
   modalInput: {
-    width: 100,
-    height: 40,
+    width: '100%',
+    height: 36,
     borderWidth: 1,
     borderRadius: 8,
-    padding: 8,
+    padding: 6,
     textAlign: 'center',
   },
   progressContainer: {
-    marginTop: 8,
+    marginTop: 4,
   },
   saveButton: {
-    marginTop: 8,
+    marginTop: 4,
   },
   // 選択中の本の表示用スタイル
   selectedBookContainer: {

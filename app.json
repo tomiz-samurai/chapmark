@@ -44,8 +44,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "59f6a68a-efcc-4f73-9c69-ee7577caf5d5"
+        "projectId": "4f5b32f5-c08e-42aa-8226-a0c73034374f"
       }
-    }
+    },
+    "owner": "tomiz"
   }
 }
