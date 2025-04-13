@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Book, Chrome as Home, Timer, User } from 'lucide-react-native';
+import { Book, Chrome as Home, Timer, User, Search } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -25,6 +25,13 @@ export default function TabLayout() {
         options={{
           title: '本棚',
           tabBarIcon: ({ color, size }) => <Book size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="discover"
+        options={{
+          title: '発見',
+          tabBarIcon: ({ color, size }) => <Search size={size} color={color} />,
         }}
       />
       <Tabs.Screen
