@@ -204,16 +204,7 @@ export default function BookDetail() {
           書籍詳細
         </Typography>
         <View style={styles.headerRight}>
-          {book.status && (
-            <TouchableOpacity
-              style={[styles.statusButton, { backgroundColor: STATUS_OPTIONS.find(opt => opt.value === book.status)?.color || colors.gray[500] }]}
-              onPress={() => setStatusModalVisible(true)}
-            >
-              <Typography variant="label" style={styles.statusButtonText}>
-                {statusText}
-              </Typography>
-            </TouchableOpacity>
-          )}
+          {/* ステータスボタンを削除 */}
         </View>
       </View>
 
