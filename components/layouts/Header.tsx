@@ -11,6 +11,7 @@ interface HeaderProps {
   showBack?: boolean;
   notificationCount?: number;
   onNotificationPress?: () => void;
+  isTitleTranslationKey?: boolean;
 }
 
 export function Header({
@@ -18,9 +19,12 @@ export function Header({
   showBack = false,
   notificationCount = 0,
   onNotificationPress,
+  isTitleTranslationKey = false,
 }: HeaderProps) {
   const router = useRouter();
   const { t } = useAppTranslation();
+
+  const displayTitle = isTitleTranslationKey ? t(title) : title;
 
   return (
     <View style={styles.container}>
@@ -38,7 +42,7 @@ export function Header({
       </View>
 
       <Typography variant="title" style={styles.title}>
-        {title}
+        {displayTitle}
       </Typography>
 
       <View style={styles.rightContainer}>

@@ -65,9 +65,10 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Header
-        title={t('navigation.home')}
+        title={'navigation.home'}
         notificationCount={2}
         onNotificationPress={handleNotificationPress}
+        isTitleTranslationKey={true}
       />
       
       <ScrollView style={styles.content}>

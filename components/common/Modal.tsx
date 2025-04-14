@@ -3,15 +3,21 @@ import { View, StyleSheet, Modal as RNModal, TouchableOpacity, KeyboardAvoidingV
 import { X } from 'lucide-react-native';
 import { Typography } from '../Typography';
 import { colors, spacing } from '../../constants/theme';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
 
 interface ModalProps {
   visible: boolean;
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+  isTitleTranslationKey?: boolean;
 }
 
-export function Modal({ visible, onClose, title, children }: ModalProps) {
+export function Modal({ visible, onClose, title, children, isTitleTranslationKey = false }: ModalProps) {
+  const { t } = useAppTranslation();
+  
+  const displayTitle = title && isTitleTranslationKey ? t(title) : title;
+  
   return (
     <RNModal
       transparent
@@ -28,9 +34,9 @@ export function Modal({ visible, onClose, title, children }: ModalProps) {
           <View style={styles.overlay}>
             <View style={styles.modalContainer}>
               <View style={styles.header}>
-                {title ? (
+                {displayTitle ? (
                   <Typography variant="title" style={styles.title}>
-                    {title}
+                    {displayTitle}
                   </Typography>
                 ) : (
                   <View style={styles.titlePlaceholder} />

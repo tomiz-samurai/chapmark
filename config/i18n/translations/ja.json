@@ -8,7 +8,8 @@
     "delete": "削除",
     "edit": "編集",
     "close": "閉じる",
-    "viewAll": "すべて見る"
+    "viewAll": "すべて見る",
+    "noCover": "表紙なし"
   },
   "navigation": {
     "home": "ホーム",

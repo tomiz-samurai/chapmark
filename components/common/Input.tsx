@@ -1,16 +1,35 @@
 import { View, TextInput, Text, StyleSheet, TextInputProps } from 'react-native';
 import { colors, spacing, borderRadius, typography } from '../../constants/theme';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
 
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
   helper?: string;
+  isLabelTranslationKey?: boolean;
+  isErrorTranslationKey?: boolean;
+  isHelperTranslationKey?: boolean;
 }
 
-export function Input({ label, error, helper, style, ...props }: InputProps) {
+export function Input({ 
+  label, 
+  error, 
+  helper, 
+  style, 
+  isLabelTranslationKey = false,
+  isErrorTranslationKey = false,
+  isHelperTranslationKey = false,
+  ...props 
+}: InputProps) {
+  const { t } = useAppTranslation();
+
+  const displayLabel = label && isLabelTranslationKey ? t(label) : label;
+  const displayError = error && isErrorTranslationKey ? t(error) : error;
+  const displayHelper = helper && isHelperTranslationKey ? t(helper) : helper;
+
   return (
     <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {displayLabel && <Text style={styles.label}>{displayLabel}</Text>}
       <TextInput
         style={[
           styles.input,
@@ -20,9 +39,9 @@ export function Input({ label, error, helper, style, ...props }: InputProps) {
         placeholderTextColor={colors.gray[400]}
         {...props}
       />
-      {(error || helper) && (
-        <Text style={[styles.helperText, error && styles.errorText]}>
-          {error || helper}
+      {(displayError || displayHelper) && (
+        <Text style={[styles.helperText, displayError && styles.errorText]}>
+          {displayError || displayHelper}
         </Text>
       )}
     </View>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
+import { ArrowLeft } from 'lucide-react-native';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { changeLanguage } from '../../config/i18n';
 import { colors, spacing, typography } from '../../constants/theme';
@@ -12,15 +13,33 @@ interface LanguageOption {
 
 export default function LanguageSettingsScreen() {
   const { t, i18n } = useAppTranslation();
+  const router = useRouter();
   
   const languages: LanguageOption[] = [
     { code: 'ja', label: '日本語' },
     { code: 'en', label: 'English' }
   ];
   
+  const handleBack = () => {
+    router.back();
+  };
+  
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: t('settings.language') }} />
+      <Stack.Screen 
+        options={{
+          title: t('settings.language'),
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={handleBack}
+              style={styles.backButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <ArrowLeft size={24} color={colors.gray[700]} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
       
       <Text style={styles.heading}>{t('settings.uiLanguage')}</Text>
       
@@ -94,5 +113,9 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     color: colors.gray[600],
     lineHeight: 20,
+  },
+  backButton: {
+    padding: spacing.xs,
+    marginLeft: spacing.sm,
   },
 }); 

@@ -1,6 +1,7 @@
 import { View, StyleSheet, ViewProps, Image, TouchableOpacity } from 'react-native';
 import { colors, borderRadius, shadows, spacing, typography } from '../constants/theme';
 import { Typography } from './Typography';
+import { useAppTranslation } from '../hooks/useAppTranslation';
 
 interface CardProps extends ViewProps {
   variant?: 'default' | 'elevated';
@@ -8,6 +9,8 @@ interface CardProps extends ViewProps {
   subtitle?: string;
   coverImage?: string;
   onPress?: () => void;
+  isTitleTranslationKey?: boolean;
+  isSubtitleTranslationKey?: boolean;
 }
 
 export function Card({ 
@@ -17,9 +20,15 @@ export function Card({
   subtitle,
   coverImage,
   onPress,
+  isTitleTranslationKey = false,
+  isSubtitleTranslationKey = false,
   ...props 
 }: CardProps) {
   const CardContainer = onPress ? TouchableOpacity : View;
+  const { t } = useAppTranslation();
+  
+  const displayTitle = isTitleTranslationKey ? t(title) : title;
+  const displaySubtitle = subtitle && isSubtitleTranslationKey ? t(subtitle) : subtitle;
   
   return (
     <CardContainer 
@@ -41,17 +50,17 @@ export function Card({
         ) : (
           <View style={styles.coverPlaceholder}>
             <Typography variant="caption" color={colors.gray[400]}>
-              No Cover
+              {t('common.noCover')}
             </Typography>
           </View>
         )}
         <View style={styles.textContainer}>
           <Typography variant="title" numberOfLines={2} style={styles.title}>
-            {title}
+            {displayTitle}
           </Typography>
-          {subtitle && (
+          {displaySubtitle && (
             <Typography variant="caption" color={colors.gray[600]} numberOfLines={1}>
-              {subtitle}
+              {displaySubtitle}
             </Typography>
           )}
         </View>
