@@ -1,4 +1,4 @@
-import { View, StyleSheet, ViewProps, Image } from 'react-native';
+import { View, StyleSheet, ViewProps, Image, TouchableOpacity } from 'react-native';
 import { colors, borderRadius, shadows, spacing, typography } from '../constants/theme';
 import { Typography } from './Typography';
 
@@ -7,6 +7,7 @@ interface CardProps extends ViewProps {
   title: string;
   subtitle?: string;
   coverImage?: string;
+  onPress?: () => void;
 }
 
 export function Card({ 
@@ -15,15 +16,20 @@ export function Card({
   title,
   subtitle,
   coverImage,
+  onPress,
   ...props 
 }: CardProps) {
+  const CardContainer = onPress ? TouchableOpacity : View;
+  
   return (
-    <View 
+    <CardContainer 
       style={[
         styles.card,
         variant === 'elevated' && styles.elevated,
         style
       ]} 
+      onPress={onPress}
+      activeOpacity={0.7}
       {...props}
     >
       <View style={styles.content}>
@@ -50,7 +56,7 @@ export function Card({
           )}
         </View>
       </View>
-    </View>
+    </CardContainer>
   );
 }
 

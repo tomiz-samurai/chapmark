@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, FlatList, TouchableOpacity, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { router } from 'expo-router';
 import { Search } from 'lucide-react-native';
 
 import { Typography } from '../../components/Typography';
@@ -10,29 +9,48 @@ import { BookCard } from '../../components/common/BookCard';
 import { CategoryButton } from '../../components/common/CategoryButton';
 import { CollectionHeader } from '../../components/common/CollectionHeader';
 
-import { 
-  recommendedBooks, 
-  newReleaseBooks, 
-  popularCategories, 
-  recommendationCollections 
-} from '../../lib/mockData';
+import { popularCategories, recommendationCollections, recommendedBooks as mockRecommendedBooks, newReleaseBooks as mockNewReleaseBooks } from '../../lib/mockData';
 import { colors, spacing } from '../../constants/theme';
+import { getBooksByCategory } from '../../lib/services/BookService';
+import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
 
 export default function DiscoverScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { navigateToBookDetail, navigateToBookList, navigateToCollection } = useBookNavigation();
+
+  // デバッグ用: コンポーネントマウント時に一度だけ実行
+  useEffect(() => {
+    // 全データのカバー画像URLをログに表示
+    console.log("=== BOOK COVER DEBUG ===");
+    
+    // おすすめ本の情報表示
+    mockRecommendedBooks.forEach((book, index) => {
+      console.log(`Recommended Book ${index + 1}: ${book.title}`);
+      console.log(`- coverUrl: ${book.coverUrl || 'undefined'}`);
+    });
+    
+    // 新着本の情報表示
+    mockNewReleaseBooks.forEach((book, index) => {
+      console.log(`New Release Book ${index + 1}: ${book.title}`);
+      console.log(`- coverUrl: ${book.coverUrl || 'undefined'}`);
+    });
+    
+    console.log("=== END DEBUG ===");
+  }, []);
 
   const handleCategoryPress = (category: string) => {
     setSelectedCategory(selectedCategory === category ? null : category);
   };
 
+  // モックデータの配列を直接使用（代入ではなく）
+  // カテゴリーでフィルタリング
   const filteredBooks = selectedCategory
-    ? recommendedBooks.filter(book => book.category.includes(selectedCategory))
-    : recommendedBooks;
-
-  const navigateToScreen = (path: string) => {
-    // @ts-ignore
-    router.push(path);
-  }
+    ? mockRecommendedBooks.filter(book => 
+        book.category && book.category.some(cat => 
+          cat.toLowerCase() === selectedCategory.toLowerCase()
+        )
+      )
+    : mockRecommendedBooks;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -45,7 +63,7 @@ export default function DiscoverScreen() {
         </Typography>
         <TouchableOpacity 
           style={styles.searchButton} 
-          onPress={() => navigateToScreen('/search')}
+          onPress={() => navigateToBookList('search')}
         >
           <Search size={24} color={colors.gray[700]} />
         </TouchableOpacity>
@@ -81,40 +99,42 @@ export default function DiscoverScreen() {
         <View style={styles.section}>
           <CollectionHeader 
             title={selectedCategory || "おすすめ書籍"} 
-            onSeeAllPress={() => navigateToScreen('/books/recommended')}
-          />
-          <FlatList
-            data={filteredBooks}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            scrollEnabled={false}
-            columnWrapperStyle={styles.bookRow}
-            renderItem={({ item }) => (
-              <BookCard
-                book={item}
-                onPress={() => navigateToScreen(`/books/${item.id}`)}
-              />
-            )}
-          />
-        </View>
-
-        {/* 新着書籍 */}
-        <View style={styles.section}>
-          <CollectionHeader 
-            title="新着書籍" 
-            onSeeAllPress={() => navigateToScreen('/books/new-releases')}
+            onSeeAllPress={() => navigateToBookList('recommended')}
           />
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalScrollContent}
           >
-            {newReleaseBooks.map((book) => (
+            {filteredBooks.map((book) => (
               <BookCard
                 key={book.id}
                 book={book}
-                variant="grid"
-                onPress={() => navigateToScreen(`/books/${book.id}`)}
+                variant="compact"
+                onPress={() => navigateToBookDetail(book.id)}
+                style={styles.recommendedBookCard}
+              />
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* 新着書籍 */}
+        <View style={styles.section}>
+          <CollectionHeader 
+            title="新着書籍" 
+            onSeeAllPress={() => navigateToBookList('new-releases')}
+          />
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalScrollContent}
+          >
+            {mockNewReleaseBooks.map((book) => (
+              <BookCard
+                key={book.id}
+                book={book}
+                variant="compact"
+                onPress={() => navigateToBookDetail(book.id)}
                 style={styles.horizontalBookCard}
               />
             ))}
@@ -126,7 +146,7 @@ export default function DiscoverScreen() {
           <View key={collection.id} style={styles.section}>
             <CollectionHeader 
               title={collection.title} 
-              onSeeAllPress={() => navigateToScreen(`/collections/${collection.id}`)}
+              onSeeAllPress={() => navigateToCollection(collection.id)}
             />
             <FlatList
               data={collection.books}
@@ -138,7 +158,7 @@ export default function DiscoverScreen() {
                 <BookCard
                   book={item}
                   variant="horizontal"
-                  onPress={() => navigateToScreen(`/books/${item.id}`)}
+                  onPress={() => navigateToBookDetail(item.id)}
                   style={styles.collectionBookCard}
                 />
               )}
@@ -193,20 +213,24 @@ const styles = StyleSheet.create({
   bookRow: {
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    marginBottom: spacing.md,
+    marginBottom: 0,
   },
   horizontalScrollContent: {
     paddingHorizontal: spacing.md,
   },
   horizontalBookCard: {
-    marginRight: spacing.md,
-    width: 140,
+    marginRight: spacing.sm,
+    width: 110,
   },
   collectionBookCard: {
-    width: 300,
-    marginRight: spacing.md,
+    width: 240,
+    marginRight: spacing.sm,
   },
   bottomPadding: {
     height: spacing.xl * 2,
+  },
+  recommendedBookCard: {
+    marginRight: spacing.sm,
+    width: 110,
   },
 }); 

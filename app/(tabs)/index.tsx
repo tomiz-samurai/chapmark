@@ -2,17 +2,21 @@ import { StyleSheet, View, ScrollView, Pressable, Image } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
 import { Book, TrendingUp, Clock } from 'lucide-react-native';
-import { Card } from '../../components/Card';
 import { Typography } from '../../components/Typography';
 import { colors, spacing } from '../../constants/theme';
 import { useResponsive } from '../../hooks/useResponsive';
 import { Header } from '../../components/layouts/Header';
+import { BookCard } from '../../components/common/BookCard';
+import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
+import { getAllBooks, Book as BookType } from '../../lib/services/BookService';
+import { recommendedBooks as mockRecommendedBooks } from '../../lib/mockData';
 
 const READING_GOAL = 24; // 年間読書目標
 const BOOKS_READ = 8; // 現在の読了数
 const PROGRESS = (BOOKS_READ / READING_GOAL) * 100;
 
-const RECOMMENDED_BOOKS = [
+// BookServiceで使用するためにエクスポート (互換性のため)
+export const RECOMMENDED_BOOKS = [
   {
     id: '1',
     title: 'アトミック・ハビット',
@@ -35,6 +39,7 @@ const RECOMMENDED_BOOKS = [
 
 export default function HomeScreen() {
   const { isLargeDevice } = useResponsive();
+  const { navigateToBookDetail } = useBookNavigation();
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_600SemiBold,
@@ -44,6 +49,12 @@ export default function HomeScreen() {
   if (!fontsLoaded) {
     return null;
   }
+
+  // モックデータから直接おすすめの本を取得
+  const recommendedBooks = mockRecommendedBooks.slice(0, 4);
+  
+  // 読書中の本を取得
+  const currentlyReading = getAllBooks().find(book => book.status === 'reading');
 
   const handleNotificationPress = () => {
     console.log('Notification pressed');
@@ -104,35 +115,32 @@ export default function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.recommendedBooks}>
-            {RECOMMENDED_BOOKS.map((book) => (
-              <Pressable key={book.id} style={styles.recommendedBook}>
-                <Image
-                  source={{ uri: book.coverImage }}
-                  style={styles.bookCover}
-                />
-                <Typography variant="caption" style={styles.bookTitle} numberOfLines={2}>
-                  {book.title}
-                </Typography>
-                <Typography variant="caption" color={colors.gray[500]} numberOfLines={1}>
-                  {book.author}
-                </Typography>
-              </Pressable>
+            {recommendedBooks.map((book) => (
+              <BookCard
+                key={book.id}
+                book={book}
+                variant="compact"
+                style={styles.recommendedBookCard}
+                onPress={() => navigateToBookDetail(book.id)}
+              />
             ))}
           </ScrollView>
         </View>
 
         {/* 現在読書中 */}
-        <View style={styles.section}>
-          <Typography variant="title" style={styles.sectionTitle}>
-            現在読書中
-          </Typography>
-          <Card
-            variant="elevated"
-            title="エッセンシャル思考"
-            subtitle="グレッグ・マキューン"
-            coverImage="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3"
-          />
-        </View>
+        {currentlyReading && (
+          <View style={styles.section}>
+            <Typography variant="title" style={styles.sectionTitle}>
+              現在読書中
+            </Typography>
+            <BookCard
+              book={currentlyReading}
+              variant="horizontal"
+              showStatus={true}
+              onPress={() => navigateToBookDetail(currentlyReading.id)}
+            />
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -198,11 +206,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   recommendedBooks: {
-    gap: spacing.md,
     paddingRight: spacing.md,
+    gap: spacing.sm,
   },
-  recommendedBook: {
-    width: 120,
+  recommendedBookCard: {
+    width: 110,
+    marginRight: spacing.sm,
   },
   bookCover: {
     width: 120,
