@@ -7,6 +7,7 @@ import { Book } from '../../lib/types';
 import { RootState } from '../../lib/store';
 import TimerService, { formatTime } from '../../lib/services/TimerService';
 import { useTheme } from '../../lib/hooks/useTheme';
+import { BookIcon } from 'lucide-react-native';
 
 interface ReadingTimerProps {
   book: Book | null;
@@ -60,6 +61,22 @@ export function ReadingTimer({
     }
   };
 
+  // 安全で確実に表示できる画像URL
+  const defaultBookCover = 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80';
+  
+  // カバー画像を取得する関数
+  const getCoverSource = () => {
+    if (!book) return { uri: defaultBookCover };
+    
+    if (book.coverImage) {
+      return { uri: book.coverImage };
+    } else if (book.coverUrl) {
+      return { uri: book.coverUrl };
+    }
+    
+    return { uri: defaultBookCover };
+  };
+
   if (!book) {
     return (
       <View style={[styles.emptyContainer, { backgroundColor: colors.card }]}>
@@ -72,6 +89,15 @@ export function ReadingTimer({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.card }]}>
+      {/* 本のカバー画像 */}
+      <View style={styles.coverContainer}>
+        <Image
+          source={getCoverSource()}
+          style={styles.coverImage}
+          resizeMode="contain"
+        />
+      </View>
+
       {/* タイマー表示部分 */}
       <View style={styles.timerSection}>
         <Typography variant="display" style={[styles.timerText, { color: colors.secondary }]}>
@@ -130,6 +156,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 16,
+  },
+  coverContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  coverImage: {
+    width: 100,
+    height: 140,
+    borderRadius: 8,
   },
   timerSection: {
     alignItems: 'center',

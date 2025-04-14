@@ -145,6 +145,60 @@ export const getAllUserBooks = (): Book[] => {
   return [...updatedBooks, ...newUserBooks];
 };
 
+// 本棚に追加された本のみを取得（ステータスがある本のみ）
+export const getUserBooks = (): Book[] => {
+  // ユーザーが明示的に追加した本
+  const explicitUserBooks = [...userAddedBooks];
+  
+  // モックデータの中でステータスが設定されている本
+  const allBooks = getAllBooks();
+  const booksWithStatus = allBooks.filter(book => {
+    // すでにユーザーが追加した本に含まれている場合はスキップ
+    if (userAddedBooks.some(userBook => userBook.id === book.id)) {
+      return false;
+    }
+    
+    // ユーザーが追加した本に同じタイトルと著者の本がある場合もスキップ
+    if (userAddedBooks.some(userBook => 
+      userBook.title.toLowerCase() === book.title.toLowerCase() && 
+      userBook.author.toLowerCase() === book.author.toLowerCase()
+    )) {
+      return false;
+    }
+    
+    // ステータスが設定されている本のみ返す
+    return book.status !== undefined;
+  });
+  
+  // 最終的な結果からも重複を排除する
+  const result = [...explicitUserBooks];
+  
+  // すでに追加されているタイトルと著者の組み合わせを記録
+  const addedBooks = new Set(
+    explicitUserBooks.map(book => `${book.title.toLowerCase()}|${book.author.toLowerCase()}`)
+  );
+  
+  // モックデータの本で、まだ重複していないものを追加
+  for (const book of booksWithStatus) {
+    const key = `${book.title.toLowerCase()}|${book.author.toLowerCase()}`;
+    if (!addedBooks.has(key)) {
+      result.push(book);
+      addedBooks.add(key);
+    }
+  }
+  
+  return result;
+};
+
+// 本棚のステータスで本をフィルター（本棚に追加された本のみ）
+export const getUserBooksByStatus = (status: string): Book[] => {
+  const userBooks = getUserBooks();
+  if (status === 'all') {
+    return userBooks;
+  }
+  return userBooks.filter(book => book.status === status);
+};
+
 // IDから本を検索 (ユーザーが追加/更新した本を含む)
 export const getBookById = (id: string): Book | undefined => {
   // ユーザーが追加した本から検索

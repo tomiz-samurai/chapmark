@@ -33,19 +33,26 @@ export const BookCard: React.FC<BookCardProps> = ({
   const getFixedImageUrl = (url?: string) => {
     if (!url) return null;
     
+    console.log(`処理前のURL: ${url}`);
+    
     // AmazonのURLを修正 (CORSとセキュリティ対応)
     if (url.includes('amazon.com') || url.includes('media-amazon.com')) {
       // URLパラメータを削除して単純化 (AmazonのCORS問題を回避)
       const baseUrl = url.split('?')[0];
+      console.log(`Amazon画像URL修正後: ${baseUrl}`);
       return baseUrl;
     }
     
+    console.log(`最終的なURL: ${url}`);
     return url;
   };
   
   // 共通の画像ソース処理をuseMemoで効率化
   const coverSource = useMemo(() => {
+    console.log(`Book: ${title} - coverUrl: ${coverUrl}, coverImage: ${coverImage}`);
+    
     if (imageError) {
+      console.log(`${title}: エラーが発生したため、デフォルト画像を使用`);
       return { uri: defaultBookCover } as ImageSourcePropType;
     }
     
@@ -54,15 +61,18 @@ export const BookCard: React.FC<BookCardProps> = ({
     const fixedCoverImage = getFixedImageUrl(coverImage);
     
     if (fixedCoverUrl) {
+      console.log(`${title}: coverUrlを使用 - ${fixedCoverUrl}`);
       return { uri: fixedCoverUrl } as ImageSourcePropType;
     }
     
     if (fixedCoverImage) {
+      console.log(`${title}: coverImageを使用 - ${fixedCoverImage}`);
       return { uri: fixedCoverImage } as ImageSourcePropType;
     }
     
+    console.log(`${title}: デフォルト画像を使用`);
     return { uri: defaultBookCover } as ImageSourcePropType;
-  }, [book, imageError, coverUrl, coverImage]);
+  }, [book, imageError, coverUrl, coverImage, title]);
   
   // 画像読み込みエラー処理
   const handleImageError = () => {
@@ -269,10 +279,12 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.sm,
   },
   gridCover: {
-    width: '100%',
-    height: 145,
-    borderRadius: 8,
-    marginBottom: spacing.xs,
+    backgroundColor: colors.gray[100],
+    width: "100%",
+    height: 140,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    overflow: "hidden",
   },
   gridCoverPlaceholder: {
     width: '100%',

@@ -19,6 +19,7 @@ import { clearCurrentSession } from '../../lib/store/sessionSlice';
 import { resetTimer, finishSession } from '../../lib/store/timerSlice';
 import TimerService, { formatTime, calculateProgress, calculateReadPages } from '../../lib/services/TimerService';
 import { useTheme } from '../../lib/hooks/useTheme';
+import { getAllBooks, getBookById } from '../../lib/services/BookService';
 
 // ダミーデータ（実際の実装では本のリストはストアまたはAPIから取得）
 const READING_BOOKS: Book[] = [
@@ -77,10 +78,69 @@ export default function TimerScreen() {
   
   // 初期データのロード
   useEffect(() => {
+    // 利用可能な読書中の本がない場合はモックデータを使用
     if (books.length === 0) {
-      dispatch(fetchBooksSuccess(READING_BOOKS));
+      // BookServiceから本のデータを取得
+      const allBooks = getAllBooks().filter(book => book.status === 'reading');
+      
+      if (allBooks.length > 0) {
+        // BookサービスのBookをアプリのBook型に変換
+        const convertedBooks = allBooks.map(book => ({
+          id: book.id,
+          title: book.title,
+          author: book.author,
+          status: book.status as any, // 型を互換性を持たせる
+          coverImage: book.coverImage || book.coverUrl,
+          coverUrl: book.coverUrl || book.coverImage,
+          totalPages: book.pageCount || undefined,
+          currentPage: 0
+        }));
+        
+        dispatch(fetchBooksSuccess(convertedBooks));
+        
+        // 選択中の本がまだなければ、最初の本を選択
+        if (!selectedBookId && allBooks.length > 0) {
+          dispatch(selectBook(allBooks[0].id));
+        }
+      } else {
+        // 読書中の本がない場合はモックデータを使用
+        dispatch(fetchBooksSuccess(READING_BOOKS));
+      }
     }
-  }, [dispatch, books.length]);
+  }, [dispatch, books.length, selectedBookId]);
+  
+  // 本の詳細ページから遷移してきた場合の処理
+  useEffect(() => {
+    if (selectedBookId) {
+      const bookFromService = getBookById(selectedBookId);
+      
+      // BookServiceから取得した本の情報がある場合、それをRedux storeに反映
+      if (bookFromService) {
+        // 既にbooks配列に存在するか確認
+        const existingBook = books.find((book: Book) => book.id === selectedBookId);
+        
+        if (!existingBook) {
+          // BookサービスのBookをアプリのBook型に変換
+          const convertedBook = {
+            id: bookFromService.id,
+            title: bookFromService.title,
+            author: bookFromService.author,
+            status: bookFromService.status as any, // 型を互換性を持たせる
+            coverImage: bookFromService.coverImage || bookFromService.coverUrl,
+            coverUrl: bookFromService.coverUrl || bookFromService.coverImage,
+            totalPages: bookFromService.pageCount || undefined,
+            currentPage: 0
+          };
+          
+          // 新しい本のリストを作成
+          const updatedBooks = [...books, convertedBook];
+          
+          // ストアを更新
+          dispatch(fetchBooksSuccess(updatedBooks));
+        }
+      }
+    }
+  }, [selectedBookId, books, dispatch]);
   
   // 本の選択時に呼ばれる
   const handleSelectBook = (book: Book) => {

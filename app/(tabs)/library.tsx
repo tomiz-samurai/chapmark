@@ -9,7 +9,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { Loading } from '../../components/common/Loading';
 import { Header } from '../../components/layouts/Header';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
-import { getBooksByStatus, Book as BookType, addBookToLibrary, getAllUserBooks } from '../../lib/services/BookService';
+import { getBooksByStatus, Book as BookType, addBookToLibrary, getUserBooks, getUserBooksByStatus } from '../../lib/services/BookService';
 import { BookCard } from '../../components/common/BookCard';
 
 // BookServiceで使用するためにエクスポート (互換性のため)
@@ -133,9 +133,9 @@ export default function LibraryScreen() {
   
   // 本の一覧を更新する関数
   const refreshBooks = () => {
-    // ユーザーが追加/更新した本も含めて取得
-    const allBooks = getAllUserBooks();
-    setBooks(allBooks);
+    // 本棚に追加された本のみを取得
+    const userBooks = getUserBooks();
+    setBooks(userBooks);
   };
   
   // 初回レンダリング時と状態変更時に本の一覧を更新
@@ -152,7 +152,7 @@ export default function LibraryScreen() {
   if (selectedStatus === 'all') {
     filteredBooks = books;
   } else {
-    filteredBooks = books.filter(book => book.status === selectedStatus);
+    filteredBooks = getUserBooksByStatus(selectedStatus);
   }
 
   const handleNotificationPress = () => {
@@ -215,7 +215,13 @@ export default function LibraryScreen() {
                 styles.tab,
                 selectedStatus === tab.value && styles.selectedTab,
               ]}
-              onPress={() => setSelectedStatus(tab.value as BookStatus)}
+              onPress={() => {
+                setSelectedStatus(tab.value as BookStatus);
+                // ステータスが変更された時も本のリストを更新
+                if (tab.value === 'all') {
+                  refreshBooks();
+                }
+              }}
             >
               <Typography
                 variant="caption"
@@ -239,7 +245,7 @@ export default function LibraryScreen() {
           <EmptyState
             icon={<Book size={48} color={colors.gray[400]} />}
             title="本が見つかりません"
-            message="選択したステータスの本がありません。"
+            message="本棚に本がありません。「+」ボタンから本を追加してください。"
           />
         ) : (
           filteredBooks.map((book) => (

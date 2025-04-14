@@ -4,11 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, router } from 'expo-router';
 import { ChevronLeft, Star, Clock, BookOpen, Calendar, Building, Tag, Check } from 'lucide-react-native';
+import { useDispatch } from 'react-redux';
 
 import { Typography } from '../../components/Typography';
 import { colors, spacing, borderRadius, shadows } from '../../constants/theme';
 import { getBookById, updateBookStatus, addBookToLibrary } from '../../lib/services/BookService';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
+import { selectBook } from '../../lib/store/bookSlice';
 
 // ステータスのオプション
 const STATUS_OPTIONS = [
@@ -23,6 +25,7 @@ export default function BookDetail() {
   const { id } = useLocalSearchParams();
   const bookId = typeof id === 'string' ? id : '';
   const { goBack } = useBookNavigation();
+  const dispatch = useDispatch();
   
   // 画像エラー状態の追加
   const [imageError, setImageError] = useState(false);
@@ -74,14 +77,44 @@ export default function BookDetail() {
     router.push('/(tabs)/library');
   };
   
+  // タイマー画面に遷移する関数
+  const navigateToTimer = () => {
+    router.push('/(tabs)/timer');
+  };
+  
   // 読書開始ボタンの処理
   const handleStartReading = () => {
+    // ステータスが「読了」の場合は確認アラートを表示
+    if (book.status === 'completed') {
+      Alert.alert(
+        '確認',
+        'この本は既に読了済みです。再度読書を開始しますか？',
+        [
+          { text: 'キャンセル', style: 'cancel' },
+          { 
+            text: '読書開始', 
+            onPress: () => {
+              startReading();
+            }
+          }
+        ]
+      );
+    } else {
+      // 「読了」以外の場合は直接読書を開始
+      startReading();
+    }
+  };
+  
+  // 読書を開始する共通処理
+  const startReading = () => {
     if (updateBookStatus(bookId, 'reading')) {
       refreshBookData();
-      Alert.alert('成功', '本のステータスを「読書中」に変更しました', [
-        { text: '閉じる', style: 'cancel' },
-        { text: '本棚へ移動', onPress: navigateToLibrary }
-      ]);
+      
+      // Reduxストアに選択中の本を設定
+      dispatch(selectBook(bookId));
+      
+      // タイマー画面に遷移
+      router.push('/(tabs)/timer');
     }
   };
   

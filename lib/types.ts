@@ -8,6 +8,7 @@ export interface Book {
   author: string;
   status: BookStatus;
   coverImage?: string;
+  coverUrl?: string;
   totalPages?: number;
   currentPage?: number;
 }
