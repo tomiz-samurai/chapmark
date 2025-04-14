@@ -84,11 +84,15 @@ export default function BookDetail() {
   
   // 読書開始ボタンの処理
   const handleStartReading = () => {
-    // ステータスが「読了」の場合は確認アラートを表示
-    if (book.status === 'completed') {
+    // 「読書中」以外のステータスの場合は確認アラートを表示
+    if (book.status !== 'reading') {
+      const statusMessage = book.status === 'completed' 
+        ? 'この本は既に「読了」済みです。' 
+        : `「${getStatusText(book.status)}」を「読書中」に`;
+      
       Alert.alert(
-        '確認',
-        'この本は既に読了済みです。再度読書を開始しますか？',
+        'ステータス変更の確認',
+        `${statusMessage}変更して読書を開始しますか？`,
         [
           { text: 'キャンセル', style: 'cancel' },
           { 
@@ -100,7 +104,7 @@ export default function BookDetail() {
         ]
       );
     } else {
-      // 「読了」以外の場合は直接読書を開始
+      // 「読書中」の場合は直接読書を開始
       startReading();
     }
   };
