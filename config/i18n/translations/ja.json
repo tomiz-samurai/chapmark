@@ -7,7 +7,8 @@
     "cancel": "キャンセル",
     "delete": "削除",
     "edit": "編集",
-    "close": "閉じる"
+    "close": "閉じる",
+    "viewAll": "すべて見る"
   },
   "navigation": {
     "home": "ホーム",
@@ -15,22 +16,31 @@
     "timer": "タイマー",
     "profile": "プロフィール",
     "settings": "設定",
-    "discover": "発見"
+    "discover": "見つける"
   },
   "auth": {
     "signIn": "ログイン",
-    "signUp": "新規登録",
+    "signUp": "アカウント作成",
     "signOut": "ログアウト",
     "email": "メールアドレス",
     "password": "パスワード"
   },
   "books": {
-    "myBooks": "マイ本棚",
+    "myBooks": "マイブック",
     "addBook": "本を追加",
     "reading": "読書中",
     "toRead": "読みたい本",
     "completed": "読了",
-    "search": "本を検索"
+    "onHold": "中断中",
+    "dropped": "中止",
+    "search": "本を検索",
+    "filters": {
+      "all": "すべて",
+      "reading": "読書中",
+      "completed": "読了",
+      "planned": "これから読む"
+    },
+    "status": "ステータス"
   },
   "timer": {
     "start": "開始",
@@ -44,7 +54,31 @@
     "language": "言語設定",
     "uiLanguage": "インターフェース言語",
     "contentLanguage": "コンテンツ言語",
-    "syncLanguages": "言語設定を同期する",
-    "languageExplanation": "インターフェース言語はアプリの表示言語を、コンテンツ言語は本のレコメンド等の言語を設定します。"
+    "syncLanguages": "言語設定を同期",
+    "languageExplanation": "インターフェース言語はアプリの表示言語を、コンテンツ言語は本のレコメンデーションなどのコンテンツの言語を設定します。"
+  },
+  "home": {
+    "yearlyReadingGoal": "今年の読書目標",
+    "booksToGoal": "目標達成まであと{{count}}冊",
+    "weeklyReadingTime": "今週の読書時間",
+    "monthlyCompletedBooks": "今月の読了本",
+    "monthOnMonthChange": "先月比",
+    "recommendedBooks": "おすすめの本",
+    "currentlyReading": "現在読書中",
+    "notifications": "通知",
+    "hours": "時間",
+    "books": "冊"
+  },
+  "discover": {
+    "popularCategories": "人気のジャンル",
+    "recommendedBooks": "おすすめ書籍",
+    "newReleases": "新着書籍"
+  },
+  "profile": {
+    "notifications": "通知",
+    "darkMode": "ダークモード",
+    "help": "ヘルプ",
+    "about": "アプリについて",
+    "logout": "ログアウト"
   }
 } 

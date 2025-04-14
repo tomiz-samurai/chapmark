@@ -7,7 +7,8 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "edit": "Edit",
-    "close": "Close"
+    "close": "Close",
+    "viewAll": "View All"
   },
   "navigation": {
     "home": "Home",
@@ -27,10 +28,19 @@
   "books": {
     "myBooks": "My Books",
     "addBook": "Add Book",
-    "reading": "Currently Reading",
-    "toRead": "Want to Read",
+    "reading": "Reading",
+    "toRead": "To Read",
     "completed": "Completed",
-    "search": "Search Books"
+    "onHold": "On Hold",
+    "dropped": "Dropped",
+    "search": "Search Books",
+    "filters": {
+      "all": "All",
+      "reading": "Reading",
+      "completed": "Completed",
+      "planned": "To Read"
+    },
+    "status": "Status"
   },
   "timer": {
     "start": "Start",
@@ -44,7 +54,31 @@
     "language": "Language Settings",
     "uiLanguage": "Interface Language",
     "contentLanguage": "Content Language",
-    "syncLanguages": "Sync language settings",
-    "languageExplanation": "Interface language sets the app display language, while content language sets the language for book recommendations and other content."
+    "syncLanguages": "Sync Language Settings",
+    "languageExplanation": "Interface language controls the app display, while content language affects book recommendations and other content."
+  },
+  "home": {
+    "yearlyReadingGoal": "Yearly Reading Goal",
+    "booksToGoal": "{{count}} books to goal",
+    "weeklyReadingTime": "Weekly Reading Time",
+    "monthlyCompletedBooks": "Monthly Completed Books",
+    "monthOnMonthChange": "Month-on-month change",
+    "recommendedBooks": "Recommended Books",
+    "currentlyReading": "Currently Reading",
+    "notifications": "Notifications",
+    "hours": "hours",
+    "books": "books"
+  },
+  "discover": {
+    "popularCategories": "Popular Categories",
+    "recommendedBooks": "Recommended Books",
+    "newReleases": "New Releases"
+  },
+  "profile": {
+    "notifications": "Notifications",
+    "darkMode": "Dark Mode",
+    "help": "Help",
+    "about": "About",
+    "logout": "Logout"
   }
 } 

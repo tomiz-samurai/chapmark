@@ -4,6 +4,7 @@ import { Star } from 'lucide-react-native';
 import { colors, shadows, borderRadius, spacing, typography } from '../../constants/theme';
 import { Typography } from '../Typography';
 import { Book } from '../../lib/services/BookService';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
 
 interface BookCardProps {
   book: Book;
@@ -23,6 +24,7 @@ export const BookCard: React.FC<BookCardProps> = ({
   showStatus = false
 }) => {
   const { title, author, coverImage, coverUrl, rating, status } = book;
+  const { t } = useAppTranslation();
   // 画像ソースの状態管理
   const [imageError, setImageError] = useState(false);
   
@@ -105,23 +107,23 @@ export const BookCard: React.FC<BookCardProps> = ({
     
     switch(status) {
       case 'reading':
-        statusText = '読書中';
+        statusText = t('books.reading');
         statusColor = colors.primary.main;
         break;
       case 'completed':
-        statusText = '読了';
+        statusText = t('books.completed');
         statusColor = colors.accent.main;
         break;
       case 'planned':
-        statusText = 'これから読む';
+        statusText = t('books.toRead');
         statusColor = colors.gray[500];
         break;
       case 'on-hold':
-        statusText = '中断中';
+        statusText = t('books.onHold');
         statusColor = colors.status.warning;
         break;
       case 'dropped':
-        statusText = '中止';
+        statusText = t('books.dropped');
         statusColor = colors.status.error;
         break;
     }

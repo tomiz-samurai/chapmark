@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Pressable, Image } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Image, Text } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
 import { Book, TrendingUp, Clock } from 'lucide-react-native';
@@ -10,6 +10,7 @@ import { BookCard } from '../../components/common/BookCard';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
 import { getAllBooks, Book as BookType } from '../../lib/services/BookService';
 import { recommendedBooks as mockRecommendedBooks } from '../../lib/mockData';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
 
 const READING_GOAL = 24; // 年間読書目標
 const BOOKS_READ = 8; // 現在の読了数
@@ -40,6 +41,7 @@ export const RECOMMENDED_BOOKS = [
 export default function HomeScreen() {
   const { isLargeDevice } = useResponsive();
   const { navigateToBookDetail } = useBookNavigation();
+  const { t } = useAppTranslation();
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_600SemiBold,
@@ -63,7 +65,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Header
-        title="ホーム"
+        title={t('navigation.home')}
         notificationCount={2}
         onNotificationPress={handleNotificationPress}
       />
@@ -73,7 +75,7 @@ export default function HomeScreen() {
         <View style={styles.goalCard}>
           <View style={styles.goalHeader}>
             <Typography variant="title" color={colors.white}>
-              今年の読書目標
+              {t('home.yearlyReadingGoal')}
             </Typography>
             <Typography variant="display" color={colors.white} style={styles.goalNumber}>
               {BOOKS_READ}/{READING_GOAL}
@@ -83,7 +85,7 @@ export default function HomeScreen() {
             <View style={[styles.progressFill, { width: `${PROGRESS}%` }]} />
           </View>
           <Typography variant="caption" color={colors.white} style={styles.goalCaption}>
-            目標達成まであと{READING_GOAL - BOOKS_READ}冊
+            {t('home.booksToGoal', { count: READING_GOAL - BOOKS_READ })}
           </Typography>
         </View>
 
@@ -92,29 +94,33 @@ export default function HomeScreen() {
           <View style={styles.statCard}>
             <Clock size={24} color={colors.primary.main} />
             <Typography variant="display" style={styles.statNumber}>12.5</Typography>
-            <Typography variant="caption">今週の読書時間</Typography>
+            <Typography variant="caption">{t('home.weeklyReadingTime')} ({t('home.hours')})</Typography>
           </View>
           <View style={styles.statCard}>
             <Book size={24} color={colors.primary.main} />
             <Typography variant="display" style={styles.statNumber}>3</Typography>
-            <Typography variant="caption">今月の読了本</Typography>
+            <Typography variant="caption">{t('home.monthlyCompletedBooks')} ({t('home.books')})</Typography>
           </View>
           <View style={styles.statCard}>
             <TrendingUp size={24} color={colors.primary.main} />
             <Typography variant="display" style={styles.statNumber}>+15%</Typography>
-            <Typography variant="caption">先月比</Typography>
+            <Typography variant="caption">{t('home.monthOnMonthChange')}</Typography>
           </View>
         </View>
 
         {/* おすすめの本 */}
-        <View style={styles.section}>
-          <Typography variant="title" style={styles.sectionTitle}>
-            おすすめの本
-          </Typography>
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Typography variant="title">{t('home.recommendedBooks')}</Typography>
+            <Pressable>
+              <Text style={styles.viewAllText}>{t('common.viewAll')}</Text>
+            </Pressable>
+          </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.recommendedBooks}>
+            style={styles.booksScrollView}
+          >
             {recommendedBooks.map((book) => (
               <BookCard
                 key={book.id}
@@ -127,20 +133,29 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* 現在読書中 */}
-        {currentlyReading && (
-          <View style={styles.section}>
-            <Typography variant="title" style={styles.sectionTitle}>
-              現在読書中
-            </Typography>
-            <BookCard
-              book={currentlyReading}
-              variant="horizontal"
-              showStatus={true}
-              onPress={() => navigateToBookDetail(currentlyReading.id, '/(tabs)')}
-            />
+        {/* 現在読んでいる本 */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Typography variant="title">{t('home.currentlyReading')}</Typography>
+            <Pressable>
+              <Text style={styles.viewAllText}>{t('common.viewAll')}</Text>
+            </Pressable>
           </View>
-        )}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.booksScrollView}
+          >
+            {currentlyReading && (
+              <BookCard
+                book={currentlyReading}
+                variant="horizontal"
+                showStatus={true}
+                onPress={() => navigateToBookDetail(currentlyReading.id, '/(tabs)')}
+              />
+            )}
+          </ScrollView>
+        </View>
       </ScrollView>
     </View>
   );
@@ -199,13 +214,20 @@ const styles = StyleSheet.create({
   statNumber: {
     marginVertical: spacing.xs,
   },
-  section: {
+  sectionContainer: {
     padding: spacing.md,
   },
-  sectionTitle: {
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: spacing.md,
   },
-  recommendedBooks: {
+  viewAllText: {
+    color: colors.primary.main,
+    fontWeight: 'bold',
+  },
+  booksScrollView: {
     paddingRight: spacing.md,
     gap: spacing.sm,
   },

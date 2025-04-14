@@ -8,15 +8,18 @@ import { Typography } from '../../components/Typography';
 import { BookCard } from '../../components/common/BookCard';
 import { CategoryButton } from '../../components/common/CategoryButton';
 import { CollectionHeader } from '../../components/common/CollectionHeader';
+import { Header } from '../../components/layouts/Header';
 
 import { popularCategories, recommendationCollections, recommendedBooks as mockRecommendedBooks, newReleaseBooks as mockNewReleaseBooks } from '../../lib/mockData';
 import { colors, spacing } from '../../constants/theme';
 import { getBooksByCategory } from '../../lib/services/BookService';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
 
 export default function DiscoverScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { navigateToBookDetail, navigateToBookList, navigateToCollection } = useBookNavigation();
+  const { t } = useAppTranslation();
 
   // デバッグ用: コンポーネントマウント時に一度だけ実行
   useEffect(() => {
@@ -53,22 +56,13 @@ export default function DiscoverScreen() {
     : mockRecommendedBooks;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar style="dark" />
+    <View style={styles.container}>
+      <Header
+        title={t('navigation.discover')}
+        notificationCount={0}
+        onNotificationPress={() => console.log('Notification pressed')}
+      />
       
-      {/* ヘッダー */}
-      <View style={styles.header}>
-        <Typography variant="display" style={styles.headerTitle}>
-          発見
-        </Typography>
-        <TouchableOpacity 
-          style={styles.searchButton} 
-          onPress={() => navigateToBookList('search')}
-        >
-          <Search size={24} color={colors.gray[700]} />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView 
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -169,7 +163,7 @@ export default function DiscoverScreen() {
         {/* 余白 */}
         <View style={styles.bottomPadding} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -178,59 +172,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.gray[50],
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
-  },
-  headerTitle: {
-    color: colors.primary.dark,
-  },
-  searchButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.gray[100],
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   content: {
     flex: 1,
   },
   section: {
-    marginTop: spacing.xl,
+    marginTop: spacing.md,
   },
   categoriesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     paddingHorizontal: spacing.md,
-  },
-  bookRow: {
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    marginBottom: 0,
+    paddingBottom: spacing.sm,
   },
   horizontalScrollContent: {
     paddingHorizontal: spacing.md,
   },
+  recommendedBookCard: {
+    marginRight: spacing.sm,
+  },
   horizontalBookCard: {
     marginRight: spacing.sm,
-    width: 110,
   },
   collectionBookCard: {
     width: 240,
-    marginRight: spacing.sm,
+    marginRight: spacing.md,
   },
   bottomPadding: {
-    height: spacing.xl * 2,
-  },
-  recommendedBookCard: {
-    marginRight: spacing.sm,
-    width: 110,
-  },
+    height: spacing.xxl,
+  }
 }); 

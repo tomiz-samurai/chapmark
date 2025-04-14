@@ -11,6 +11,7 @@ import { Header } from '../../components/layouts/Header';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
 import { getBooksByStatus, Book as BookType, addBookToLibrary, getUserBooks, getUserBooksByStatus } from '../../lib/services/BookService';
 import { BookCard } from '../../components/common/BookCard';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
 
 // BookServiceで使用するためにエクスポート (互換性のため)
 export const MOCK_BOOKS = [
@@ -116,6 +117,7 @@ const STATUS_TABS = [
 export default function LibraryScreen() {
   const [selectedStatus, setSelectedStatus] = useState<BookStatus>('all');
   const { navigateToBookDetail } = useBookNavigation();
+  const { t } = useAppTranslation();
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_600SemiBold,
@@ -197,8 +199,8 @@ export default function LibraryScreen() {
   return (
     <View style={styles.container}>
       <Header
-        title="本棚"
-        notificationCount={3}
+        title={t('navigation.books')}
+        notificationCount={2}
         onNotificationPress={handleNotificationPress}
       />
 

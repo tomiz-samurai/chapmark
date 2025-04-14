@@ -20,6 +20,7 @@ import { resetTimer, finishSession } from '../../lib/store/timerSlice';
 import TimerService, { formatTime, calculateProgress, calculateReadPages } from '../../lib/services/TimerService';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { getAllBooks, getBookById } from '../../lib/services/BookService';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
 
 // ダミーデータ（実際の実装では本のリストはストアまたはAPIから取得）
 const READING_BOOKS: Book[] = [
@@ -45,6 +46,7 @@ const READING_BOOKS: Book[] = [
 
 export default function TimerScreen() {
   const { colors, spacing } = useTheme();
+  const { t } = useAppTranslation();
   
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -312,7 +314,11 @@ export default function TimerScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Header title="読書タイマー" />
+      <Header
+        title={t('navigation.timer')}
+        notificationCount={0}
+        onNotificationPress={() => {}}
+      />
       
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

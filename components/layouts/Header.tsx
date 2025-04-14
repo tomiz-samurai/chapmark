@@ -4,6 +4,7 @@ import { ArrowLeft, Bell } from 'lucide-react-native';
 import { colors, spacing, typography } from '../../constants/theme';
 import { Typography } from '../Typography';
 import { NotificationBadge } from '../common/NotificationBadge';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
 
 interface HeaderProps {
   title: string;
@@ -19,6 +20,7 @@ export function Header({
   onNotificationPress,
 }: HeaderProps) {
   const router = useRouter();
+  const { t } = useAppTranslation();
 
   return (
     <View style={styles.container}>
