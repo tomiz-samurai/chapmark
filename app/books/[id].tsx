@@ -252,16 +252,18 @@ export default function BookDetail() {
         
         {/* アクションボタン */}
         <View style={styles.actionContainer}>
+          {book.status && (
+            <TouchableOpacity 
+              style={styles.primaryButton}
+              onPress={handleStartReading}
+            >
+              <Typography variant="body" color={colors.white}>
+                読書を開始
+              </Typography>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity 
-            style={styles.primaryButton}
-            onPress={handleStartReading}
-          >
-            <Typography variant="body" color={colors.white}>
-              読書を開始
-            </Typography>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.secondaryButton}
+            style={[styles.secondaryButton, !book.status && { flex: 1 }]}
             onPress={handleAddToLibrary}
           >
             <Typography variant="body" color={colors.primary.main}>
