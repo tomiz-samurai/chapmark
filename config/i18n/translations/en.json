@@ -1,0 +1,49 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close"
+  },
+  "navigation": {
+    "home": "Home",
+    "books": "Books",
+    "timer": "Timer",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password"
+  },
+  "books": {
+    "myBooks": "My Books",
+    "addBook": "Add Book",
+    "reading": "Currently Reading",
+    "toRead": "Want to Read",
+    "completed": "Completed",
+    "search": "Search Books"
+  },
+  "timer": {
+    "start": "Start",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stop": "Stop",
+    "reset": "Reset",
+    "setGoal": "Set Goal"
+  },
+  "settings": {
+    "language": "Language Settings",
+    "uiLanguage": "Interface Language",
+    "contentLanguage": "Content Language",
+    "syncLanguages": "Sync language settings",
+    "languageExplanation": "Interface language sets the app display language, while content language sets the language for book recommendations and other content."
+  }
+} 
