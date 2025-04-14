@@ -14,7 +14,8 @@
     "books": "Books",
     "timer": "Timer",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "discover": "Discover"
   },
   "auth": {
     "signIn": "Sign In",

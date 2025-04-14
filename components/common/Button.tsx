@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../../lib/hooks/useTheme';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'text';
 export type ButtonSize = 'small' | 'medium' | 'large';
@@ -24,6 +25,7 @@ export interface ButtonProps {
   loading?: boolean;
   style?: StyleProp<ViewStyle>;
   fullWidth?: boolean;
+  isTranslationKey?: boolean;
 }
 
 export function Button({
@@ -36,8 +38,10 @@ export function Button({
   loading = false,
   style,
   fullWidth = false,
+  isTranslationKey = false,
 }: ButtonProps) {
   const { colors, spacing } = useTheme();
+  const { t } = useAppTranslation();
 
   // バリアントに基づいてスタイルを取得
   const getVariantStyle = (isPressed: boolean) => {
@@ -115,6 +119,9 @@ export function Button({
     }
   };
 
+  // タイトルが翻訳キーかどうかをチェックし、適切に処理
+  const buttonTitle = isTranslationKey ? t(title) : title;
+
   return (
     <Pressable
       style={({ pressed }) => [
@@ -150,7 +157,7 @@ export function Button({
               getSizeStyle().text,
             ]}
           >
-            {title}
+            {buttonTitle}
           </Text>
         </View>
       )}

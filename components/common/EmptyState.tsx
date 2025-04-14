@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, spacing, typography } from '../../constants/theme';
 import { Button } from './Button';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
 
 interface EmptyStateProps {
   title: string;
@@ -8,6 +9,9 @@ interface EmptyStateProps {
   actionLabel?: string;
   onAction?: () => void;
   icon?: React.ReactNode;
+  isTitleTranslationKey?: boolean;
+  isMessageTranslationKey?: boolean;
+  isActionLabelTranslationKey?: boolean;
 }
 
 export function EmptyState({
@@ -16,18 +20,28 @@ export function EmptyState({
   actionLabel,
   onAction,
   icon,
+  isTitleTranslationKey = false,
+  isMessageTranslationKey = false,
+  isActionLabelTranslationKey = false,
 }: EmptyStateProps) {
+  const { t } = useAppTranslation();
+
+  const displayTitle = isTitleTranslationKey ? t(title) : title;
+  const displayMessage = isMessageTranslationKey ? t(message) : message;
+  const displayActionLabel = actionLabel && isActionLabelTranslationKey ? t(actionLabel) : actionLabel || '';
+
   return (
     <View style={styles.container}>
       {icon && <View style={styles.iconContainer}>{icon}</View>}
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={styles.title}>{displayTitle}</Text>
+      <Text style={styles.message}>{displayMessage}</Text>
       {actionLabel && onAction && (
         <Button
-          title={actionLabel}
+          title={displayActionLabel}
           onPress={onAction}
           variant="outline"
           style={styles.button}
+          isTranslationKey={false}
         />
       )}
     </View>
