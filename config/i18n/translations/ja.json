@@ -9,7 +9,8 @@
     "edit": "編集",
     "close": "閉じる",
     "viewAll": "すべて見る",
-    "noCover": "表紙なし"
+    "noCover": "表紙なし",
+    "success": "成功"
   },
   "navigation": {
     "home": "ホーム",
@@ -41,7 +42,42 @@
       "completed": "読了",
       "planned": "これから読む"
     },
-    "status": "ステータス"
+    "status": "ステータス",
+    "emptyState": {
+      "title": "本が見つかりません",
+      "message": "本棚に本がありません。「+」ボタンから本を追加してください。"
+    },
+    "form": {
+      "title": "タイトル",
+      "author": "著者",
+      "titlePlaceholder": "本のタイトル",
+      "authorPlaceholder": "著者名",
+      "requiredFieldsError": "タイトルと著者は必須です",
+      "manuallyAddedDescription": "手動で追加された本"
+    },
+    "notFound": "書籍が見つかりませんでした",
+    "detail": {
+      "title": "書籍詳細",
+      "statusLabel": "ステータス",
+      "startReading": "読書を開始",
+      "changeStatus": "ステータス変更",
+      "addToLibrary": "本棚に追加",
+      "bookInfo": "書籍情報",
+      "pageCount": "ページ数",
+      "pages": "ページ",
+      "publishDate": "出版日",
+      "publisher": "出版社",
+      "category": "カテゴリ",
+      "description": "概要",
+      "selectStatus": "ステータスを選択",
+      "confirmStatusChange": "ステータス変更の確認",
+      "alreadyCompletedMessage": "この本は既に「読了」済みです。変更して読書を開始しますか？",
+      "changeStatusToReadingMessage": "「{{status}}」を「読書中」に変更して読書を開始しますか？",
+      "statusChangeSuccess": "本のステータスを「{{status}}」に変更しました",
+      "addedToLibrary": "本を本棚に追加しました",
+      "goToLibrary": "本棚へ移動",
+      "descriptionLanguageNote": "※この概要は{{language}}で表示されています"
+    }
   },
   "timer": {
     "start": "開始",

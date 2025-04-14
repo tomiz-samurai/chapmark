@@ -11,21 +11,50 @@ import { colors, spacing, borderRadius, shadows } from '../../constants/theme';
 import { getBookById, updateBookStatus, addBookToLibrary } from '../../lib/services/BookService';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
 import { selectBook } from '../../lib/store/bookSlice';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
 
 // ステータスのオプション
 const STATUS_OPTIONS = [
-  { value: 'reading', label: '読書中', color: colors.primary.main },
-  { value: 'completed', label: '読了', color: colors.accent.main },
-  { value: 'planned', label: 'これから読む', color: colors.gray[500] },
-  { value: 'on-hold', label: '中断中', color: colors.status.warning },
-  { value: 'dropped', label: '中止', color: colors.status.error },
+  { value: 'reading', label: 'books.reading', color: colors.primary.main },
+  { value: 'completed', label: 'books.completed', color: colors.accent.main },
+  { value: 'planned', label: 'books.toRead', color: colors.gray[500] },
+  { value: 'on-hold', label: 'books.onHold', color: colors.status.warning },
+  { value: 'dropped', label: 'books.dropped', color: colors.status.error },
 ];
+
+/**
+ * 将来的なGoogle Books API連携のためのコメント:
+ * 
+ * 1. 現在の実装:
+ *    - 静的なローカルデータを使用して書籍情報を表示
+ *    - 言語設定に関わらず同じデータを表示
+ * 
+ * 2. 将来の実装予定:
+ *    - Google Books APIを使用して動的にデータを取得
+ *    - ユーザーの言語設定(i18n.language)に基づいて適切な言語のデータを取得
+ *    - 英語圏(en)ではUS国コード、日本語(ja)ではJP国コードを使用
+ *    - 検索結果が少ない場合は代替言語でフォールバック処理
+ * 
+ * 3. 予定API実装例:
+ *    const fetchBookDetails = async (bookId) => {
+ *      const { i18n } = useAppTranslation();
+ *      const currentLanguage = i18n.language;
+ *      
+ *      const params = new URLSearchParams();
+ *      params.append('country', currentLanguage === 'ja' ? 'JP' : 'US');
+ *      
+ *      const apiUrl = `https://www.googleapis.com/books/v1/volumes/${bookId}?${params.toString()}`;
+ *      const response = await fetch(apiUrl);
+ *      return response.json();
+ *    };
+ */
 
 export default function BookDetail() {
   const { id } = useLocalSearchParams();
   const bookId = typeof id === 'string' ? id : '';
   const { goBack, navigateToLibrary } = useBookNavigation();
   const dispatch = useDispatch();
+  const { t, i18n } = useAppTranslation();
   
   // 画像エラー状態の追加
   const [imageError, setImageError] = useState(false);
@@ -35,6 +64,9 @@ export default function BookDetail() {
   
   // 本の状態を管理
   const [book, setBook] = useState(getBookById(bookId));
+
+  // 書籍説明の言語情報（将来のAPI連携用）
+  const [descriptionLanguage, setDescriptionLanguage] = useState('');
   
   // ステータス変更後に本の情報を更新する関数
   const refreshBookData = () => {
@@ -52,7 +84,7 @@ export default function BookDetail() {
           </TouchableOpacity>
         </View>
         <View style={styles.errorContainer}>
-          <Typography variant="title">書籍が見つかりませんでした</Typography>
+          <Typography variant="title">{t('books.notFound')}</Typography>
         </View>
       </SafeAreaView>
     );
@@ -63,11 +95,11 @@ export default function BookDetail() {
     if (!status) return '';
     
     switch(status) {
-      case 'reading': return '読書中';
-      case 'completed': return '読了';
-      case 'planned': return 'これから読む';
-      case 'on-hold': return '中断中';
-      case 'dropped': return '中止';
+      case 'reading': return t('books.reading');
+      case 'completed': return t('books.completed');
+      case 'planned': return t('books.toRead');
+      case 'on-hold': return t('books.onHold');
+      case 'dropped': return t('books.dropped');
       default: return '';
     }
   };
@@ -82,16 +114,16 @@ export default function BookDetail() {
     // 「読書中」以外のステータスの場合は確認アラートを表示
     if (book.status !== 'reading') {
       const statusMessage = book.status === 'completed' 
-        ? 'この本は既に「読了」済みです。' 
-        : `「${getStatusText(book.status)}」を「読書中」に`;
+        ? t('books.detail.alreadyCompletedMessage') 
+        : t('books.detail.changeStatusToReadingMessage', { status: getStatusText(book.status) });
       
       Alert.alert(
-        'ステータス変更の確認',
-        `${statusMessage}変更して読書を開始しますか？`,
+        t('books.detail.confirmStatusChange'),
+        statusMessage,
         [
-          { text: 'キャンセル', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           { 
-            text: '読書開始', 
+            text: t('books.detail.startReading'), 
             onPress: () => {
               startReading();
             }
@@ -122,10 +154,14 @@ export default function BookDetail() {
     if (updateBookStatus(bookId, status)) {
       setStatusModalVisible(false);
       refreshBookData();
-      Alert.alert('成功', `本のステータスを「${getStatusText(status)}」に変更しました`, [
-        { text: '閉じる', style: 'cancel' },
-        { text: '本棚へ移動', onPress: navigateToLibrary }
-      ]);
+      Alert.alert(
+        t('common.success'),
+        t('books.detail.statusChangeSuccess', { status: getStatusText(status) }),
+        [
+          { text: t('common.close'), style: 'cancel' },
+          { text: t('books.detail.goToLibrary'), onPress: navigateToLibrary }
+        ]
+      );
     }
   };
   
@@ -138,10 +174,14 @@ export default function BookDetail() {
       // 本棚にない場合はこれから読むステータスで追加
       if (addBookToLibrary(book, 'planned')) {
         refreshBookData();
-        Alert.alert('成功', '本を本棚に追加しました', [
-          { text: '閉じる', style: 'cancel' },
-          { text: '本棚へ移動', onPress: navigateToLibrary }
-        ]);
+        Alert.alert(
+          t('common.success'),
+          t('books.detail.addedToLibrary'),
+          [
+            { text: t('common.close'), style: 'cancel' },
+            { text: t('books.detail.goToLibrary'), onPress: navigateToLibrary }
+          ]
+        );
       }
     }
   };
@@ -191,6 +231,40 @@ export default function BookDetail() {
     setImageError(true);
   };
 
+  /**
+   * 書籍の説明を表示する関数
+   * 将来的にGoogle Books APIから取得したデータに対応するため、
+   * 言語設定に応じた処理を行う
+   */
+  const renderDescription = () => {
+    if (!book.description) return null;
+    
+    // 現在のバージョンでは単純に説明文を表示
+    // 将来的には言語情報に基づいた処理を追加予定
+    return (
+      <View style={styles.descriptionCard}>
+        <Typography variant="title" style={styles.sectionTitle}>
+          {t('books.detail.description')}
+        </Typography>
+        
+        {/* 説明文が現在の言語と異なる場合、注釈を表示（将来実装） */}
+        {descriptionLanguage && descriptionLanguage !== i18n.language && (
+          <Typography 
+            variant="caption" 
+            color={colors.status.warning} 
+            style={styles.descriptionLanguageNote}
+          >
+            {t('books.detail.descriptionLanguageNote', { language: descriptionLanguage === 'en' ? '英語' : '日本語' })}
+          </Typography>
+        )}
+        
+        <Typography variant="body" color={colors.gray[700]} style={styles.description}>
+          {book.description}
+        </Typography>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
@@ -201,7 +275,7 @@ export default function BookDetail() {
           <ChevronLeft size={24} color={colors.gray[700]} />
         </TouchableOpacity>
         <Typography variant="title" style={styles.headerTitle}>
-          書籍詳細
+          {t('books.detail.title')}
         </Typography>
         <View style={styles.headerRight}>
           {/* ステータスボタンを削除 */}
@@ -227,7 +301,7 @@ export default function BookDetail() {
             {statusText ? (
               <View style={styles.statusContainer}>
                 <Typography variant="caption" style={styles.statusText}>
-                  ステータス: {statusText}
+                  {t('books.detail.statusLabel')}: {statusText}
                 </Typography>
               </View>
             ) : book.rating ? (
@@ -249,7 +323,7 @@ export default function BookDetail() {
               onPress={handleStartReading}
             >
               <Typography variant="body" color={colors.white}>
-                読書を開始
+                {t('books.detail.startReading')}
               </Typography>
             </TouchableOpacity>
           )}
@@ -258,7 +332,7 @@ export default function BookDetail() {
             onPress={handleAddToLibrary}
           >
             <Typography variant="body" color={colors.primary.main}>
-              {book.status ? 'ステータス変更' : '本棚に追加'}
+              {book.status ? t('books.detail.changeStatus') : t('books.detail.addToLibrary')}
             </Typography>
           </TouchableOpacity>
         </View>
@@ -267,7 +341,7 @@ export default function BookDetail() {
         {(book.pageCount || book.publishedDate || book.publisher || book.category) && (
           <View style={styles.detailsCard}>
             <Typography variant="title" style={styles.sectionTitle}>
-              書籍情報
+              {t('books.detail.bookInfo')}
             </Typography>
             
             <View style={styles.detailRow}>
@@ -277,10 +351,10 @@ export default function BookDetail() {
                     <BookOpen size={16} color={colors.primary.main} />
                   </View>
                   <Typography variant="caption" color={colors.gray[600]}>
-                    ページ数
+                    {t('books.detail.pageCount')}
                   </Typography>
                   <Typography variant="body">
-                    {book.pageCount}ページ
+                    {book.pageCount}{t('books.detail.pages')}
                   </Typography>
                 </View>
               )}
@@ -291,7 +365,7 @@ export default function BookDetail() {
                     <Calendar size={16} color={colors.primary.main} />
                   </View>
                   <Typography variant="caption" color={colors.gray[600]}>
-                    出版日
+                    {t('books.detail.publishDate')}
                   </Typography>
                   <Typography variant="body">
                     {book.publishedDate}
@@ -308,7 +382,7 @@ export default function BookDetail() {
                       <Building size={16} color={colors.primary.main} />
                     </View>
                     <Typography variant="caption" color={colors.gray[600]}>
-                      出版社
+                      {t('books.detail.publisher')}
                     </Typography>
                     <Typography variant="body">
                       {book.publisher}
@@ -322,7 +396,7 @@ export default function BookDetail() {
                       <Tag size={16} color={colors.primary.main} />
                     </View>
                     <Typography variant="caption" color={colors.gray[600]}>
-                      カテゴリ
+                      {t('books.detail.category')}
                     </Typography>
                     <Typography variant="body">
                       {book.category[0]}
@@ -334,17 +408,8 @@ export default function BookDetail() {
           </View>
         )}
         
-        {/* 概要 */}
-        {book.description && (
-          <View style={styles.descriptionCard}>
-            <Typography variant="title" style={styles.sectionTitle}>
-              概要
-            </Typography>
-            <Typography variant="body" color={colors.gray[700]} style={styles.description}>
-              {book.description}
-            </Typography>
-          </View>
-        )}
+        {/* 概要 - カスタム関数を使用 */}
+        {renderDescription()}
         
         {/* 余白 */}
         <View style={styles.bottomPadding} />
@@ -360,7 +425,7 @@ export default function BookDetail() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Typography variant="title" style={styles.modalTitle}>
-              ステータスを選択
+              {t('books.detail.selectStatus')}
             </Typography>
             
             {STATUS_OPTIONS.map((option) => (
@@ -371,7 +436,7 @@ export default function BookDetail() {
               >
                 <View style={[styles.statusColor, { backgroundColor: option.color }]} />
                 <Typography variant="body" style={{ flex: 1 }}>
-                  {option.label}
+                  {t(option.label)}
                 </Typography>
                 {book.status === option.value && (
                   <Check size={20} color={colors.primary.main} />
@@ -384,7 +449,7 @@ export default function BookDetail() {
               onPress={() => setStatusModalVisible(false)}
             >
               <Typography variant="body" color={colors.gray[600]}>
-                キャンセル
+                {t('common.cancel')}
               </Typography>
             </TouchableOpacity>
           </View>
@@ -517,6 +582,10 @@ const styles = StyleSheet.create({
   },
   description: {
     lineHeight: 22,
+  },
+  descriptionLanguageNote: {
+    marginBottom: spacing.sm,
+    fontStyle: 'italic',
   },
   errorContainer: {
     flex: 1,

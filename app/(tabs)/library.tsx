@@ -108,10 +108,10 @@ type BookStatus = 'reading' | 'completed' | 'planned' | 'all';
 type BookServiceStatus = 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped';
 
 const STATUS_TABS = [
-  { label: 'すべて', value: 'all' },
-  { label: '読書中', value: 'reading' },
-  { label: '読了', value: 'completed' },
-  { label: 'これから読む', value: 'planned' },
+  { label: 'books.filters.all', value: 'all' },
+  { label: 'books.filters.reading', value: 'reading' },
+  { label: 'books.filters.completed', value: 'completed' },
+  { label: 'books.filters.planned', value: 'planned' },
 ];
 
 export default function LibraryScreen() {
@@ -165,7 +165,7 @@ export default function LibraryScreen() {
   // 新しい本を追加する処理
   const handleAddBook = () => {
     if (!newBookTitle.trim() || !newBookAuthor.trim()) {
-      Alert.alert('エラー', 'タイトルと著者は必須です');
+      Alert.alert(t('common.error'), t('books.form.requiredFieldsError'));
       return;
     }
     
@@ -179,7 +179,7 @@ export default function LibraryScreen() {
       author: newBookAuthor,
       coverUrl: defaultCoverUrl,
       coverImage: defaultCoverUrl, // 両方のプロパティを設定
-      description: '手動で追加された本',
+      description: t('books.form.manuallyAddedDescription'),
     };
     
     // BookServiceを使用して本を追加
@@ -232,7 +232,7 @@ export default function LibraryScreen() {
                   selectedStatus === tab.value && styles.selectedTabText,
                 ]}
               >
-                {tab.label}
+                {t(tab.label)}
               </Typography>
             </Pressable>
           ))}
@@ -246,8 +246,10 @@ export default function LibraryScreen() {
         {filteredBooks.length === 0 ? (
           <EmptyState
             icon={<Book size={48} color={colors.gray[400]} />}
-            title="本が見つかりません"
-            message="本棚に本がありません。「+」ボタンから本を追加してください。"
+            title={t('books.emptyState.title')}
+            message={t('books.emptyState.message')}
+            isTitleTranslationKey={true}
+            isMessageTranslationKey={true}
           />
         ) : (
           filteredBooks.map((book) => (
@@ -282,7 +284,7 @@ export default function LibraryScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Typography variant="title">本を追加</Typography>
+              <Typography variant="title">{t('books.addBook')}</Typography>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <X size={24} color={colors.gray[600]} />
               </TouchableOpacity>
@@ -291,31 +293,31 @@ export default function LibraryScreen() {
             <View style={styles.formContainer}>
               <View style={styles.formGroup}>
                 <Typography variant="caption" color={colors.gray[600]}>
-                  タイトル *
+                  {t('books.form.title')} *
                 </Typography>
                 <TextInput
                   style={styles.input}
                   value={newBookTitle}
                   onChangeText={setNewBookTitle}
-                  placeholder="本のタイトル"
+                  placeholder={t('books.form.titlePlaceholder')}
                 />
               </View>
               
               <View style={styles.formGroup}>
                 <Typography variant="caption" color={colors.gray[600]}>
-                  著者 *
+                  {t('books.form.author')} *
                 </Typography>
                 <TextInput
                   style={styles.input}
                   value={newBookAuthor}
                   onChangeText={setNewBookAuthor}
-                  placeholder="著者名"
+                  placeholder={t('books.form.authorPlaceholder')}
                 />
               </View>
               
               <View style={styles.formGroup}>
                 <Typography variant="caption" color={colors.gray[600]}>
-                  ステータス
+                  {t('books.status')}
                 </Typography>
                 <View style={styles.statusButtonsContainer}>
                   {STATUS_TABS.filter(tab => tab.value !== 'all').map((tab) => (
@@ -334,7 +336,7 @@ export default function LibraryScreen() {
                           newBookStatus === tab.value && styles.selectedStatusButtonText,
                         ]}
                       >
-                        {tab.label}
+                        {t(tab.label)}
                       </Typography>
                     </Pressable>
                   ))}
@@ -348,7 +350,7 @@ export default function LibraryScreen() {
             >
               <Save size={20} color={colors.white} style={styles.saveIcon} />
               <Typography variant="body" color={colors.white}>
-                保存
+                {t('common.save')}
               </Typography>
             </TouchableOpacity>
           </View>

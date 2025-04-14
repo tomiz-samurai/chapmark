@@ -9,7 +9,8 @@
     "edit": "Edit",
     "close": "Close",
     "viewAll": "View All",
-    "noCover": "No Cover"
+    "noCover": "No Cover",
+    "success": "Success"
   },
   "navigation": {
     "home": "Home",
@@ -41,7 +42,42 @@
       "completed": "Completed",
       "planned": "To Read"
     },
-    "status": "Status"
+    "status": "Status",
+    "emptyState": {
+      "title": "No Books Found",
+      "message": "Your bookshelf is empty. Add books using the '+' button."
+    },
+    "form": {
+      "title": "Title",
+      "author": "Author",
+      "titlePlaceholder": "Book title",
+      "authorPlaceholder": "Author name",
+      "requiredFieldsError": "Title and author are required",
+      "manuallyAddedDescription": "Manually added book"
+    },
+    "notFound": "Book not found",
+    "detail": {
+      "title": "Book Details",
+      "statusLabel": "Status",
+      "startReading": "Start Reading",
+      "changeStatus": "Change Status",
+      "addToLibrary": "Add to Library",
+      "bookInfo": "Book Information",
+      "pageCount": "Page Count",
+      "pages": " pages",
+      "publishDate": "Publish Date",
+      "publisher": "Publisher",
+      "category": "Category",
+      "description": "Description",
+      "selectStatus": "Select Status",
+      "confirmStatusChange": "Confirm Status Change",
+      "alreadyCompletedMessage": "This book is already marked as 'Completed'. Do you want to change it and start reading?",
+      "changeStatusToReadingMessage": "Change status from '{{status}}' to 'Reading' and start reading?",
+      "statusChangeSuccess": "Book status changed to '{{status}}'",
+      "addedToLibrary": "Book added to your library",
+      "goToLibrary": "Go to Library",
+      "descriptionLanguageNote": "Note: This description is displayed in {{language}}"
+    }
   },
   "timer": {
     "start": "Start",
