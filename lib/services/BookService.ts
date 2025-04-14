@@ -58,8 +58,100 @@ export const getAllBooks = (): Book[] => {
   return uniqueBooks;
 };
 
-// IDから本を検索
+// 追加した本を保存するための配列
+let userAddedBooks: Book[] = [];
+
+// 本を本棚に追加
+export const addBookToLibrary = (book: Book, status: 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped' = 'planned'): Book => {
+  // 既存の本が見つかるか確認
+  const existingBookIndex = userAddedBooks.findIndex(b => b.id === book.id);
+  
+  // 両方のカバー画像プロパティを確保
+  const coverUrl = book.coverUrl || book.coverImage;
+  const coverImage = book.coverImage || book.coverUrl;
+  
+  // 本に新しいステータスを設定
+  const updatedBook = {
+    ...book,
+    coverUrl,
+    coverImage,
+    status
+  };
+  
+  if (existingBookIndex >= 0) {
+    // 既存の本を更新
+    userAddedBooks[existingBookIndex] = updatedBook;
+  } else {
+    // 新しい本を追加
+    userAddedBooks.push(updatedBook);
+  }
+  
+  console.log(`本を追加しました: ${book.title} (ステータス: ${status})`);
+  return updatedBook;
+};
+
+// 本のステータスを変更
+export const updateBookStatus = (id: string, status: 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped'): Book | undefined => {
+  // まず、ユーザーが追加した本の中から検索
+  const userBookIndex = userAddedBooks.findIndex(book => book.id === id);
+  
+  if (userBookIndex >= 0) {
+    // ユーザーが追加した本のステータスを更新
+    userAddedBooks[userBookIndex] = {
+      ...userAddedBooks[userBookIndex],
+      status
+    };
+    console.log(`本のステータスを更新しました: ${userAddedBooks[userBookIndex].title} (新ステータス: ${status})`);
+    return userAddedBooks[userBookIndex];
+  }
+  
+  // モックデータの本のインスタンスを取得
+  const book = getBookById(id);
+  if (book) {
+    // 両方のカバー画像プロパティを確保
+    const coverUrl = book.coverUrl || book.coverImage;
+    const coverImage = book.coverImage || book.coverUrl;
+    
+    // モックデータの本は直接変更できないため、ユーザーが追加した本としてコピーを作成
+    const updatedBook = {
+      ...book,
+      coverUrl,
+      coverImage,
+      status
+    };
+    userAddedBooks.push(updatedBook);
+    console.log(`モックデータの本をユーザー本棚に追加し、ステータスを設定しました: ${book.title} (ステータス: ${status})`);
+    return updatedBook;
+  }
+  
+  return undefined;
+};
+
+// ユーザーが追加/更新した本を含む全ての本を取得
+export const getAllUserBooks = (): Book[] => {
+  const allBooks = getAllBooks();
+  
+  // ユーザーが追加/更新した本でallBooksの本を上書き
+  const updatedBooks = allBooks.map(book => {
+    const userBook = userAddedBooks.find(b => b.id === book.id);
+    return userBook || book;
+  });
+  
+  // ユーザーが追加した新しい本（モックデータに存在しない本）を追加
+  const newUserBooks = userAddedBooks.filter(
+    userBook => !allBooks.some(book => book.id === userBook.id)
+  );
+  
+  return [...updatedBooks, ...newUserBooks];
+};
+
+// IDから本を検索 (ユーザーが追加/更新した本を含む)
 export const getBookById = (id: string): Book | undefined => {
+  // ユーザーが追加した本から検索
+  const userBook = userAddedBooks.find(book => book.id === id);
+  if (userBook) return userBook;
+  
+  // モックデータから検索
   const allBooks = getAllBooks();
   return allBooks.find(book => book.id === id);
 };

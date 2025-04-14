@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, ScrollView, StyleSheet, Pressable, TouchableOpacity, Modal, TextInput, Alert, Platform } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
-import { Book } from 'lucide-react-native';
+import { Book, Plus, X, Save } from 'lucide-react-native';
 import { colors, spacing } from '../../constants/theme';
 import { Typography } from '../../components/Typography';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Loading } from '../../components/common/Loading';
 import { Header } from '../../components/layouts/Header';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
-import { getBooksByStatus, Book as BookType } from '../../lib/services/BookService';
+import { getBooksByStatus, Book as BookType, addBookToLibrary, getAllUserBooks } from '../../lib/services/BookService';
 import { BookCard } from '../../components/common/BookCard';
 
 // BookServiceで使用するためにエクスポート (互換性のため)
@@ -104,6 +104,7 @@ export const MOCK_BOOKS = [
 ];
 
 type BookStatus = 'reading' | 'completed' | 'planned' | 'all';
+type BookServiceStatus = 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped';
 
 const STATUS_TABS = [
   { label: 'すべて', value: 'all' },
@@ -120,24 +121,77 @@ export default function LibraryScreen() {
     Inter_600SemiBold,
     PlayfairDisplay_700Bold,
   });
+  
+  // 追加モーダル関連の状態
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [newBookTitle, setNewBookTitle] = useState('');
+  const [newBookAuthor, setNewBookAuthor] = useState('');
+  const [newBookStatus, setNewBookStatus] = useState<BookStatus>('planned');
+  
+  // 本の一覧を保持する状態変数
+  const [books, setBooks] = useState<BookType[]>([]);
+  
+  // 本の一覧を更新する関数
+  const refreshBooks = () => {
+    // ユーザーが追加/更新した本も含めて取得
+    const allBooks = getAllUserBooks();
+    setBooks(allBooks);
+  };
+  
+  // 初回レンダリング時と状態変更時に本の一覧を更新
+  useEffect(() => {
+    refreshBooks();
+  }, []);
 
   if (!fontsLoaded) {
     return <Loading />;
   }
 
-  // BookServiceを使用して選択されたステータスの本を取得
+  // 選択されたステータスに基づいて本をフィルタリング
   let filteredBooks: BookType[] = [];
   if (selectedStatus === 'all') {
-    filteredBooks = getBooksByStatus('reading')
-      .concat(getBooksByStatus('completed'))
-      .concat(getBooksByStatus('planned'));
+    filteredBooks = books;
   } else {
-    filteredBooks = getBooksByStatus(selectedStatus);
+    filteredBooks = books.filter(book => book.status === selectedStatus);
   }
 
   const handleNotificationPress = () => {
     // 通知画面への遷移などの処理
     console.log('Notification pressed');
+  };
+  
+  // 新しい本を追加する処理
+  const handleAddBook = () => {
+    if (!newBookTitle.trim() || !newBookAuthor.trim()) {
+      Alert.alert('エラー', 'タイトルと著者は必須です');
+      return;
+    }
+    
+    // デフォルトのカバー画像URL
+    const defaultCoverUrl = 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80';
+    
+    // 新しい本のデータを作成
+    const newBook: BookType = {
+      id: `local-${Date.now()}`, // 一意のID
+      title: newBookTitle,
+      author: newBookAuthor,
+      coverUrl: defaultCoverUrl,
+      coverImage: defaultCoverUrl, // 両方のプロパティを設定
+      description: '手動で追加された本',
+    };
+    
+    // BookServiceを使用して本を追加
+    const status = newBookStatus === 'all' ? 'planned' : newBookStatus as any;
+    addBookToLibrary(newBook, status);
+    
+    // 本の一覧を更新
+    refreshBooks();
+    
+    // モーダルを閉じてフォームをリセット
+    setModalVisible(false);
+    setNewBookTitle('');
+    setNewBookAuthor('');
+    setNewBookStatus('planned');
   };
 
   return (
@@ -201,6 +255,97 @@ export default function LibraryScreen() {
           ))
         )}
       </ScrollView>
+      
+      {/* 追加ボタン */}
+      <TouchableOpacity 
+        style={styles.addButton} 
+        onPress={() => setModalVisible(true)}
+      >
+        <Plus size={24} color={colors.white} />
+      </TouchableOpacity>
+      
+      {/* 本追加モーダル */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Typography variant="title">本を追加</Typography>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <X size={24} color={colors.gray[600]} />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.formContainer}>
+              <View style={styles.formGroup}>
+                <Typography variant="caption" color={colors.gray[600]}>
+                  タイトル *
+                </Typography>
+                <TextInput
+                  style={styles.input}
+                  value={newBookTitle}
+                  onChangeText={setNewBookTitle}
+                  placeholder="本のタイトル"
+                />
+              </View>
+              
+              <View style={styles.formGroup}>
+                <Typography variant="caption" color={colors.gray[600]}>
+                  著者 *
+                </Typography>
+                <TextInput
+                  style={styles.input}
+                  value={newBookAuthor}
+                  onChangeText={setNewBookAuthor}
+                  placeholder="著者名"
+                />
+              </View>
+              
+              <View style={styles.formGroup}>
+                <Typography variant="caption" color={colors.gray[600]}>
+                  ステータス
+                </Typography>
+                <View style={styles.statusButtonsContainer}>
+                  {STATUS_TABS.filter(tab => tab.value !== 'all').map((tab) => (
+                    <Pressable
+                      key={tab.value}
+                      style={[
+                        styles.statusButton,
+                        newBookStatus === tab.value && styles.selectedStatusButton,
+                      ]}
+                      onPress={() => setNewBookStatus(tab.value as BookStatus)}
+                    >
+                      <Typography
+                        variant="caption"
+                        style={[
+                          styles.statusButtonText,
+                          newBookStatus === tab.value && styles.selectedStatusButtonText,
+                        ]}
+                      >
+                        {tab.label}
+                      </Typography>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            </View>
+            
+            <TouchableOpacity 
+              style={styles.saveButton}
+              onPress={handleAddBook}
+            >
+              <Save size={20} color={colors.white} style={styles.saveIcon} />
+              <Typography variant="body" color={colors.white}>
+                保存
+              </Typography>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -241,5 +386,95 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: spacing.sm,
+  },
+  addButton: {
+    position: 'absolute',
+    right: spacing.lg,
+    bottom: spacing.lg,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary.main,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: colors.white,
+    borderRadius: spacing.md,
+    padding: spacing.md,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray[200],
+  },
+  formContainer: {
+    marginBottom: spacing.md,
+  },
+  formGroup: {
+    marginBottom: spacing.md,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.gray[300],
+    borderRadius: spacing.xs,
+    padding: spacing.sm,
+    fontSize: 16,
+    marginTop: spacing.xs,
+  },
+  statusButtonsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  statusButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: 20,
+    backgroundColor: colors.gray[100],
+  },
+  selectedStatusButton: {
+    backgroundColor: colors.primary.main,
+  },
+  statusButtonText: {
+    color: colors.gray[600],
+  },
+  selectedStatusButtonText: {
+    color: colors.white,
+  },
+  saveButton: {
+    backgroundColor: colors.primary.main,
+    borderRadius: spacing.sm,
+    padding: spacing.sm,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  saveIcon: {
+    marginRight: spacing.xs,
   },
 });

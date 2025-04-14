@@ -35,6 +35,8 @@ export default function RecommendedBooks() {
         renderItem={({ item }) => (
           <BookCard
             book={item}
+            variant="grid"
+            style={styles.bookCard}
             onPress={() => {
               // @ts-ignore
               router.push(`/books/${item.id}`);
@@ -81,6 +83,9 @@ const styles = StyleSheet.create({
   },
   bookRow: {
     justifyContent: 'space-between',
-    marginBottom: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  bookCard: {
+    height: 220,
   },
 }); 

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, StyleSheet, Image, TouchableOpacity, Dimensions, ImageSourcePropType } from 'react-native';
 import { Star } from 'lucide-react-native';
 import { colors, shadows, borderRadius, spacing, typography } from '../../constants/theme';
 import { Typography } from '../Typography';
@@ -43,10 +43,10 @@ export const BookCard: React.FC<BookCardProps> = ({
     return url;
   };
   
-  // coverSourceの設定 - 順番が重要
-  const getCoverSource = () => {
+  // 共通の画像ソース処理をuseMemoで効率化
+  const coverSource = useMemo(() => {
     if (imageError) {
-      return { uri: defaultBookCover };
+      return { uri: defaultBookCover } as ImageSourcePropType;
     }
     
     // 修正されたURLを取得
@@ -54,15 +54,15 @@ export const BookCard: React.FC<BookCardProps> = ({
     const fixedCoverImage = getFixedImageUrl(coverImage);
     
     if (fixedCoverUrl) {
-      return { uri: fixedCoverUrl };
+      return { uri: fixedCoverUrl } as ImageSourcePropType;
     }
     
     if (fixedCoverImage) {
-      return { uri: fixedCoverImage };
+      return { uri: fixedCoverImage } as ImageSourcePropType;
     }
     
-    return { uri: defaultBookCover };
-  };
+    return { uri: defaultBookCover } as ImageSourcePropType;
+  }, [book, imageError, coverUrl, coverImage]);
   
   // 画像読み込みエラー処理
   const handleImageError = () => {
@@ -138,7 +138,7 @@ export const BookCard: React.FC<BookCardProps> = ({
       >
         <View style={styles.listCoverContainer}>
           <Image 
-            source={getCoverSource()} 
+            source={coverSource} 
             style={styles.listCover}
             onError={handleImageError}
           />
@@ -170,7 +170,7 @@ export const BookCard: React.FC<BookCardProps> = ({
       >
         <View style={styles.horizontalCoverWrapper}>
           <Image 
-            source={getCoverSource()} 
+            source={coverSource} 
             style={styles.horizontalCover}
             onError={handleImageError}
           />
@@ -202,7 +202,7 @@ export const BookCard: React.FC<BookCardProps> = ({
       >
         <View style={styles.compactCoverWrapper}>
           <Image 
-            source={getCoverSource()} 
+            source={coverSource} 
             style={styles.compactCover}
             onError={handleImageError}
           />
@@ -227,7 +227,7 @@ export const BookCard: React.FC<BookCardProps> = ({
     >
       <View style={styles.coverShadow}>
         <Image 
-          source={getCoverSource()} 
+          source={coverSource} 
           style={styles.gridCover}
           onError={handleImageError}
         />
@@ -270,9 +270,9 @@ const styles = StyleSheet.create({
   },
   gridCover: {
     width: '100%',
-    height: gridCardWidth * 1.5,
-    borderRadius: borderRadius.lg,
-    resizeMode: 'cover',
+    height: 145,
+    borderRadius: 8,
+    marginBottom: spacing.xs,
   },
   gridCoverPlaceholder: {
     width: '100%',

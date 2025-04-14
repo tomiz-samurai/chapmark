@@ -1,14 +1,23 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Image, TouchableOpacity, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, Star, Clock, BookOpen, Calendar, Building, Tag } from 'lucide-react-native';
+import { useLocalSearchParams, router } from 'expo-router';
+import { ChevronLeft, Star, Clock, BookOpen, Calendar, Building, Tag, Check } from 'lucide-react-native';
 
 import { Typography } from '../../components/Typography';
 import { colors, spacing, borderRadius, shadows } from '../../constants/theme';
-import { getBookById } from '../../lib/services/BookService';
+import { getBookById, updateBookStatus, addBookToLibrary } from '../../lib/services/BookService';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
+
+// ステータスのオプション
+const STATUS_OPTIONS = [
+  { value: 'reading', label: '読書中', color: colors.primary.main },
+  { value: 'completed', label: '読了', color: colors.accent.main },
+  { value: 'planned', label: 'これから読む', color: colors.gray[500] },
+  { value: 'on-hold', label: '中断中', color: colors.status.warning },
+  { value: 'dropped', label: '中止', color: colors.status.error },
+];
 
 export default function BookDetail() {
   const { id } = useLocalSearchParams();
@@ -18,8 +27,17 @@ export default function BookDetail() {
   // 画像エラー状態の追加
   const [imageError, setImageError] = useState(false);
   
-  // BookServiceを使用して書籍情報を取得
-  const book = getBookById(bookId);
+  // ステータス変更モーダルの状態
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
+  
+  // 本の状態を管理
+  const [book, setBook] = useState(getBookById(bookId));
+  
+  // ステータス変更後に本の情報を更新する関数
+  const refreshBookData = () => {
+    const updatedBook = getBookById(bookId);
+    setBook(updatedBook);
+  };
   
   if (!book) {
     return (
@@ -48,6 +66,51 @@ export default function BookDetail() {
       case 'on-hold': return '中断中';
       case 'dropped': return '中止';
       default: return '';
+    }
+  };
+
+  // 本棚画面に遷移する関数
+  const navigateToLibrary = () => {
+    router.push('/(tabs)/library');
+  };
+  
+  // 読書開始ボタンの処理
+  const handleStartReading = () => {
+    if (updateBookStatus(bookId, 'reading')) {
+      refreshBookData();
+      Alert.alert('成功', '本のステータスを「読書中」に変更しました', [
+        { text: '閉じる', style: 'cancel' },
+        { text: '本棚へ移動', onPress: navigateToLibrary }
+      ]);
+    }
+  };
+  
+  // ステータスオプションを選択した時の処理
+  const handleSelectStatus = (status: 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped') => {
+    if (updateBookStatus(bookId, status)) {
+      setStatusModalVisible(false);
+      refreshBookData();
+      Alert.alert('成功', `本のステータスを「${getStatusText(status)}」に変更しました`, [
+        { text: '閉じる', style: 'cancel' },
+        { text: '本棚へ移動', onPress: navigateToLibrary }
+      ]);
+    }
+  };
+  
+  // 本棚へ追加ボタンの処理
+  const handleAddToLibrary = () => {
+    if (book.status) {
+      // 既に本棚にある場合はステータス変更モーダルを表示
+      setStatusModalVisible(true);
+    } else {
+      // 本棚にない場合はこれから読むステータスで追加
+      if (addBookToLibrary(book, 'planned')) {
+        refreshBookData();
+        Alert.alert('成功', '本を本棚に追加しました', [
+          { text: '閉じる', style: 'cancel' },
+          { text: '本棚へ移動', onPress: navigateToLibrary }
+        ]);
+      }
     }
   };
 
@@ -146,12 +209,18 @@ export default function BookDetail() {
         
         {/* アクションボタン */}
         <View style={styles.actionContainer}>
-          <TouchableOpacity style={styles.primaryButton}>
+          <TouchableOpacity 
+            style={styles.primaryButton}
+            onPress={handleStartReading}
+          >
             <Typography variant="body" color={colors.white}>
               読書を開始
             </Typography>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryButton}>
+          <TouchableOpacity 
+            style={styles.secondaryButton}
+            onPress={handleAddToLibrary}
+          >
             <Typography variant="body" color={colors.primary.main}>
               {book.status ? 'ステータス変更' : '本棚に追加'}
             </Typography>
@@ -244,6 +313,47 @@ export default function BookDetail() {
         {/* 余白 */}
         <View style={styles.bottomPadding} />
       </ScrollView>
+
+      {/* ステータス変更モーダル */}
+      <Modal
+        visible={statusModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setStatusModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Typography variant="title" style={styles.modalTitle}>
+              ステータスを選択
+            </Typography>
+            
+            {STATUS_OPTIONS.map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                style={styles.statusOption}
+                onPress={() => handleSelectStatus(option.value as any)}
+              >
+                <View style={[styles.statusColor, { backgroundColor: option.color }]} />
+                <Typography variant="body" style={{ flex: 1 }}>
+                  {option.label}
+                </Typography>
+                {book.status === option.value && (
+                  <Check size={20} color={colors.primary.main} />
+                )}
+              </TouchableOpacity>
+            ))}
+            
+            <TouchableOpacity 
+              style={styles.cancelButton}
+              onPress={() => setStatusModalVisible(false)}
+            >
+              <Typography variant="body" color={colors.gray[600]}>
+                キャンセル
+              </Typography>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -401,5 +511,38 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: spacing.xl * 2,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: colors.white,
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    width: '80%',
+    maxHeight: '80%',
+  },
+  modalTitle: {
+    marginBottom: spacing.md,
+  },
+  statusOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray[200],
+  },
+  statusColor: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    marginRight: spacing.md,
+  },
+  cancelButton: {
+    marginTop: spacing.md,
+    alignItems: 'center',
   },
 }); 
