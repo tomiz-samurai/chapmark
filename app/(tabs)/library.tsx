@@ -255,7 +255,7 @@ export default function LibraryScreen() {
               variant="list"
               showRating={false}
               showStatus={true}
-              onPress={() => navigateToBookDetail(book.id)}
+              onPress={() => navigateToBookDetail(book.id, '/(tabs)/library')}
               style={styles.card}
             />
           ))

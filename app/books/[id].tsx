@@ -24,7 +24,7 @@ const STATUS_OPTIONS = [
 export default function BookDetail() {
   const { id } = useLocalSearchParams();
   const bookId = typeof id === 'string' ? id : '';
-  const { goBack } = useBookNavigation();
+  const { goBack, navigateToLibrary } = useBookNavigation();
   const dispatch = useDispatch();
   
   // 画像エラー状態の追加
@@ -47,7 +47,7 @@ export default function BookDetail() {
       <SafeAreaView style={styles.container}>
         <StatusBar style="dark" />
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={goBack}>
+          <TouchableOpacity style={styles.backButton} onPress={() => goBack()}>
             <ChevronLeft size={24} color={colors.gray[700]} />
           </TouchableOpacity>
         </View>
@@ -70,11 +70,6 @@ export default function BookDetail() {
       case 'dropped': return '中止';
       default: return '';
     }
-  };
-
-  // 本棚画面に遷移する関数
-  const navigateToLibrary = () => {
-    router.push('/(tabs)/library');
   };
   
   // タイマー画面に遷移する関数
@@ -202,13 +197,24 @@ export default function BookDetail() {
       
       {/* ヘッダー */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+        <TouchableOpacity style={styles.backButton} onPress={() => goBack()}>
           <ChevronLeft size={24} color={colors.gray[700]} />
         </TouchableOpacity>
         <Typography variant="title" style={styles.headerTitle}>
           書籍詳細
         </Typography>
-        <View style={styles.headerRight} />
+        <View style={styles.headerRight}>
+          {book.status && (
+            <TouchableOpacity
+              style={[styles.statusButton, { backgroundColor: STATUS_OPTIONS.find(opt => opt.value === book.status)?.color || colors.gray[500] }]}
+              onPress={() => setStatusModalVisible(true)}
+            >
+              <Typography variant="label" style={styles.statusButtonText}>
+                {statusText}
+              </Typography>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -581,5 +587,13 @@ const styles = StyleSheet.create({
   cancelButton: {
     marginTop: spacing.md,
     alignItems: 'center',
+  },
+  statusButton: {
+    padding: spacing.sm,
+    borderRadius: borderRadius.sm,
+  },
+  statusButtonText: {
+    color: colors.white,
+    fontWeight: 'bold',
   },
 }); 

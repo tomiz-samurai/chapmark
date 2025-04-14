@@ -121,7 +121,7 @@ export default function HomeScreen() {
                 book={book}
                 variant="compact"
                 style={styles.recommendedBookCard}
-                onPress={() => navigateToBookDetail(book.id)}
+                onPress={() => navigateToBookDetail(book.id, '/(tabs)')}
               />
             ))}
           </ScrollView>
@@ -137,7 +137,7 @@ export default function HomeScreen() {
               book={currentlyReading}
               variant="horizontal"
               showStatus={true}
-              onPress={() => navigateToBookDetail(currentlyReading.id)}
+              onPress={() => navigateToBookDetail(currentlyReading.id, '/(tabs)')}
             />
           </View>
         )}

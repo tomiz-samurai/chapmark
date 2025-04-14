@@ -111,7 +111,7 @@ export default function DiscoverScreen() {
                 key={book.id}
                 book={book}
                 variant="compact"
-                onPress={() => navigateToBookDetail(book.id)}
+                onPress={() => navigateToBookDetail(book.id, '/(tabs)/discover')}
                 style={styles.recommendedBookCard}
               />
             ))}
@@ -134,7 +134,7 @@ export default function DiscoverScreen() {
                 key={book.id}
                 book={book}
                 variant="compact"
-                onPress={() => navigateToBookDetail(book.id)}
+                onPress={() => navigateToBookDetail(book.id, '/(tabs)/discover')}
                 style={styles.horizontalBookCard}
               />
             ))}
@@ -158,7 +158,7 @@ export default function DiscoverScreen() {
                 <BookCard
                   book={item}
                   variant="horizontal"
-                  onPress={() => navigateToBookDetail(item.id)}
+                  onPress={() => navigateToBookDetail(item.id, '/(tabs)/discover')}
                   style={styles.collectionBookCard}
                 />
               )}
