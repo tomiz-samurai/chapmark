@@ -125,7 +125,12 @@
   "discover": {
     "popularCategories": "Popular Categories",
     "recommendedBooks": "Recommended Books",
-    "newReleases": "New Releases"
+    "newReleases": "New Releases",
+    "collections": {
+      "monthlyCareerRecommendations": "This Month's Career Growth Books",
+      "mustReadClassics": "Essential Reads for Business Professionals",
+      "criticalThinking": "Books to Sharpen Your Thinking"
+    }
   },
   "profile": {
     "notifications": "Notifications",

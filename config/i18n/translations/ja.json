@@ -125,7 +125,12 @@
   "discover": {
     "popularCategories": "人気のジャンル",
     "recommendedBooks": "おすすめ書籍",
-    "newReleases": "新着書籍"
+    "newReleases": "新着書籍",
+    "collections": {
+      "monthlyCareerRecommendations": "今月のキャリアアップ推薦図書",
+      "mustReadClassics": "ビジネスパーソン必読の名著",
+      "criticalThinking": "思考力を鍛える一冊"
+    }
   },
   "profile": {
     "notifications": "通知",

@@ -14,7 +14,7 @@ export interface Book {
 
 export interface Recommendation {
   id: string;
-  title: string;
+  titleKey: string;
   books: Book[];
 }
 
@@ -128,17 +128,17 @@ export const popularCategories: string[] = [
 export const recommendationCollections: Recommendation[] = [
   {
     id: '1',
-    title: '今月のキャリアアップ推薦図書',
+    titleKey: 'discover.collections.monthlyCareerRecommendations',
     books: recommendedBooks.slice(0, 3)
   },
   {
     id: '2',
-    title: 'ビジネスパーソン必読の名著',
+    titleKey: 'discover.collections.mustReadClassics',
     books: [...recommendedBooks.slice(3, 4), ...newReleaseBooks.slice(0, 2)]
   },
   {
     id: '3',
-    title: '思考力を鍛える一冊',
+    titleKey: 'discover.collections.criticalThinking',
     books: [recommendedBooks[1], newReleaseBooks[2], recommendedBooks[3]]
   }
 ]; 

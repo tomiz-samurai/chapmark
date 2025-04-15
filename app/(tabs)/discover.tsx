@@ -70,7 +70,7 @@ export default function DiscoverScreen() {
         {/* カテゴリー */}
         <View style={styles.section}>
           <CollectionHeader 
-            title="人気のジャンル" 
+            title={t('discover.popularCategories')} 
             showSeeAll={false}
           />
           <ScrollView 
@@ -92,7 +92,7 @@ export default function DiscoverScreen() {
         {/* おすすめ書籍 */}
         <View style={styles.section}>
           <CollectionHeader 
-            title={selectedCategory || "おすすめ書籍"} 
+            title={selectedCategory || t('discover.recommendedBooks')} 
             onSeeAllPress={() => navigateToBookList('recommended')}
           />
           <ScrollView 
@@ -115,7 +115,7 @@ export default function DiscoverScreen() {
         {/* 新着書籍 */}
         <View style={styles.section}>
           <CollectionHeader 
-            title="新着書籍" 
+            title={t('discover.newReleases')} 
             onSeeAllPress={() => navigateToBookList('new-releases')}
           />
           <ScrollView 
@@ -139,7 +139,7 @@ export default function DiscoverScreen() {
         {recommendationCollections.map((collection) => (
           <View key={collection.id} style={styles.section}>
             <CollectionHeader 
-              title={collection.title} 
+              title={t(collection.titleKey)} 
               onSeeAllPress={() => navigateToCollection(collection.id)}
             />
             <FlatList
