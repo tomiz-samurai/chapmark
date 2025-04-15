@@ -8,6 +8,10 @@ export interface TimerState {
   lastActiveTime: string | null; // 最後にアクティブだった時間（ISO文字列）
   activeBook: string | null; // 現在読書中の本のID
   startPage: number | null; // 読み始めのページ
+  goalTime: number | null; // 目標時間（秒）
+  goalReached: boolean; // 目標時間に到達したか
+  isBackgroundActive: boolean; // バックグラウンドでアクティブかどうか
+  lastBackgroundTimestamp: string | null; // バックグラウンドに入った時刻
 }
 
 const initialState: TimerState = {
@@ -17,7 +21,11 @@ const initialState: TimerState = {
   displaySeconds: 0,
   lastActiveTime: null,
   activeBook: null,
-  startPage: null
+  startPage: null,
+  goalTime: null,
+  goalReached: false,
+  isBackgroundActive: false,
+  lastBackgroundTimestamp: null
 };
 
 export const timerSlice = createSlice({
@@ -79,6 +87,10 @@ export const timerSlice = createSlice({
       state.displaySeconds = 0;
       state.activeBook = null;
       state.startPage = null;
+      state.goalTime = null;
+      state.goalReached = false;
+      state.isBackgroundActive = false;
+      state.lastBackgroundTimestamp = null;
     },
 
     // アプリがバックグラウンドから戻ったときに時間を再計算
@@ -90,6 +102,10 @@ export const timerSlice = createSlice({
         
         state.displaySeconds = state.pausedTime + elapsed;
         state.lastActiveTime = new Date().toISOString();
+        
+        // バックグラウンド状態をリセット
+        state.isBackgroundActive = false;
+        state.lastBackgroundTimestamp = null;
       }
     },
 
@@ -112,6 +128,30 @@ export const timerSlice = createSlice({
     // 読書セッション完了後のリセット
     finishSession: (state) => {
       return initialState;
+    },
+    
+    // 目標時間の設定
+    setGoalTime: (state, action: PayloadAction<number>) => {
+      state.goalTime = action.payload;
+      state.goalReached = false;
+    },
+    
+    // 目標時間到達フラグのセット
+    setGoalReached: (state, action: PayloadAction<boolean>) => {
+      state.goalReached = action.payload;
+    },
+    
+    // バックグラウンド状態の設定
+    setBackgroundActive: (state, action: PayloadAction<boolean>) => {
+      state.isBackgroundActive = action.payload;
+      
+      if (action.payload) {
+        // バックグラウンドに入った時刻を記録
+        state.lastBackgroundTimestamp = new Date().toISOString();
+      } else {
+        // バックグラウンドから戻った場合はリセット
+        state.lastBackgroundTimestamp = null;
+      }
     }
   },
 });
@@ -124,7 +164,10 @@ export const {
   resetTimer,
   syncTimerFromBackground,
   completeReadingSession,
-  finishSession
+  finishSession,
+  setGoalTime,
+  setGoalReached,
+  setBackgroundActive
 } = timerSlice.actions;
 
 export default timerSlice.reducer; 

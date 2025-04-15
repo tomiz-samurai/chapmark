@@ -9,20 +9,89 @@ import TimerService, { formatTime } from '../../lib/services/TimerService';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { BookIcon } from 'lucide-react-native';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
+import * as Haptics from 'expo-haptics';
+import Animated, { 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withTiming, 
+  withSpring,
+  withRepeat,
+  withSequence,
+  Easing
+} from 'react-native-reanimated';
+import { GoalTimeSelector } from './GoalTimeSelector';
 
 interface ReadingTimerProps {
   book: Book | null;
   onFinish?: () => void;
+  goalTime?: number | null;
+  onSetGoalTime?: (seconds: number) => void;
+  compact?: boolean;
 }
 
 export function ReadingTimer({ 
   book, 
-  onFinish
+  onFinish,
+  goalTime,
+  onSetGoalTime,
+  compact = false
 }: ReadingTimerProps) {
   const dispatch = useDispatch();
-  const { isRunning, displaySeconds } = useSelector((state: RootState) => (state as any).timer);
+  const timerState = useSelector((state: RootState) => (state as any).timer);
+  const { isRunning, displaySeconds, goalReached } = timerState;
   const { colors, spacing } = useTheme();
   const { t } = useAppTranslation();
+
+  // アニメーション値
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
+  const rotation = useSharedValue(0);
+
+  // タイマー開始/停止時のアニメーション
+  useEffect(() => {
+    if (isRunning) {
+      // タイマー開始時のアニメーション
+      scale.value = withSequence(
+        withTiming(1.05, { duration: 200 }),
+        withTiming(1, { duration: 200 })
+      );
+    } else {
+      // タイマー停止時のアニメーション
+      scale.value = withTiming(1, { duration: 200 });
+    }
+  }, [isRunning]);
+  
+  // ゴール達成時のアニメーション
+  useEffect(() => {
+    if (goalReached) {
+      // ゴール達成時のアニメーション
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      
+      scale.value = withSequence(
+        withTiming(1.2, { duration: 300, easing: Easing.out(Easing.exp) }),
+        withTiming(1, { duration: 300 }),
+        withTiming(1.1, { duration: 300 }),
+        withTiming(1, { duration: 300 })
+      );
+      
+      rotation.value = withSequence(
+        withTiming(-0.05, { duration: 150 }),
+        withTiming(0.05, { duration: 300 }),
+        withTiming(0, { duration: 150 })
+      );
+    }
+  }, [goalReached]);
+  
+  // アニメーションスタイル
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { scale: scale.value },
+        { rotate: `${rotation.value}rad` }
+      ],
+      opacity: opacity.value,
+    };
+  });
 
   // コンポーネントのアンマウント時にタイマーリソースをクリーンアップ
   useEffect(() => {
@@ -63,6 +132,13 @@ export function ReadingTimer({
     }
   };
 
+  // 目標時間の設定
+  const handleGoalTimeSelect = (seconds: number) => {
+    if (onSetGoalTime) {
+      onSetGoalTime(seconds);
+    }
+  };
+
   // 安全で確実に表示できる画像URL
   const defaultBookCover = 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80';
   
@@ -90,21 +166,64 @@ export function ReadingTimer({
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.card }]}>
-      {/* 本のカバー画像 */}
-      <View style={styles.coverContainer}>
-        <Image
-          source={getCoverSource()}
-          style={styles.coverImage}
-          resizeMode="contain"
-        />
-      </View>
+    <View style={[
+      styles.container, 
+      { 
+        backgroundColor: colors.card,
+        padding: compact ? 16 : 24,
+        marginVertical: compact ? 8 : 16 
+      }
+    ]}>
+      <View style={styles.timerLayout}>
+        {/* 本のカバー画像 */}
+        <View style={styles.coverContainer}>
+          <Image
+            source={getCoverSource()}
+            style={[
+              styles.coverImage,
+              compact && styles.coverImageCompact
+            ]}
+            resizeMode="contain"
+          />
+        </View>
 
-      {/* タイマー表示部分 */}
-      <View style={styles.timerSection}>
-        <Typography variant="display" style={[styles.timerText, { color: colors.secondary }]}>
-          {formatTime(displaySeconds)}
-        </Typography>
+        {/* タイマー表示部分 */}
+        <Animated.View style={[styles.timerSection, animatedStyle]}>
+          <Typography 
+            variant="display" 
+            style={[
+              styles.timerText, 
+              { 
+                color: goalReached 
+                  ? colors.success || colors.secondary
+                  : colors.secondary,
+                fontSize: compact ? 48 : 60
+              }
+            ]}
+          >
+            {formatTime(displaySeconds)}
+          </Typography>
+          
+          {/* 目標時間表示（設定されている場合） */}
+          {goalTime && (
+            <Typography 
+              variant="caption" 
+              style={[styles.goalText, { color: colors.textSecondary }]}
+            >
+              {t('timer.goalTime')}: {formatTime(goalTime)}
+            </Typography>
+          )}
+        </Animated.View>
+        
+        {/* 目標時間セレクター */}
+        {onSetGoalTime && (
+          <GoalTimeSelector
+            currentGoalTime={goalTime || null}
+            onSelectGoalTime={handleGoalTimeSelect}
+            disabled={isRunning}
+            compact={compact}
+          />
+        )}
       </View>
 
       {/* コントロールボタン部分 */}
@@ -113,30 +232,28 @@ export function ReadingTimer({
           onPress={handleToggleTimer}
           title={isRunning ? t('timer.pause') : t('timer.start')}
           variant="primary"
-          size="medium"
+          size={compact ? "medium" : "large"}
           style={styles.mainButton}
         />
         <Button
           onPress={handleResetTimer}
           title={t('timer.reset')}
           variant="outline"
-          size="medium"
+          size={compact ? "medium" : "large"}
           style={styles.secondaryButton}
         />
-      </View>
-      
-      {/* 読書終了ボタン（タイマーが一時停止で、かつ0秒より大きい場合のみ表示） */}
-      {!isRunning && displaySeconds > 0 && (
-        <View style={styles.finishSection}>
+        
+        {/* 読書終了ボタン（タイマーが一時停止で、かつ0秒より大きい場合のみ表示） */}
+        {!isRunning && displaySeconds > 0 && (
           <Button
             onPress={handleFinishReading}
             title={t('timer.finishReading')}
             variant="secondary"
-            size="medium"
+            size={compact ? "medium" : "large"}
             style={styles.finishButton}
           />
-        </View>
-      )}
+        )}
+      </View>
     </View>
   );
 }
@@ -144,8 +261,6 @@ export function ReadingTimer({
 const styles = StyleSheet.create({
   container: {
     borderRadius: 16,
-    marginVertical: 16,
-    padding: 20,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -159,45 +274,55 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginVertical: 16,
   },
-  coverContainer: {
-    alignItems: 'center',
+  timerLayout: {
     marginBottom: 16,
   },
+  coverContainer: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   coverImage: {
-    width: 100,
-    height: 140,
+    width: 70,
+    height: 105,
     borderRadius: 8,
+  },
+  coverImageCompact: {
+    width: 60,
+    height: 90,
   },
   timerSection: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   timerText: {
-    fontSize: 56,
     fontWeight: '300',
     letterSpacing: 2,
   },
   controlsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    flexWrap: 'wrap',
   },
   mainButton: {
     flex: 1,
-    marginRight: 8,
+    marginRight: 10,
+    marginBottom: 10,
   },
   secondaryButton: {
     flex: 1,
-    marginLeft: 8,
-  },
-  finishSection: {
-    marginTop: 8,
+    marginLeft: 10,
+    marginBottom: 10,
   },
   finishButton: {
     width: '100%',
+    marginTop: 4,
   },
   selectPrompt: {
     fontSize: 16,
     textAlign: 'center',
+  },
+  goalText: {
+    marginTop: 6,
+    fontSize: 14,
   },
 }); 

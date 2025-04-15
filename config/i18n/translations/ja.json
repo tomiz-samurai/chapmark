@@ -103,7 +103,15 @@
     "saved": "保存しました",
     "recordSaved": "読書の記録を保存しました。",
     "pleaseSelectBook": "本を選択してください",
-    "page": "ページ"
+    "page": "ページ",
+    "targetTime": "目標時間",
+    "goalTime": "目標時間",
+    "goalReached": "目標達成！",
+    "goalNotification": "{{book}}の読書目標時間に到達しました！",
+    "time15min": "15分",
+    "time30min": "30分",
+    "time1hour": "1時間",
+    "time2hours": "2時間"
   },
   "settings": {
     "language": "言語設定",

@@ -103,7 +103,15 @@
     "saved": "Saved",
     "recordSaved": "Your reading record has been saved.",
     "pleaseSelectBook": "Please select a book",
-    "page": "pages"
+    "page": "pages",
+    "targetTime": "Target Time",
+    "goalTime": "Goal Time",
+    "goalReached": "Goal Reached!",
+    "goalNotification": "You've reached your reading goal time for {{book}}!",
+    "time15min": "15 min",
+    "time30min": "30 min",
+    "time1hour": "1 hour",
+    "time2hours": "2 hours"
   },
   "settings": {
     "language": "Language Settings",

@@ -1,5 +1,6 @@
 import { AppState, AppStateStatus } from 'react-native';
 import BackgroundTimer from 'react-native-background-timer';
+import * as Haptics from 'expo-haptics';
 import { store } from '../store';
 import { 
   startTimer, 
@@ -7,9 +8,13 @@ import {
   updateTimer, 
   resetTimer,
   syncTimerFromBackground, 
-  completeReadingSession 
+  completeReadingSession,
+  setGoalTime,
+  setGoalReached,
+  setBackgroundActive
 } from '../store/timerSlice';
 import { completeSession } from '../store/sessionSlice';
+import NotificationService from './NotificationService';
 
 // タイマー更新の間隔（ミリ秒）
 const TIMER_INTERVAL = 1000;
@@ -31,35 +36,100 @@ export class TimerServiceClass {
     const state = store.getState() as any;
     const { timer } = state;
 
+    // アプリがバックグラウンドに移動した場合
+    if (this.appState === 'active' && nextAppState.match(/inactive|background/)) {
+      // バックグラウンド状態をマーク
+      store.dispatch(setBackgroundActive(true));
+    }
+    
     // バックグラウンドからフォアグラウンドに戻った場合
     if (
       this.appState.match(/inactive|background/) &&
-      nextAppState === 'active' &&
-      timer.isRunning
+      nextAppState === 'active'
     ) {
-      // タイマーの状態を同期
-      store.dispatch(syncTimerFromBackground());
+      if (timer.isRunning) {
+        // タイマーの状態を同期
+        store.dispatch(syncTimerFromBackground());
+        
+        // 目標時間に達したかチェック
+        if (timer.goalTime && timer.displaySeconds >= timer.goalTime && !timer.goalReached) {
+          this.handleGoalReached();
+        }
+      }
+      
+      // バックグラウンド状態を解除
+      store.dispatch(setBackgroundActive(false));
     }
 
     // 現在のアプリ状態を更新
     this.appState = nextAppState;
   };
 
+  // 目標時間の設定
+  public setGoalTime(seconds: number) {
+    // 型アサーションを使ってエラーを回避
+    const state = store.getState() as any;
+    const { timer } = state;
+    
+    // タップ感触フィードバック
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    // 目標時間を設定
+    store.dispatch(setGoalTime(seconds));
+  }
+
+  // 目標時間到達時の処理
+  private handleGoalReached() {
+    // 型アサーションを使ってエラーを回避
+    const state = store.getState() as any;
+    const { timer, book } = state;
+    
+    // 目標達成を記録
+    store.dispatch(setGoalReached(true));
+    
+    // 触覚フィードバック（アプリがフォアグラウンドにいる場合のみ）
+    if (this.appState === 'active') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    
+    // 通知送信
+    const selectedBook = book.books.find((b: any) => b.id === timer.activeBook);
+    if (selectedBook) {
+      NotificationService.showGoalNotification(selectedBook.title);
+    }
+  }
+
   // タイマーを開始
   public startTimer(bookId: string, currentPage?: number) {
+    // タップ感触フィードバック
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
     // Reduxアクションをディスパッチ
     store.dispatch(startTimer({ bookId, currentPage }));
 
     // バックグラウンドタイマーの開始
     if (this.timerId === null) {
       this.timerId = BackgroundTimer.setInterval(() => {
+        // タイマーを更新
         store.dispatch(updateTimer());
+        
+        // 目標時間に達したかチェック
+        const state = store.getState() as any;
+        const { timer } = state;
+        
+        if (timer.goalTime && timer.displaySeconds >= timer.goalTime && !timer.goalReached) {
+          // 目標時間達成
+          this.handleGoalReached();
+        }
       }, TIMER_INTERVAL);
     }
   }
 
   // タイマーを一時停止
   public pauseTimer() {
+    // タップ感触フィードバック
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
     // Reduxアクションをディスパッチ
     store.dispatch(pauseTimer());
 
@@ -76,6 +146,9 @@ export class TimerServiceClass {
     const state = store.getState() as any;
     const { timer } = state;
     
+    // タップ感触フィードバック
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
     if (!timer.isRunning) {
       // Reduxアクションをディスパッチ
       store.dispatch(startTimer({ 
@@ -87,6 +160,15 @@ export class TimerServiceClass {
       if (this.timerId === null) {
         this.timerId = BackgroundTimer.setInterval(() => {
           store.dispatch(updateTimer());
+          
+          // 目標時間に達したかチェック
+          const currentState = store.getState() as any;
+          const { timer: currentTimer } = currentState;
+          
+          if (currentTimer.goalTime && currentTimer.displaySeconds >= currentTimer.goalTime && !currentTimer.goalReached) {
+            // 目標時間達成
+            this.handleGoalReached();
+          }
         }, TIMER_INTERVAL);
       }
     }
@@ -94,6 +176,9 @@ export class TimerServiceClass {
 
   // タイマーをリセット
   public resetTimer() {
+    // タップ感触フィードバック
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
     // Reduxアクションをディスパッチ
     store.dispatch(resetTimer());
 
@@ -106,6 +191,9 @@ export class TimerServiceClass {
 
   // 読書セッションを完了
   public completeReading(endPage?: number) {
+    // タップ感触フィードバック
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    
     // 型アサーションを使ってエラーを回避
     const state = store.getState() as any;
     const { timer, book } = state;
