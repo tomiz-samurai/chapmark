@@ -8,6 +8,7 @@ import { RootState } from '../../lib/store';
 import TimerService, { formatTime } from '../../lib/services/TimerService';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { BookIcon } from 'lucide-react-native';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
 
 interface ReadingTimerProps {
   book: Book | null;
@@ -21,6 +22,7 @@ export function ReadingTimer({
   const dispatch = useDispatch();
   const { isRunning, displaySeconds } = useSelector((state: RootState) => (state as any).timer);
   const { colors, spacing } = useTheme();
+  const { t } = useAppTranslation();
 
   // コンポーネントのアンマウント時にタイマーリソースをクリーンアップ
   useEffect(() => {
@@ -81,7 +83,7 @@ export function ReadingTimer({
     return (
       <View style={[styles.emptyContainer, { backgroundColor: colors.card }]}>
         <Typography variant="body" style={[styles.selectPrompt, { color: colors.textSecondary }]}>
-          本を選択してください
+          {t('timer.pleaseSelectBook')}
         </Typography>
       </View>
     );
@@ -109,14 +111,14 @@ export function ReadingTimer({
       <View style={styles.controlsSection}>
         <Button
           onPress={handleToggleTimer}
-          title={isRunning ? "一時停止" : "開始"}
+          title={isRunning ? t('timer.pause') : t('timer.start')}
           variant="primary"
           size="medium"
           style={styles.mainButton}
         />
         <Button
           onPress={handleResetTimer}
-          title="リセット"
+          title={t('timer.reset')}
           variant="outline"
           size="medium"
           style={styles.secondaryButton}
@@ -128,7 +130,7 @@ export function ReadingTimer({
         <View style={styles.finishSection}>
           <Button
             onPress={handleFinishReading}
-            title="読書終了"
+            title={t('timer.finishReading')}
             variant="secondary"
             size="medium"
             style={styles.finishButton}

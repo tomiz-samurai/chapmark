@@ -207,7 +207,7 @@ export default function TimerScreen() {
     handleCloseCompletionModal();
     
     // 成功メッセージ表示
-    Alert.alert("保存しました", "読書の記録を保存しました。");
+    Alert.alert(t('timer.saved'), t('timer.recordSaved'));
   };
 
   // モーダルを閉じる処理
@@ -261,7 +261,7 @@ export default function TimerScreen() {
         >
           <BookIcon size={24} color={colors.textSecondary} />
           <Typography variant="body" style={{ color: colors.text, marginLeft: spacing.medium }}>
-            読書する本を選択
+            {t('timer.selectBook')}
           </Typography>
         </TouchableOpacity>
       );
@@ -294,14 +294,14 @@ export default function TimerScreen() {
                 showPercentage={false}
               />
               <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 10, marginTop: 2 }}>
-                {selectedBook.currentPage} / {selectedBook.totalPages}ページ
+                {selectedBook.currentPage} / {selectedBook.totalPages} {t('timer.page')}
               </Typography>
             </View>
           )}
         </View>
         <View style={styles.changeButton}>
           <Typography variant="caption" style={{ color: colors.primary }}>
-            変更
+            {t('timer.change')}
           </Typography>
         </View>
       </TouchableOpacity>
@@ -345,7 +345,7 @@ export default function TimerScreen() {
                   <View style={styles.inputRow}>
                     <View style={styles.inputWrapper}>
                       <Typography variant="caption" style={{ color: colors.textSecondary }}>
-                        現在
+                        {t('timer.current')}
                       </Typography>
                       <TextInput
                         style={[styles.pageInput, { 
@@ -370,7 +370,7 @@ export default function TimerScreen() {
                     
                     <View style={styles.inputWrapper}>
                       <Typography variant="caption" style={{ color: colors.textSecondary }}>
-                        全体
+                        {t('timer.total')}
                       </Typography>
                       <TextInput
                         style={[styles.pageInput, { 
@@ -411,7 +411,7 @@ export default function TimerScreen() {
       <Modal
         visible={showBookSelectorModal}
         onClose={handleCloseBookSelector}
-        title="読書する本を選択"
+        title={t('timer.selectBook')}
       >
         <View style={styles.bookSelectorModalContainer}>
           <BookSelector 
@@ -427,7 +427,7 @@ export default function TimerScreen() {
       <Modal
         visible={showCompletionModal}
         onClose={handleCloseCompletionModal}
-        title="読書記録"
+        title={t('timer.readingRecord')}
       >
         {selectedBook && (
           <View style={styles.modalContent}>
@@ -457,7 +457,7 @@ export default function TimerScreen() {
               <View style={[styles.sessionHighlight, { backgroundColor: colors.secondaryLight }]}>
                 <View style={styles.sessionHighlightContent}>
                   <Typography variant="label" style={{ color: colors.primaryDark, marginBottom: 2 }}>
-                    読書時間
+                    {t('timer.readingTime')}
                   </Typography>
                   <Typography variant="display" style={{ color: colors.primaryDark, fontSize: 24 }}>
                     {formatTime(displaySeconds)}
@@ -474,7 +474,7 @@ export default function TimerScreen() {
                     </Typography>
                   </View>
                   <Typography variant="caption" style={{ color: colors.textSecondary, marginTop: 2, fontSize: 10 }}>
-                    読了ページ
+                    {t('timer.pagesRead')}
                   </Typography>
                 </View>
                 
@@ -485,7 +485,7 @@ export default function TimerScreen() {
                     </Typography>
                   </View>
                   <Typography variant="caption" style={{ color: colors.textSecondary, marginTop: 2, fontSize: 10 }}>
-                    進捗率
+                    {t('timer.progressRate')}
                   </Typography>
                 </View>
               </View>
@@ -495,7 +495,7 @@ export default function TimerScreen() {
                 <View style={styles.inputRow}>
                   <View style={styles.inputColumn}>
                     <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>
-                      現在のページ
+                      {t('timer.currentPage')}
                     </Typography>
                     <TextInput
                       style={[styles.modalInput, { 
@@ -506,13 +506,13 @@ export default function TimerScreen() {
                       value={modalCurrentPage !== undefined ? modalCurrentPage.toString() : ''}
                       onChangeText={validateAndUpdateModalCurrentPage}
                       keyboardType="number-pad"
-                      placeholder="ページ数"
+                      placeholder="0"
                     />
                   </View>
                   
                   <View style={styles.inputColumn}>
                     <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>
-                      全ページ数
+                      {t('timer.totalPages')}
                     </Typography>
                     <TextInput
                       style={[styles.modalInput, { 
@@ -523,7 +523,7 @@ export default function TimerScreen() {
                       value={modalTotalPages !== undefined ? modalTotalPages.toString() : ''}
                       onChangeText={validateAndUpdateModalTotalPages}
                       keyboardType="number-pad"
-                      placeholder="全ページ"
+                      placeholder="0"
                     />
                   </View>
                 </View>
@@ -540,7 +540,7 @@ export default function TimerScreen() {
             </View>
 
             <Button 
-              title="保存する" 
+              title={t('timer.save')} 
               onPress={handleSaveSession} 
               variant="primary"
               size="medium"
