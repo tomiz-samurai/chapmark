@@ -137,6 +137,10 @@
     "darkMode": "Dark Mode",
     "help": "Help",
     "about": "About",
-    "logout": "Logout"
+    "logout": "Logout",
+    "userInfo": {
+      "editProfile": "Edit Profile",
+      "profileSettings": "Profile Settings"
+    }
   }
 } 

@@ -19,22 +19,22 @@ export default function ProfileScreen() {
     },
     {
       icon: 'bell' as const,
-      title: '通知設定',
+      title: t('profile.notifications'),
       onPress: () => console.log('通知設定'),
     },
     {
       icon: 'moon' as const,
-      title: 'ダークモード',
+      title: t('profile.darkMode'),
       onPress: () => console.log('ダークモード'),
     },
     {
       icon: 'help-circle' as const,
-      title: 'ヘルプ',
+      title: t('profile.help'),
       onPress: () => console.log('ヘルプ'),
     },
     {
       icon: 'info' as const,
-      title: 'アプリについて',
+      title: t('profile.about'),
       onPress: () => console.log('アプリについて'),
     },
   ];
@@ -51,6 +51,12 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.userName}>竹蔵 宮本</Text>
           <Text style={styles.userEmail}>takemi@example.com</Text>
+          <TouchableOpacity
+            style={styles.editProfileButton}
+            onPress={() => console.log('プロフィール編集')}
+          >
+            <Text style={styles.editProfileText}>{t('profile.userInfo.editProfile')}</Text>
+          </TouchableOpacity>
         </View>
         
         {/* 設定セクション */}
@@ -75,7 +81,7 @@ export default function ProfileScreen() {
         {/* ログアウトボタン */}
         <TouchableOpacity style={styles.logoutButton}>
           <Feather name="log-out" size={22} color={colors.status.error} style={styles.logoutIcon} />
-          <Text style={styles.logoutText}>ログアウト</Text>
+          <Text style={styles.logoutText}>{t('profile.logout')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -121,6 +127,18 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.regular,
     fontSize: typography.fontSize.md,
     color: colors.gray[600],
+    marginBottom: spacing.md,
+  },
+  editProfileButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    backgroundColor: colors.gray[200],
+    borderRadius: 20,
+  },
+  editProfileText: {
+    fontFamily: typography.fontFamily.regular,
+    fontSize: typography.fontSize.sm,
+    color: colors.gray[700],
   },
   settingsSection: {
     padding: spacing.md,

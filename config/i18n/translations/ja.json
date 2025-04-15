@@ -137,6 +137,10 @@
     "darkMode": "ダークモード",
     "help": "ヘルプ",
     "about": "アプリについて",
-    "logout": "ログアウト"
+    "logout": "ログアウト",
+    "userInfo": {
+      "editProfile": "プロフィールを編集",
+      "profileSettings": "プロフィール設定"
+    }
   }
 } 
