@@ -38,11 +38,29 @@
     "onHold": "On Hold",
     "dropped": "Dropped",
     "search": "Search Books",
+    "searchPlaceholder": "Search by title or author",
+    "searchNoResults": "No Results Found",
+    "searchNoResultsMessage": "No books matching your search criteria.",
     "filters": {
       "all": "All",
       "reading": "Reading",
       "completed": "Completed",
-      "planned": "To Read"
+      "planned": "To Read",
+      "onHold": "On Hold",
+      "dropped": "Dropped"
+    },
+    "sort": {
+      "title": "Sort",
+      "titleAsc": "Title (A-Z)",
+      "titleDesc": "Title (Z-A)",
+      "author": "Author",
+      "authorAsc": "Author (A-Z)",
+      "authorDesc": "Author (Z-A)",
+      "recent": "Recently Added"
+    },
+    "viewMode": {
+      "grid": "Grid View",
+      "list": "List View"
     },
     "status": "Status",
     "emptyState": {

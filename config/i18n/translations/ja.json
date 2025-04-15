@@ -38,11 +38,29 @@
     "onHold": "中断中",
     "dropped": "中止",
     "search": "本を検索",
+    "searchPlaceholder": "タイトルまたは著者で検索",
+    "searchNoResults": "検索結果なし",
+    "searchNoResultsMessage": "検索条件に一致する本が見つかりませんでした。",
     "filters": {
       "all": "すべて",
       "reading": "読書中",
       "completed": "読了",
-      "planned": "これから読む"
+      "planned": "これから読む",
+      "onHold": "中断中",
+      "dropped": "中止"
+    },
+    "sort": {
+      "title": "並び替え",
+      "titleAsc": "タイトル(昇順)",
+      "titleDesc": "タイトル(降順)",
+      "author": "著者",
+      "authorAsc": "著者(昇順)",
+      "authorDesc": "著者(降順)",
+      "recent": "追加日(新しい順)"
+    },
+    "viewMode": {
+      "grid": "グリッド表示",
+      "list": "リスト表示"
     },
     "status": "ステータス",
     "emptyState": {

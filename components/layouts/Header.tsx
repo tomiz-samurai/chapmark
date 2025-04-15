@@ -5,6 +5,7 @@ import { colors, spacing, typography } from '../../constants/theme';
 import { Typography } from '../Typography';
 import { NotificationBadge } from '../common/NotificationBadge';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { ReactNode } from 'react';
 
 interface HeaderProps {
   title: string;
@@ -12,6 +13,7 @@ interface HeaderProps {
   notificationCount?: number;
   onNotificationPress?: () => void;
   isTitleTranslationKey?: boolean;
+  rightContent?: ReactNode;
 }
 
 export function Header({
@@ -20,6 +22,7 @@ export function Header({
   notificationCount = 0,
   onNotificationPress,
   isTitleTranslationKey = false,
+  rightContent,
 }: HeaderProps) {
   const router = useRouter();
   const { t } = useAppTranslation();
@@ -46,15 +49,21 @@ export function Header({
       </Typography>
 
       <View style={styles.rightContainer}>
-        <Pressable
-          onPress={onNotificationPress}
-          style={({ pressed }) => [
-            styles.iconButton,
-            pressed && styles.iconButtonPressed,
-          ]}>
-          <Bell size={24} color={colors.gray[700]} />
-          <NotificationBadge count={notificationCount} />
-        </Pressable>
+        {rightContent ? (
+          rightContent
+        ) : (
+          onNotificationPress && (
+            <Pressable
+              onPress={onNotificationPress}
+              style={({ pressed }) => [
+                styles.iconButton,
+                pressed && styles.iconButtonPressed,
+              ]}>
+              <Bell size={24} color={colors.gray[700]} />
+              <NotificationBadge count={notificationCount} />
+            </Pressable>
+          )
+        )}
       </View>
     </View>
   );

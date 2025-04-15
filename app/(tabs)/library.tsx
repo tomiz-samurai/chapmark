@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Pressable, TouchableOpacity, Modal, TextInput, Alert, Platform } from 'react-native';
+import { View, FlatList, StyleSheet, Pressable, TouchableOpacity, Modal, TextInput, Alert, Platform, ScrollView } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
-import { Book, Plus, X, Save } from 'lucide-react-native';
+import { Book, Plus, X, Save, Search, Grid, List, Filter, ArrowUp, ArrowDown } from 'lucide-react-native';
 import { colors, spacing } from '../../constants/theme';
 import { Typography } from '../../components/Typography';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Loading } from '../../components/common/Loading';
 import { Header } from '../../components/layouts/Header';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
-import { getBooksByStatus, Book as BookType, addBookToLibrary, getUserBooks, getUserBooksByStatus } from '../../lib/services/BookService';
+import { getBooksByStatus, Book as BookType, addBookToLibrary, getUserBooks, getUserBooksByStatus, searchBooks } from '../../lib/services/BookService';
 import { BookCard } from '../../components/common/BookCard';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // BookServiceで使用するためにエクスポート (互換性のため)
 export const MOCK_BOOKS = [
@@ -104,18 +105,38 @@ export const MOCK_BOOKS = [
   },
 ];
 
-type BookStatus = 'reading' | 'completed' | 'planned' | 'all';
-type BookServiceStatus = 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped';
+type BookStatus = 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped' | 'all';
+type SortOption = 'title' | 'author' | 'recent' | 'none';
+type SortDirection = 'asc' | 'desc';
 
 const STATUS_TABS = [
   { label: 'books.filters.all', value: 'all' },
   { label: 'books.filters.reading', value: 'reading' },
   { label: 'books.filters.completed', value: 'completed' },
   { label: 'books.filters.planned', value: 'planned' },
+  { label: 'books.filters.onHold', value: 'on-hold' },
+  { label: 'books.filters.dropped', value: 'dropped' },
 ];
+
+const SORT_OPTIONS = [
+  { label: 'books.sort.title', value: 'title' },
+  { label: 'books.sort.author', value: 'author' },
+  { label: 'books.sort.recent', value: 'recent' },
+];
+
+// AsyncStorageのキー
+const VIEW_MODE_STORAGE_KEY = 'chapmark_library_view_mode';
+const SORT_OPTION_STORAGE_KEY = 'chapmark_library_sort_option';
+const SORT_DIRECTION_STORAGE_KEY = 'chapmark_library_sort_direction';
 
 export default function LibraryScreen() {
   const [selectedStatus, setSelectedStatus] = useState<BookStatus>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>('none');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [showSortModal, setShowSortModal] = useState(false);
   const { navigateToBookDetail } = useBookNavigation();
   const { t } = useAppTranslation();
   const [fontsLoaded] = useFonts({
@@ -132,6 +153,50 @@ export default function LibraryScreen() {
   
   // 本の一覧を保持する状態変数
   const [books, setBooks] = useState<BookType[]>([]);
+  
+  // 設定を読み込む
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const savedViewMode = await AsyncStorage.getItem(VIEW_MODE_STORAGE_KEY);
+        if (savedViewMode) {
+          setViewMode(savedViewMode as 'grid' | 'list');
+        }
+        
+        const savedSortOption = await AsyncStorage.getItem(SORT_OPTION_STORAGE_KEY);
+        if (savedSortOption) {
+          setSortOption(savedSortOption as SortOption);
+        }
+        
+        const savedSortDirection = await AsyncStorage.getItem(SORT_DIRECTION_STORAGE_KEY);
+        if (savedSortDirection) {
+          setSortDirection(savedSortDirection as SortDirection);
+        }
+      } catch (error) {
+        console.error('設定の読み込みに失敗しました:', error);
+      }
+    };
+    
+    loadSettings();
+  }, []);
+  
+  // 設定を保存する
+  const saveViewMode = async (mode: 'grid' | 'list') => {
+    try {
+      await AsyncStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+    } catch (error) {
+      console.error('表示モードの保存に失敗しました:', error);
+    }
+  };
+  
+  const saveSortSettings = async (option: SortOption, direction: SortDirection) => {
+    try {
+      await AsyncStorage.setItem(SORT_OPTION_STORAGE_KEY, option);
+      await AsyncStorage.setItem(SORT_DIRECTION_STORAGE_KEY, direction);
+    } catch (error) {
+      console.error('並び替え設定の保存に失敗しました:', error);
+    }
+  };
   
   // 本の一覧を更新する関数
   const refreshBooks = () => {
@@ -157,6 +222,44 @@ export default function LibraryScreen() {
     filteredBooks = getUserBooksByStatus(selectedStatus);
   }
 
+  // 検索クエリが入力されている場合、さらにフィルタリング
+  if (searchQuery.trim()) {
+    const lowercaseQuery = searchQuery.toLowerCase();
+    filteredBooks = filteredBooks.filter(book => 
+      book.title.toLowerCase().includes(lowercaseQuery) || 
+      book.author.toLowerCase().includes(lowercaseQuery)
+    );
+  }
+  
+  // 選択されたオプションで並び替え
+  if (sortOption !== 'none') {
+    filteredBooks = [...filteredBooks].sort((a, b) => {
+      let compareResult = 0;
+      
+      switch (sortOption) {
+        case 'title':
+          compareResult = a.title.localeCompare(b.title);
+          break;
+        case 'author':
+          compareResult = a.author.localeCompare(b.author);
+          break;
+        case 'recent':
+          // IDにローカルタイムスタンプが含まれている場合の並び替え
+          // 'local-1234567890' のような形式を想定
+          const aTimestamp = a.id.startsWith('local-') ? parseInt(a.id.split('-')[1]) : 0;
+          const bTimestamp = b.id.startsWith('local-') ? parseInt(b.id.split('-')[1]) : 0;
+          compareResult = bTimestamp - aTimestamp; // 新しい順（降順）
+          break;
+      }
+      
+      // 昇順/降順の適用（recentの場合は反転しない）
+      if (sortOption !== 'recent') {
+        return sortDirection === 'asc' ? compareResult : -compareResult;
+      }
+      return compareResult;
+    });
+  }
+
   const handleNotificationPress = () => {
     // 通知画面への遷移などの処理
     console.log('Notification pressed');
@@ -174,7 +277,7 @@ export default function LibraryScreen() {
     
     // 新しい本のデータを作成
     const newBook: BookType = {
-      id: `local-${Date.now()}`, // 一意のID
+      id: `local-${Date.now()}`, // 一意のID（タイムスタンプを含む）
       title: newBookTitle,
       author: newBookAuthor,
       coverUrl: defaultCoverUrl,
@@ -183,7 +286,7 @@ export default function LibraryScreen() {
     };
     
     // BookServiceを使用して本を追加
-    const status = newBookStatus === 'all' ? 'planned' : newBookStatus as any;
+    const status = newBookStatus === 'all' ? 'planned' : newBookStatus;
     addBookToLibrary(newBook, status);
     
     // 本の一覧を更新
@@ -196,13 +299,86 @@ export default function LibraryScreen() {
     setNewBookStatus('planned');
   };
 
+  const toggleViewMode = () => {
+    const newMode = viewMode === 'list' ? 'grid' : 'list';
+    setViewMode(newMode);
+    saveViewMode(newMode);
+  };
+
+  const toggleSearch = () => {
+    setShowSearch(!showSearch);
+    if (showSearch) {
+      setSearchQuery('');
+    }
+  };
+  
+  const handleSortChange = (option: SortOption) => {
+    // 同じオプションが選択された場合は昇順/降順を切り替える
+    if (option === sortOption) {
+      const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+      setSortDirection(newDirection);
+      saveSortSettings(option, newDirection);
+    } else {
+      // 新しいオプションが選択された場合
+      setSortOption(option);
+      setSortDirection('asc');
+      saveSortSettings(option, 'asc');
+    }
+    setShowSortModal(false);
+  };
+  
+  const renderSortIcon = (option: SortOption) => {
+    if (sortOption !== option) return null;
+    
+    if (sortDirection === 'asc') {
+      return <ArrowUp size={16} color={colors.primary.main} />;
+    }
+    return <ArrowDown size={16} color={colors.primary.main} />;
+  };
+
   return (
     <View style={styles.container}>
       <Header
         title={t('navigation.books')}
         notificationCount={2}
         onNotificationPress={handleNotificationPress}
+        rightContent={
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={toggleSearch} style={styles.headerButton}>
+              <Search size={22} color={colors.gray[700]} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowSortModal(true)} style={styles.headerButton}>
+              <Filter size={22} color={colors.gray[700]} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={toggleViewMode} style={styles.headerButton}>
+              {viewMode === 'list' ? 
+                <Grid size={22} color={colors.gray[700]} /> : 
+                <List size={22} color={colors.gray[700]} />
+              }
+            </TouchableOpacity>
+          </View>
+        }
       />
+
+      {showSearch && (
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <Search size={18} color={colors.gray[500]} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder={t('books.searchPlaceholder')}
+              placeholderTextColor={colors.gray[400]}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <X size={18} color={colors.gray[500]} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
 
       <View style={styles.tabsContainer}>
         <ScrollView
@@ -239,32 +415,35 @@ export default function LibraryScreen() {
         </ScrollView>
       </View>
 
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={styles.contentContainer}
-      >
-        {filteredBooks.length === 0 ? (
+      <FlatList
+        data={filteredBooks}
+        numColumns={viewMode === 'grid' ? 2 : 1}
+        key={viewMode} // ビューモード切替時にリレイアウトさせるため
+        renderItem={({item}) => (
+          <BookCard
+            book={item}
+            variant={viewMode === 'grid' ? 'grid' : 'list'}
+            showRating={false}
+            showStatus={true}
+            onPress={() => navigateToBookDetail(item.id, '/(tabs)/library')}
+            style={viewMode === 'grid' ? styles.gridCard : styles.card}
+          />
+        )}
+        keyExtractor={item => item.id}
+        contentContainerStyle={[
+          styles.contentContainer,
+          filteredBooks.length === 0 && styles.emptyContentContainer
+        ]}
+        ListEmptyComponent={
           <EmptyState
             icon={<Book size={48} color={colors.gray[400]} />}
-            title={t('books.emptyState.title')}
-            message={t('books.emptyState.message')}
+            title={searchQuery ? 'books.searchNoResults' : 'books.emptyState.title'}
+            message={searchQuery ? 'books.searchNoResultsMessage' : 'books.emptyState.message'}
             isTitleTranslationKey={true}
             isMessageTranslationKey={true}
           />
-        ) : (
-          filteredBooks.map((book) => (
-            <BookCard
-              key={book.id}
-              book={book}
-              variant="list"
-              showRating={false}
-              showStatus={true}
-              onPress={() => navigateToBookDetail(book.id, '/(tabs)/library')}
-              style={styles.card}
-            />
-          ))
-        )}
-      </ScrollView>
+        }
+      />
       
       {/* 追加ボタン */}
       <TouchableOpacity 
@@ -356,6 +535,55 @@ export default function LibraryScreen() {
           </View>
         </View>
       </Modal>
+      
+      {/* 並び替えモーダル */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showSortModal}
+        onRequestClose={() => setShowSortModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.sortModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSortModal(false)}
+        >
+          <View style={styles.sortModalContainer}>
+            <TouchableOpacity 
+              activeOpacity={1}
+              onPress={e => e.stopPropagation()}
+            >
+              <View style={styles.sortModalContent}>
+                <View style={styles.sortModalHeader}>
+                  <Typography variant="title">{t('books.sort.title')}</Typography>
+                  <TouchableOpacity onPress={() => setShowSortModal(false)}>
+                    <X size={24} color={colors.gray[600]} />
+                  </TouchableOpacity>
+                </View>
+                
+                {SORT_OPTIONS.map((option) => (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[
+                      styles.sortOption,
+                      sortOption === option.value && styles.selectedSortOption
+                    ]}
+                    onPress={() => handleSortChange(option.value as SortOption)}
+                  >
+                    <Typography 
+                      variant="body" 
+                      color={sortOption === option.value ? colors.primary.main : colors.gray[700]}
+                    >
+                      {t(option.label)}
+                    </Typography>
+                    {renderSortIcon(option.value as SortOption)}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -364,6 +592,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.gray[50],
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButton: {
+    padding: spacing.xs,
+    marginLeft: spacing.sm,
+  },
+  searchContainer: {
+    backgroundColor: colors.white,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.gray[100],
+    borderRadius: 20,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+  },
+  searchIcon: {
+    marginRight: spacing.xs,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.gray[800],
+    paddingVertical: 4,
   },
   tabsContainer: {
     backgroundColor: colors.white,
@@ -388,14 +646,21 @@ const styles = StyleSheet.create({
   selectedTabText: {
     color: colors.white,
   },
-  content: {
-    flex: 1,
-  },
   contentContainer: {
     padding: spacing.md,
   },
+  emptyContentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   card: {
     marginBottom: spacing.sm,
+  },
+  gridCard: {
+    width: '48%',
+    marginHorizontal: '1%',
+    marginBottom: spacing.md,
   },
   addButton: {
     position: 'absolute',
@@ -486,5 +751,39 @@ const styles = StyleSheet.create({
   },
   saveIcon: {
     marginRight: spacing.xs,
+  },
+  sortModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'flex-end',
+  },
+  sortModalContainer: {
+    backgroundColor: 'transparent',
+  },
+  sortModalContent: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: spacing.md,
+    borderTopRightRadius: spacing.md,
+    padding: spacing.md,
+  },
+  sortModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray[200],
+  },
+  sortOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray[100],
+  },
+  selectedSortOption: {
+    backgroundColor: colors.primary[50],
   },
 });
