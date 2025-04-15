@@ -10,7 +10,9 @@
     "close": "閉じる",
     "viewAll": "すべて見る",
     "noCover": "表紙なし",
-    "success": "成功"
+    "success": "成功",
+    "continue": "続ける",
+    "discard": "破棄"
   },
   "navigation": {
     "home": "ホーム",
@@ -140,7 +142,32 @@
     "logout": "ログアウト",
     "userInfo": {
       "editProfile": "プロフィールを編集",
-      "profileSettings": "プロフィール設定"
+      "profileSettings": "プロフィール設定",
+      "name": "名前",
+      "email": "メールアドレス",
+      "jobTitle": "職種",
+      "industry": "業界",
+      "position": "役職",
+      "bio": "自己紹介",
+      "careerGoal": "キャリア目標",
+      "saveProfile": "プロフィールを保存",
+      "profileUpdated": "プロフィールを更新しました",
+      "uploadImage": "画像をアップロード",
+      "changeImage": "画像を変更",
+      "removeImage": "画像を削除",
+      "editProfileTitle": "プロフィール編集",
+      "careerInformation": "キャリア情報",
+      "basicInformation": "基本情報",
+      "namePlaceholder": "あなたの名前",
+      "emailPlaceholder": "example@email.com",
+      "jobTitlePlaceholder": "エンジニア、マネージャーなど",
+      "industryPlaceholder": "IT、金融、製造業など",
+      "positionPlaceholder": "課長、部長、役員など",
+      "bioPlaceholder": "あなた自身について簡単に紹介してください",
+      "careerGoalPlaceholder": "今後5年間で達成したいキャリア目標",
+      "nameRequired": "名前は必須です",
+      "discardChanges": "変更を破棄しますか？",
+      "removeImageConfirm": "プロフィール画像を削除しますか？"
     }
   }
 } 

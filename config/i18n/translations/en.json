@@ -10,7 +10,9 @@
     "close": "Close",
     "viewAll": "View All",
     "noCover": "No Cover",
-    "success": "Success"
+    "success": "Success",
+    "continue": "Continue",
+    "discard": "Discard"
   },
   "navigation": {
     "home": "Home",
@@ -140,7 +142,32 @@
     "logout": "Logout",
     "userInfo": {
       "editProfile": "Edit Profile",
-      "profileSettings": "Profile Settings"
+      "profileSettings": "Profile Settings",
+      "name": "Name",
+      "email": "Email",
+      "jobTitle": "Job Title",
+      "industry": "Industry",
+      "position": "Position",
+      "bio": "Bio",
+      "careerGoal": "Career Goal",
+      "saveProfile": "Save Profile",
+      "profileUpdated": "Profile Updated",
+      "uploadImage": "Upload Image",
+      "changeImage": "Change Image",
+      "removeImage": "Remove Image",
+      "editProfileTitle": "Edit Profile",
+      "careerInformation": "Career Information",
+      "basicInformation": "Basic Information",
+      "namePlaceholder": "Your name",
+      "emailPlaceholder": "example@email.com",
+      "jobTitlePlaceholder": "Engineer, Manager, etc.",
+      "industryPlaceholder": "IT, Finance, Manufacturing, etc.",
+      "positionPlaceholder": "Team Lead, Director, Executive, etc.",
+      "bioPlaceholder": "Tell us a bit about yourself",
+      "careerGoalPlaceholder": "Career goals you want to achieve in the next 5 years",
+      "nameRequired": "Name is required",
+      "discardChanges": "Discard changes?",
+      "removeImageConfirm": "Are you sure you want to remove your profile image?"
     }
   }
 } 
