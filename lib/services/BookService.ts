@@ -1,6 +1,8 @@
 import { recommendedBooks, newReleaseBooks, Book as MockBook } from '../mockData';
-import { MOCK_BOOKS as libraryBooks } from '../../app/(tabs)/library';
-import { RECOMMENDED_BOOKS as homeBooks } from '../../app/(tabs)/index';
+// インポートエラーを修正、エクスポートが存在しない場合は空の配列を使用
+const libraryBooks: any[] = []; // libraryからのMOCK_BOOKSは存在しない
+const homeBooks: any[] = []; // indexからのRECOMMENDED_BOOKSが削除された
+
 import { Book as ModelBook, BookStatus } from '../../types/models';
 
 // BookServiceで使用する書籍の型
@@ -30,12 +32,32 @@ const normalizeBook = (book: any): Book => {
 // 全ての本のデータを取得
 export const getAllBooks = (): Book[] => {
   // 全てのデータソースから本を集める
-  const allMockBooks = [
-    ...recommendedBooks.map(normalizeBook),
-    ...newReleaseBooks.map(normalizeBook),
-    ...libraryBooks.map(normalizeBook),
-    ...homeBooks.map(normalizeBook),
-  ];
+  const allMockBooks: Book[] = [];
+  
+  // 安全に各データソースを追加
+  try {
+    // recommendedBooksが存在する場合
+    if (recommendedBooks && Array.isArray(recommendedBooks)) {
+      allMockBooks.push(...recommendedBooks.map(book => normalizeBook(book)));
+    }
+    
+    // newReleaseBooksが存在する場合
+    if (newReleaseBooks && Array.isArray(newReleaseBooks)) {
+      allMockBooks.push(...newReleaseBooks.map(book => normalizeBook(book)));
+    }
+    
+    // libraryBooksが存在する場合
+    if (libraryBooks && Array.isArray(libraryBooks)) {
+      allMockBooks.push(...libraryBooks.map(book => normalizeBook(book)));
+    }
+    
+    // homeBooksが存在する場合
+    if (homeBooks && Array.isArray(homeBooks)) {
+      allMockBooks.push(...homeBooks.map(book => normalizeBook(book)));
+    }
+  } catch (error) {
+    console.error('Error adding books from sources:', error);
+  }
 
   // 重複を削除（IDベースで）
   const uniqueBooks = allMockBooks.reduce((acc: Book[], current) => {
@@ -50,7 +72,89 @@ export const getAllBooks = (): Book[] => {
 };
 
 // 追加した本を保存するための配列
-let userAddedBooks: Book[] = [];
+let userAddedBooks: Book[] = [
+  // タイマー画面と共通のモックデータ
+  {
+    id: '1',
+    title: 'エッセンシャル思考',
+    author: 'グレッグ・マキューン',
+    status: 'reading',
+    coverImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3',
+    coverUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3',
+    description: '本当に大切なことだけに集中する技術',
+    publisher: 'かんき出版',
+    publishedDate: '2014-12-01',
+    pageCount: 256,
+    category: ['自己啓発', '生産性向上'],
+    rating: 4.5,
+    totalPages: 256,
+    currentPage: 42,
+  },
+  {
+    id: '2',
+    title: 'アトミック・ハビット',
+    author: 'ジェームズ・クリアー',
+    status: 'reading',
+    coverImage: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=1798&ixlib=rb-4.0.3',
+    coverUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=1798&ixlib=rb-4.0.3',
+    description: '小さな習慣が大きな成果を生む',
+    publisher: 'ダイヤモンド社',
+    publishedDate: '2019-09-12',
+    pageCount: 320,
+    category: ['自己啓発', '習慣形成'],
+    rating: 4.8,
+    totalPages: 320,
+    currentPage: 158,
+  },
+  {
+    id: '3',
+    title: 'ファクトフルネス',
+    author: 'ハンス・ロスリング',
+    status: 'completed',
+    coverImage: 'https://images.unsplash.com/photo-1589998059171-988d887df646?auto=format&fit=crop&q=80&w=1976&ixlib=rb-4.0.3',
+    coverUrl: 'https://images.unsplash.com/photo-1589998059171-988d887df646?auto=format&fit=crop&q=80&w=1976&ixlib=rb-4.0.3',
+    description: '10の思い込みを乗り越え、データを基に世界を正しく見る習慣',
+    publisher: '日経BP',
+    publishedDate: '2019-01-31',
+    pageCount: 400,
+    category: ['教養', '国際関係'],
+    rating: 4.7,
+    totalPages: 400,
+    currentPage: 400,
+  },
+  {
+    id: '4',
+    title: '人を動かす',
+    author: 'デール・カーネギー',
+    status: 'planned',
+    coverImage: 'https://images.unsplash.com/photo-1535398089889-dd807df1dfaa?auto=format&fit=crop&q=80&w=1964&ixlib=rb-4.0.3',
+    coverUrl: 'https://images.unsplash.com/photo-1535398089889-dd807df1dfaa?auto=format&fit=crop&q=80&w=1964&ixlib=rb-4.0.3',
+    description: '人間関係の基本原則',
+    publisher: '創元社',
+    publishedDate: '1999-10-20',
+    pageCount: 304,
+    category: ['自己啓発', 'コミュニケーション'],
+    rating: 4.6,
+    totalPages: 304,
+    currentPage: 0,
+  },
+  {
+    id: '5',
+    title: 'イシューからはじめよ',
+    author: '安宅和人',
+    status: 'on-hold',
+    coverImage: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=2012&ixlib=rb-4.0.3',
+    coverUrl: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=2012&ixlib=rb-4.0.3',
+    description: '知的生産プロセスを根本から変える',
+    publisher: '英治出版',
+    publishedDate: '2010-11-24',
+    pageCount: 304,
+    category: ['ビジネス', '思考法'],
+    rating: 4.5,
+    totalPages: 304,
+    currentPage: 125,
+  }
+];
 
 // 本を本棚に追加
 export const addBookToLibrary = (book: Book, status: BookStatusWithoutAll = 'planned'): Book => {
