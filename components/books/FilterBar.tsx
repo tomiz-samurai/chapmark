@@ -6,6 +6,7 @@ import { useTheme } from '../../lib/hooks/useTheme';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { BookStatus } from '../../types/models';
 import { STATUS_TABS } from '../../lib/hooks/useLibrary';
+import { colors as baseColors } from '../../constants/theme';
 
 interface FilterBarProps {
   selectedStatus: BookStatus;
@@ -33,7 +34,7 @@ export function FilterBar({
   return (
     <View style={styles.container}>
       {showSearch && (
-        <View style={[styles.searchContainer, { backgroundColor: colors.white }]}>
+        <View style={[styles.searchContainer, { backgroundColor: baseColors.white }]}>
           <View style={[styles.searchBar, { backgroundColor: colors.background }]}>
             <Search size={18} color={colors.text} style={styles.searchIcon} />
             <TextInput
@@ -53,7 +54,7 @@ export function FilterBar({
         </View>
       )}
 
-      <View style={[styles.tabsContainer, { backgroundColor: colors.white }]}>
+      <View style={[styles.tabsContainer, { backgroundColor: baseColors.white }]}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -79,7 +80,7 @@ export function FilterBar({
                   { color: colors.text },
                   selectedStatus === tab.value && [
                     styles.selectedTabText,
-                    { color: colors.white }
+                    { color: baseColors.white }
                   ],
                 ]}
               >

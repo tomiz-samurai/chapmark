@@ -5,18 +5,22 @@ import { Header } from '../../components/layouts/Header';
 import { colors, spacing } from '../../constants/theme';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  ProfileHeader,
-  ProfileStats,
-  ProfileSettingsList,
-  ProfileLogoutButton,
-  ProfileVersionInfo,
-  SettingItem,
-} from '../../components/features/profile';
+import { ProfileHeader } from '../../components/features/profile/ProfileHeader';
+import { ProfileStats } from '../../components/features/profile/ProfileStats';
+import { ProfileSettingsList } from '../../components/features/profile/ProfileSettingsList';
+import { ProfileLogoutButton } from '../../components/features/profile/ProfileLogoutButton';
+import { ProfileVersionInfo } from '../../components/features/profile/ProfileVersionInfo';
+import type { SettingItem } from '../../components/features/profile/ProfileSettingsList';
+import { useProfile } from '../../lib/hooks/useProfile';
+import { X } from 'lucide-react-native';
+import { EmptyState } from '../../components/common/displays/EmptyState';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { t } = useAppTranslation();
+  const { user, stats, loading, error, refresh } = useProfile();
+
+  const errorColor = colors.status.error;
 
   // 設定項目リスト
   const settingsItems: SettingItem[] = [
@@ -47,20 +51,22 @@ export default function ProfileScreen() {
     },
   ];
 
-  // 仮のユーザーデータ
-  const user = {
-    name: '竹蔵 宮本',
-    role: 'プロダクトマネージャー',
-    email: 'takemi@example.com',
-    avatarUrl: undefined, // 実装時はURLを渡す
-  };
-
-  // 仮の統計データ
-  const stats = {
-    booksCompleted: 42,
-    readingTime: 120,
-    currentlyReading: 8,
-  };
+  if (loading) return <View style={{ flex: 1, backgroundColor: colors.gray[50] }} />;
+  if (error) {
+    return (
+      <EmptyState
+        icon={<X size={48} color={errorColor} />}
+        title={t('common.error')}
+        message={t(error)}
+        actionLabel={t('common.retry')}
+        onAction={refresh}
+        isTitleTranslationKey={false}
+        isMessageTranslationKey={false}
+        isActionLabelTranslationKey={false}
+      />
+    );
+  }
+  if (!user || !stats) return null;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray[50] }}>
