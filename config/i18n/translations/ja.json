@@ -170,7 +170,12 @@
     "time30min": "30分",
     "time1hour": "1時間",
     "time2hours": "2時間",
-    "pageProgress": "ページ進捗"
+    "pageProgress": "ページ進捗",
+    "quickEntry": "クイック入力",
+    "sessionCompleted": "セッション完了",
+    "saveRecord": "記録を保存",
+    "confirmProgress": "読書の進捗を確認",
+    "pages": "ページ"
   },
   "settings": {
     "language": "言語設定",
@@ -207,6 +212,11 @@
     "help": "ヘルプ",
     "about": "アプリについて",
     "logout": "ログアウト",
+    "stats": {
+      "booksCompleted": "読了本",
+      "readingTime": "読書時間",
+      "currentlyReading": "読書中"
+    },
     "userInfo": {
       "editProfile": "プロフィールを編集",
       "profileSettings": "プロフィール設定",

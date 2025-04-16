@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getRelativeTime } from '../../lib/utils/dateUtils';
-import { Note } from '../../lib/types';
+import { Note } from '../../types/models';
 import { colors, spacing, typography, shadows, borderRadius } from '../../constants/theme';
 
 interface NoteItemProps {

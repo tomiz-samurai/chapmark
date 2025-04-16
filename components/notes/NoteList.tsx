@@ -6,7 +6,7 @@ import {
   ActivityIndicator, 
   Text 
 } from 'react-native';
-import { Note } from '../../lib/types';
+import { Note } from '../../types/models';
 import { NoteItem } from './NoteItem';
 import { colors, spacing } from '../../constants/theme';
 import { FileText } from 'lucide-react-native';

@@ -16,7 +16,7 @@ import { BookContents } from '../../components/books/BookContents';
 import { Modal as CommonModal } from '../../components/common/Modal';
 import { QuoteInput } from '../../components/quotes/QuoteInput';
 import { NoteInput } from '../../components/notes/NoteInput';
-import { Quote, Note } from '../../lib/types';
+import { Quote, Note, Book, BookStatus } from '../../types/models';
 
 // ステータスのオプション
 const STATUS_OPTIONS = [
@@ -484,7 +484,7 @@ export default function BookDetail() {
             <TouchableOpacity
               key={option.value}
               style={styles.statusOption}
-              onPress={() => handleSelectStatus(option.value as any)}
+              onPress={() => handleSelectStatus(option.value as 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped')}
             >
               <View style={[styles.statusColor, { backgroundColor: option.color }]} />
               <Typography variant="body" style={{ flex: 1 }}>

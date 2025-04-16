@@ -34,7 +34,7 @@ export function BookSelector({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isModal && styles.modalContainer]}>
       {!isModal && (
         <Typography variant="body" style={[styles.sectionTitle, { color: colors.text }]}>
           {title}
@@ -75,7 +75,7 @@ export function BookSelector({
                 </View>
               )}
               <View style={styles.bookItemInfo}>
-                <Typography variant="body" style={[styles.bookItemTitle, { color: colors.text }]} numberOfLines={1}>
+                <Typography variant="body" style={[styles.bookItemTitle, { color: colors.text }]} numberOfLines={2}>
                   {book.title}
                 </Typography>
                 <Typography variant="caption" style={[styles.bookItemAuthor, { color: colors.textSecondary }]} numberOfLines={1}>
@@ -114,6 +114,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  modalContainer: {
+    paddingTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
+  },
   sectionTitle: {
     marginBottom: spacing.sm,
     fontWeight: 'bold',
@@ -125,7 +129,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   modalBooksListContent: {
-    paddingBottom: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xs,
   },
   bookItem: {
     flexDirection: 'row',
@@ -135,8 +140,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   modalBookItem: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
     padding: spacing.md,
+    paddingVertical: spacing.lg,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -147,13 +153,13 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   bookCover: {
-    width: 50,
-    height: 70,
+    width: 60,
+    height: 84,
     borderRadius: spacing.xs,
   },
   placeholderCover: {
-    width: 50,
-    height: 70,
+    width: 60,
+    height: 84,
     borderRadius: spacing.xs,
     justifyContent: 'center',
     alignItems: 'center',
@@ -161,27 +167,30 @@ const styles = StyleSheet.create({
   bookItemInfo: {
     marginLeft: spacing.md,
     flex: 1,
+    paddingRight: spacing.sm,
   },
   bookItemTitle: {
     fontWeight: 'bold',
+    marginBottom: spacing.xs,
   },
   bookItemAuthor: {
+    marginBottom: spacing.xs,
   },
   progressWrapper: {
     marginTop: spacing.xs,
   },
   progressText: {
     fontSize: 10,
-    marginTop: 2,
+    marginTop: 4,
   },
   selectedIndicator: {
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderRadius: 12,
     marginLeft: spacing.sm,
   },
   selectedText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 'bold',
   },
 }); 

@@ -7,7 +7,7 @@ import bookReducer from './bookSlice';
 import sessionReducer from './sessionSlice';
 import quoteReducer from './quoteSlice';
 import noteReducer from './noteSlice';
-import { TimerState } from '../../types/models/timer';
+import { TimerState } from '../../types/models';
 import { BookState } from './bookSlice';
 import { SessionState } from './sessionSlice';
 import { QuoteState } from './quoteSlice';

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, StyleSheet, TouchableOpacity, FlatList, Text } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { Plus } from 'lucide-react-native';
 import { TabView } from '../common/TabView';
@@ -8,7 +8,7 @@ import { NoteList } from '../notes/NoteList';
 import { Typography } from '../Typography';
 import { colors, spacing } from '../../constants/theme';
 import { useBookContents } from '../../lib/hooks/useBookContents';
-import { Quote, Note } from '../../lib/types';
+import { Quote, Note } from '../../types/models';
 import { removeQuote } from '../../lib/store/quoteSlice';
 import { removeNote } from '../../lib/store/noteSlice';
 import { useAppTranslation } from '../../hooks/useAppTranslation';

@@ -6,7 +6,7 @@ import {
   ActivityIndicator, 
   Text 
 } from 'react-native';
-import { Quote } from '../../lib/types';
+import { Quote } from '../../types/models';
 import { QuoteItem } from '../common/QuoteItem';
 import { colors, spacing } from '../../constants/theme';
 import { Book } from 'lucide-react-native';

@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getRelativeTime } from '../../lib/utils/dateUtils';
-import { Quote } from '../../lib/types';
+import { Quote } from '../../types/models';
+import { Typography } from '../Typography';
 
 interface QuoteItemProps {
   quote: Quote;

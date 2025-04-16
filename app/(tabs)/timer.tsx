@@ -11,7 +11,7 @@ import { ProgressBar } from '../../components/common/ProgressBar';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Typography } from '../../components/Typography';
-import { Book } from '../../types/models/book';
+import { Book, BookStatus } from '../../types/models';
 import { selectBook, updateCurrentPage, updateTotalPages, fetchBooksSuccess } from '../../lib/store/bookSlice';
 import { clearCurrentSession } from '../../lib/store/sessionSlice';
 import { resetTimer, finishSession, setGoalTime } from '../../lib/store/timerSlice';
@@ -25,6 +25,7 @@ import { useAppDispatch } from '../../lib/hooks/useAppDispatch';
 import { TimerControls } from '../../components/timer/TimerControls';
 import { PageProgress } from '../../components/timer/PageProgress';
 import { CompletionModal } from '../../components/modals/CompletionModal';
+import { spacing } from '../../constants/theme';
 
 // ダミーデータ（実際の実装では本のリストはストアまたはAPIから取得）
 const READING_BOOKS: Book[] = [
@@ -96,7 +97,7 @@ export default function TimerScreen() {
           id: book.id,
           title: book.title,
           author: book.author,
-          status: book.status as any, // 型を互換性を持たせる
+          status: book.status as BookStatus, // 明示的な型として指定
           coverImage: book.coverImage || book.coverUrl,
           coverUrl: book.coverUrl || book.coverImage,
           totalPages: book.pageCount || undefined,
@@ -132,7 +133,7 @@ export default function TimerScreen() {
             id: bookFromService.id,
             title: bookFromService.title,
             author: bookFromService.author,
-            status: bookFromService.status as any, // 型を互換性を持たせる
+            status: bookFromService.status as BookStatus, // 明示的な型として指定
             coverImage: bookFromService.coverImage || bookFromService.coverUrl,
             coverUrl: bookFromService.coverUrl || bookFromService.coverImage,
             totalPages: bookFromService.pageCount || undefined,
@@ -390,12 +391,14 @@ export default function TimerScreen() {
         title={t('timer.selectBook')}
         onClose={handleCloseBookSelector}
       >
-        <BookSelector
-          books={books.filter((book: Book) => book.status === 'reading')}
-          selectedBookId={selectedBookId}
-          onSelectBook={handleSelectBook}
-          isModal={true}
-        />
+        <View style={styles.bookSelectorModalWrapper}>
+          <BookSelector
+            books={books.filter((book: Book) => book.status === 'reading')}
+            selectedBookId={selectedBookId}
+            onSelectBook={handleSelectBook}
+            isModal={true}
+          />
+        </View>
       </Modal>
       
       {/* 読書完了モーダル */}
@@ -407,6 +410,9 @@ export default function TimerScreen() {
         initialCurrentPage={modalCurrentPage}
         initialTotalPages={modalTotalPages}
         readingTime={displaySeconds}
+        bookTitle={selectedBook?.title}
+        bookAuthor={selectedBook?.author}
+        coverImage={selectedBook?.coverImage}
       />
       
       {/* クイックエントリーモーダル */}
@@ -650,11 +656,8 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   // 本選択モーダル用スタイル
-  bookSelectorModalContainer: {
-    height: 400,
-    paddingHorizontal: 12,
-    paddingTop: 12,
-    paddingBottom: 20,
+  bookSelectorModalWrapper: {
+    paddingBottom: spacing.md,
   },
   floatingQuickEntryButton: {
     paddingVertical: 10,

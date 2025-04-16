@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
+import { View, StyleSheet, TextInput, Image } from 'react-native';
 import { Typography } from '../Typography';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
@@ -7,6 +7,7 @@ import { ProgressBar } from '../common/ProgressBar';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import TimerService, { calculateProgress, calculateReadPages, formatTime } from '../../lib/services/TimerService';
+import { Book as BookIcon } from 'lucide-react-native';
 
 interface CompletionModalProps {
   visible: boolean;
@@ -16,6 +17,9 @@ interface CompletionModalProps {
   initialCurrentPage?: number;
   initialTotalPages?: number;
   readingTime: number;
+  bookTitle?: string;
+  bookAuthor?: string;
+  coverImage?: string;
 }
 
 /**
@@ -30,6 +34,9 @@ export function CompletionModal({
   initialCurrentPage,
   initialTotalPages,
   readingTime,
+  bookTitle,
+  bookAuthor,
+  coverImage,
 }: CompletionModalProps) {
   const { colors } = useTheme();
   const { t } = useAppTranslation();
@@ -90,6 +97,33 @@ export function CompletionModal({
       onClose={onClose}
     >
       <View style={styles.container}>
+        {/* 書籍情報の表示 */}
+        {bookTitle && (
+          <View style={styles.bookInfoContainer}>
+            {coverImage ? (
+              <Image 
+                source={{ uri: coverImage }} 
+                style={styles.coverImage} 
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.placeholderCover, { backgroundColor: colors.border }]}>
+                <BookIcon size={24} color={colors.textSecondary} />
+              </View>
+            )}
+            <View style={styles.bookTextContainer}>
+              <Typography variant="body" style={{ color: colors.text, fontWeight: '600' }}>
+                {bookTitle}
+              </Typography>
+              {bookAuthor && (
+                <Typography variant="caption" style={{ color: colors.textSecondary }}>
+                  {bookAuthor}
+                </Typography>
+              )}
+            </View>
+          </View>
+        )}
+        
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Typography variant="caption" style={{ color: colors.textSecondary }}>
@@ -191,6 +225,27 @@ export function CompletionModal({
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+  },
+  bookInfoContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  bookTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  coverImage: {
+    width: 60,
+    height: 90,
+    borderRadius: 8,
+  },
+  placeholderCover: {
+    width: 60,
+    height: 90,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   statsContainer: {
     flexDirection: 'row',

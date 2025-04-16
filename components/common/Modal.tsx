@@ -71,14 +71,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.md,
+    padding: spacing.lg,
   },
   modalContainer: {
     backgroundColor: colors.white,
     borderRadius: spacing.md,
     width: '100%',
     maxWidth: 500,
-    maxHeight: '80%',
+    maxHeight: '90%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -91,23 +91,28 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: colors.gray[200],
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   title: {
     flex: 1,
     textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
   },
   titlePlaceholder: {
     flex: 1,
   },
   closeButton: {
-    padding: spacing.xs,
+    padding: spacing.sm,
+    margin: -spacing.sm,
   },
   contentScrollView: {
     maxHeight: '100%',
+    paddingHorizontal: spacing.sm,
   },
   contentContainer: {
     flexGrow: 1,
+    paddingVertical: spacing.md,
   },
 });

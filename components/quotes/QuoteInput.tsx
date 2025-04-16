@@ -24,10 +24,8 @@ export const QuoteInput = ({ bookId, onSave, initialQuote }: QuoteInputProps) =>
   const dispatch = useDispatch();
   const { t } = useAppTranslation();
   const { colors } = useTheme();
-  const book = useSelector((state: RootState) => {
-    const books = (state as any).book?.books || [];
-    return books.find((b: any) => b.id === bookId);
-  });
+  const books = useSelector((state: RootState) => state.book?.books || []);
+  const book = books.find((b) => b.id === bookId);
 
   // 状態管理
   const [quoteText, setQuoteText] = useState(initialQuote?.text || '');

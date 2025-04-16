@@ -21,7 +21,7 @@ export default function LanguageSettingsScreen() {
   ];
   
   const handleBack = () => {
-    router.back();
+    router.push('/(tabs)/profile');
   };
   
   return (

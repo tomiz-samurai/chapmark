@@ -1,22 +1,13 @@
 import { recommendedBooks, newReleaseBooks, Book as MockBook } from '../mockData';
 import { MOCK_BOOKS as libraryBooks } from '../../app/(tabs)/library';
 import { RECOMMENDED_BOOKS as homeBooks } from '../../app/(tabs)/index';
+import { Book as ModelBook, BookStatus } from '../../types/models';
 
-// 統一された書籍の型定義
-export interface Book {
-  id: string;
-  title: string;
-  author: string;
-  coverImage?: string;
-  coverUrl?: string; // mockData.tsでは coverUrl を使用しているため両方対応
-  description?: string;
-  publisher?: string;
-  publishedDate?: string;
-  pageCount?: number;
-  category?: string[];
-  rating?: number;
-  status?: 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped';
-}
+// BookServiceで使用する書籍の型
+export type BookStatusWithoutAll = Exclude<BookStatus, 'all'>;
+export type Book = Omit<ModelBook, 'status'> & {
+  status?: BookStatusWithoutAll;
+};
 
 // モックデータから取得した本を統一形式に変換
 const normalizeBook = (book: any): Book => {
@@ -62,7 +53,7 @@ export const getAllBooks = (): Book[] => {
 let userAddedBooks: Book[] = [];
 
 // 本を本棚に追加
-export const addBookToLibrary = (book: Book, status: 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped' = 'planned'): Book => {
+export const addBookToLibrary = (book: Book, status: BookStatusWithoutAll = 'planned'): Book => {
   // 既存の本が見つかるか確認
   const existingBookIndex = userAddedBooks.findIndex(b => b.id === book.id);
   
@@ -91,7 +82,7 @@ export const addBookToLibrary = (book: Book, status: 'reading' | 'completed' | '
 };
 
 // 本のステータスを変更
-export const updateBookStatus = (id: string, status: 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped'): Book | undefined => {
+export const updateBookStatus = (id: string, status: BookStatusWithoutAll): Book | undefined => {
   // まず、ユーザーが追加した本の中から検索
   const userBookIndex = userAddedBooks.findIndex(book => book.id === id);
   

@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TimerState, StartTimerParams } from '../../types/models/timer';
+import { TimerState, StartTimerParams } from '../../types/models';
 
 const initialState: TimerState = {
   isRunning: false,

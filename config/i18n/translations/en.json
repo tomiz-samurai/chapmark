@@ -211,6 +211,11 @@
     "help": "Help",
     "about": "About",
     "logout": "Logout",
+    "stats": {
+      "booksCompleted": "Books Completed",
+      "readingTime": "Reading Time",
+      "currentlyReading": "Currently Reading"
+    },
     "userInfo": {
       "editProfile": "Edit Profile",
       "profileSettings": "Profile Settings",

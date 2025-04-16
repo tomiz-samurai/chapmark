@@ -1,7 +1,7 @@
 import { AppState, AppStateStatus } from 'react-native';
 import BackgroundTimer from 'react-native-background-timer';
 import * as Haptics from 'expo-haptics';
-import { store } from '../store';
+import { store, RootState } from '../store';
 import { 
   startTimer, 
   pauseTimer, 
@@ -15,6 +15,7 @@ import {
 } from '../store/timerSlice';
 import { completeSession } from '../store/sessionSlice';
 import NotificationService from './NotificationService';
+import { TimerCompletionResult } from '../../types/models';
 
 // タイマー更新の間隔（ミリ秒）
 const TIMER_INTERVAL = 1000;
@@ -190,47 +191,24 @@ export class TimerServiceClass {
   }
 
   // 読書セッションを完了
-  public completeReading(endPage?: number) {
-    // タップ感触フィードバック
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  public completeReading(currentPage?: number): TimerCompletionResult {
+    const state = store.getState();
     
-    // 型アサーションを使ってエラーを回避
-    const state = store.getState() as any;
-    const { timer, book } = state;
-    const selectedBook = book.books.find((b: any) => b.id === timer.activeBook);
+    // タイマー情報を取得
+    const timerState = state.timer;
+    const { displaySeconds, startPage } = timerState;
     
-    // タイマーの状態を更新
+    // セッション完了アクションをディスパッチ
     store.dispatch(completeReadingSession());
     
-    // バックグラウンドタイマーの停止
-    if (this.timerId !== null) {
-      BackgroundTimer.clearInterval(this.timerId);
-      this.timerId = null;
-    }
+    // 現在のページ情報でセッションを保存
+    const completionResult: TimerCompletionResult = {
+      duration: displaySeconds,
+      startPage,
+      endPage: currentPage
+    };
     
-    // セッション情報を保存
-    if (timer.startTime && timer.activeBook) {
-      const endTime = new Date();
-      const startTime = new Date(timer.startTime);
-      
-      // 経過時間（秒数）を計算
-      const duration = timer.pausedTime + 
-        Math.floor((endTime.getTime() - new Date(timer.startTime).getTime()) / 1000);
-      
-      // セッション完了アクションをディスパッチ
-      store.dispatch(completeSession({
-        endTime,
-        endPage: endPage || selectedBook?.currentPage
-      }));
-      
-      return {
-        duration,
-        startPage: timer.startPage,
-        endPage: endPage || selectedBook?.currentPage
-      };
-    }
-    
-    return null;
+    return completionResult;
   }
 
   // リソースのクリーンアップ

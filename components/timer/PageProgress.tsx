@@ -3,7 +3,7 @@ import { View, StyleSheet, TextInput } from 'react-native';
 import { Typography } from '../Typography';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
-import { Book } from '../../lib/types';
+import { Book } from '../../types/models';
 
 interface PageProgressProps {
   book: Book;

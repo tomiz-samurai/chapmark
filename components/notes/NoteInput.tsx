@@ -23,10 +23,8 @@ export const NoteInput = ({ bookId, onSave, initialNote }: NoteInputProps) => {
   const dispatch = useDispatch();
   const { t } = useAppTranslation();
   const { colors } = useTheme();
-  const book = useSelector((state: RootState) => {
-    const books = (state as any).book?.books || [];
-    return books.find((b: any) => b.id === bookId);
-  });
+  const books = useSelector((state: RootState) => state.book?.books || []);
+  const book = books.find((b: any) => b.id === bookId);
 
   // 状態管理
   const [content, setContent] = useState(initialNote?.content || '');

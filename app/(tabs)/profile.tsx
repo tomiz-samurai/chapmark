@@ -82,15 +82,15 @@ export default function ProfileScreen() {
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>42</Text>
-            <Text style={styles.statLabel}>読了本</Text>
+            <Text style={styles.statLabel}>{t('profile.stats.booksCompleted')}</Text>
           </View>
           <View style={[styles.statItem, styles.statBorder]}>
             <Text style={styles.statValue}>120</Text>
-            <Text style={styles.statLabel}>読書時間</Text>
+            <Text style={styles.statLabel}>{t('profile.stats.readingTime')}</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>8</Text>
-            <Text style={styles.statLabel}>読書中</Text>
+            <Text style={styles.statLabel}>{t('profile.stats.currentlyReading')}</Text>
           </View>
         </View>
         
