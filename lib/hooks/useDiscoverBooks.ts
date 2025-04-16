@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Book } from '../services/BookService';
+import { Book } from '../../types/models/book';
 
 /**
  * カテゴリーに応じて書籍リストをフィルタリングするカスタムフック

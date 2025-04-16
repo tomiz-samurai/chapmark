@@ -1,13 +1,9 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Book, BookStatus } from '../../types/models';
-import {
-  getUserBooks,
-  getUserBooksByStatus,
-  addBookToLibrary,
-  searchBooks as searchBooksService,
-  Book as ServiceBook
-} from '../services/BookService';
+import { useAppDispatch } from './useAppDispatch';
+import { useAppSelector } from './useAppSelector';
+import { fetchAllBooksAsync, addBookToLibraryAsync } from '../store/bookSlice';
 
 // AsyncStorageのキー
 const VIEW_MODE_STORAGE_KEY = 'chapmark_library_view_mode';
@@ -42,23 +38,15 @@ interface NewBookData {
   status: BookStatus;
 }
 
-// サービスの Book から モデルの Book への変換ヘルパー関数
-const convertServiceBookToModelBook = (book: ServiceBook): Book => {
-  return {
-    ...book,
-    status: (book.status || 'planned') as BookStatus
-  };
-};
-
 /**
  * 本の一覧表示と管理に関するロジックをカプセル化するカスタムフック
  */
 export function useLibrary() {
-  // 本の状態管理
-  const [books, setBooks] = useState<Book[]>([]);
+  const dispatch = useAppDispatch();
+  // Reduxのbooks状態を利用
+  const books = useAppSelector(state => state.book?.books || []);
   const [selectedStatus, setSelectedStatus] = useState<BookStatus>('all');
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
-  // エラー状態
   const [error, setError] = useState<string | null>(null);
   
   // 表示関連の状態管理
@@ -85,15 +73,8 @@ export function useLibrary() {
   
   // 本の一覧を更新
   const refreshBooks = () => {
-    try {
-      const serviceBooks = getUserBooks();
-      // サービスの Book から モデルの Book へ変換
-      const modelBooks = serviceBooks.map(convertServiceBookToModelBook);
-      setBooks(modelBooks);
-      setError(null);
-    } catch (e) {
-      setError('books.error.fetchFailed');
-    }
+    dispatch(fetchAllBooksAsync());
+    setError(null);
   };
   
   // 設定の読み込み
@@ -145,9 +126,7 @@ export function useLibrary() {
       if (selectedStatus === 'all') {
         result = Array.isArray(books) ? [...books] : [];
       } else {
-        const serviceBooks = getUserBooksByStatus(selectedStatus) || [];
-        result = Array.isArray(serviceBooks) ? serviceBooks.map(book => 
-          book ? convertServiceBookToModelBook(book) : null).filter(Boolean) as Book[] : [];
+        result = books.filter(book => book.status === selectedStatus);
       }
       
       // 検索クエリによるフィルタリング
@@ -198,33 +177,29 @@ export function useLibrary() {
   }, [books, selectedStatus, searchQuery, sortOption, sortDirection]);
   
   // 本の追加
-  const handleAddBook = () => {
+  const handleAddBook = async () => {
     if (!newBookTitle.trim() || !newBookAuthor.trim()) {
-      return false; // 必須項目が不足している場合
+      return false;
     }
-    
-    // デフォルトのカバー画像URL
     const defaultCoverUrl = 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80';
-    
-    // 新しい本のデータを作成
     const newBook = {
-      id: `local-${Date.now()}`, // 一意のID（タイムスタンプを含む）
+      id: `local-${Date.now()}`,
       title: newBookTitle,
       author: newBookAuthor,
       coverUrl: defaultCoverUrl,
-      coverImage: defaultCoverUrl, // 両方のプロパティを設定
+      coverImage: defaultCoverUrl,
       description: '手動で追加された本です',
-    } as ServiceBook;
-    
-    // BookServiceを使用して本を追加
-    const status = newBookStatus === 'all' ? 'planned' : newBookStatus;
-    addBookToLibrary(newBook, status);
-    
-    // 本の一覧を更新
-    refreshBooks();
-    resetAddForm();
-    
-    return true;
+      status: newBookStatus === 'all' ? 'planned' : newBookStatus
+    } as Book;
+    try {
+      await dispatch(addBookToLibraryAsync({ book: newBook, status: newBook.status })).unwrap();
+      refreshBooks();
+      resetAddForm();
+      return true;
+    } catch (e) {
+      setError('books.error.addFailed');
+      return false;
+    }
   };
   
   // 表示モードの切替

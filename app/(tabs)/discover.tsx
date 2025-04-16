@@ -16,25 +16,32 @@ import CollectionSection from '../../components/discover/CollectionSection';
 
 import { popularCategories, recommendationCollections, recommendedBooks as mockRecommendedBooks, newReleaseBooks as mockNewReleaseBooks } from '../../lib/mockData';
 import { colors, spacing } from '../../constants/theme';
-import { getBooksByCategory, getAllBooks, Book as ServiceBook } from '../../lib/services/BookService';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { useDiscoverCategory } from '../../lib/hooks/useDiscoverCategory';
 import { useDiscoverBooks } from '../../lib/hooks/useDiscoverBooks';
+import { useAppDispatch } from '../../lib/hooks/useAppDispatch';
+import { useAppSelector } from '../../lib/hooks/useAppSelector';
+import { fetchAllBooksAsync } from '../../lib/store/bookSlice';
+import { Book } from '../../types/models/book';
 
 export default function DiscoverScreen() {
   const { selectedCategory, handleCategoryPress } = useDiscoverCategory();
   const { navigateToBookDetail, navigateToBookList, navigateToCollection } = useBookNavigation();
   const { t } = useAppTranslation();
+  const dispatch = useAppDispatch();
+  const books = useAppSelector(state => state.book?.books || []);
 
-  // 全ての本データを取得
-  const allBooks: ServiceBook[] = getAllBooks();
+  // 初回マウント時に全ての本を取得
+  useEffect(() => {
+    dispatch(fetchAllBooksAsync());
+  }, [dispatch]);
 
   // カテゴリフィルタ
-  const filteredBooks = useDiscoverBooks(allBooks, selectedCategory);
+  const filteredBooks = useDiscoverBooks(books, selectedCategory);
 
   // 新着書籍（例: publishedDate降順で上位3件）
-  const newReleaseBooks = [...allBooks]
+  const newReleaseBooks = [...books]
     .filter(book => book.publishedDate)
     .sort((a, b) => (b.publishedDate || '').localeCompare(a.publishedDate || ''))
     .slice(0, 3);
@@ -43,19 +50,14 @@ export default function DiscoverScreen() {
   useEffect(() => {
     // 全データのカバー画像URLをログに表示
     console.log("=== BOOK COVER DEBUG ===");
-    
-    // おすすめ本の情報表示
     mockRecommendedBooks.forEach((book, index) => {
       console.log(`Recommended Book ${index + 1}: ${book.title}`);
       console.log(`- coverUrl: ${book.coverUrl || 'undefined'}`);
     });
-    
-    // 新着本の情報表示
     mockNewReleaseBooks.forEach((book, index) => {
       console.log(`New Release Book ${index + 1}: ${book.title}`);
       console.log(`- coverUrl: ${book.coverUrl || 'undefined'}`);
     });
-    
     console.log("=== END DEBUG ===");
   }, []);
 
@@ -66,7 +68,6 @@ export default function DiscoverScreen() {
         notificationCount={0}
         onNotificationPress={() => console.log('Notification pressed')}
       />
-      
       <ScrollView 
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -78,7 +79,6 @@ export default function DiscoverScreen() {
           onCategoryPress={handleCategoryPress}
           title={t('discover.popularCategories')}
         />
-
         {/* おすすめ書籍 */}
         <RecommendedBooksSection
           books={filteredBooks}
@@ -87,7 +87,6 @@ export default function DiscoverScreen() {
           onSeeAllPress={() => navigateToBookList('recommended')}
           title={t('discover.recommendedBooks')}
         />
-
         {/* 新着書籍 */}
         <NewReleasesSection
           books={newReleaseBooks}
@@ -95,19 +94,17 @@ export default function DiscoverScreen() {
           onSeeAllPress={() => navigateToBookList('new-releases')}
           title={t('discover.newReleases')}
         />
-
         {/* まとめコレクション */}
         {recommendationCollections.map((collection) => (
           <CollectionSection
             key={collection.id}
             collectionId={collection.id}
             title={t(collection.titleKey)}
-            books={collection.books.map(colBook => allBooks.find(b => b.id === colBook.id)).filter(Boolean) as ServiceBook[]}
+            books={collection.books.map(colBook => books.find(b => b.id === colBook.id)).filter(Boolean) as Book[]}
             onBookPress={(bookId) => navigateToBookDetail(bookId, '/(tabs)/discover')}
             onSeeAllPress={navigateToCollection}
           />
         ))}
-        
         {/* 余白 */}
         <View style={styles.bottomPadding} />
       </ScrollView>

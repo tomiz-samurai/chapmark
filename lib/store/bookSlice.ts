@@ -1,5 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { Book, BookStatus } from '../../types/models/book';
+import * as BookService from '../services/BookService';
 
 export interface BookState {
   books: Book[];
@@ -14,6 +15,67 @@ const initialState: BookState = {
   loading: false,
   error: null
 };
+
+// 非同期Thunk: 全ての本を取得
+export const fetchAllBooksAsync = createAsyncThunk<Book[], void, { rejectValue: string }>(
+  'book/fetchAllBooks',
+  async (_, { rejectWithValue }) => {
+    try {
+      const books = BookService.getAllBooks();
+      // BookServiceのBook型をmodelsのBook型に変換（必要なら）
+      return books.map((book) => ({
+        ...book,
+        status: (book.status || 'planned') as BookStatus
+      }));
+    } catch (error: any) {
+      return rejectWithValue(error?.message || '本の取得に失敗しました');
+    }
+  }
+);
+
+// 非同期Thunk: 本を本棚に追加
+export const addBookToLibraryAsync = createAsyncThunk<Book, { book: Book; status?: BookStatus }, { rejectValue: string }>(
+  'book/addBookToLibrary',
+  async ({ book, status }, { rejectWithValue }) => {
+    try {
+      // BookServiceのBook型とmodelsのBook型の整合性を担保
+      // statusが'all'の場合は'planned'に変換
+      const safeStatus = (!status || status === 'all') ? 'planned' : status;
+      const bookForService = {
+        ...book,
+        status: safeStatus
+      };
+      const addedBook = BookService.addBookToLibrary(bookForService, safeStatus);
+      return {
+        ...addedBook,
+        status: (addedBook.status || 'planned') as BookStatus
+      };
+    } catch (error: any) {
+      return rejectWithValue(error?.message || '本の追加に失敗しました');
+    }
+  }
+);
+
+// 非同期Thunk: 本のステータスを更新
+export const updateBookStatusAsync = createAsyncThunk<Book | undefined, { id: string; status: BookStatus }, { rejectValue: string }>(
+  'book/updateBookStatus',
+  async ({ id, status }, { rejectWithValue }) => {
+    try {
+      // statusが'all'の場合は'planned'に変換
+      const safeStatus = (!status || status === 'all') ? 'planned' : status;
+      const updatedBook = BookService.updateBookStatus(id, safeStatus);
+      if (!updatedBook) {
+        return rejectWithValue('本のステータス更新に失敗しました');
+      }
+      return {
+        ...updatedBook,
+        status: (updatedBook.status || 'planned') as BookStatus
+      };
+    } catch (error: any) {
+      return rejectWithValue(error?.message || '本のステータス更新に失敗しました');
+    }
+  }
+);
 
 export const bookSlice = createSlice({
   name: 'book',
@@ -86,6 +148,56 @@ export const bookSlice = createSlice({
         state.selectedBookId = null;
       }
     }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchAllBooksAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllBooksAsync.fulfilled, (state, action: PayloadAction<Book[]>) => {
+        state.books = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchAllBooksAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || '本の取得に失敗しました';
+      })
+      .addCase(addBookToLibraryAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addBookToLibraryAsync.fulfilled, (state, action: PayloadAction<Book>) => {
+        // 既存の本があれば更新、なければ追加
+        const index = state.books.findIndex(book => book.id === action.payload.id);
+        if (index !== -1) {
+          state.books[index] = action.payload;
+        } else {
+          state.books.push(action.payload);
+        }
+        state.loading = false;
+      })
+      .addCase(addBookToLibraryAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || '本の追加に失敗しました';
+      })
+      .addCase(updateBookStatusAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateBookStatusAsync.fulfilled, (state, action: PayloadAction<Book | undefined>) => {
+        if (action.payload) {
+          const index = state.books.findIndex(book => book.id === action.payload!.id);
+          if (index !== -1) {
+            state.books[index] = action.payload;
+          }
+        }
+        state.loading = false;
+      })
+      .addCase(updateBookStatusAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || '本のステータス更新に失敗しました';
+      });
   }
 });
 
