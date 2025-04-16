@@ -16,12 +16,24 @@ const initialState: TimerState = {
   lastBackgroundTimestamp: null
 };
 
+// 目標達成通知を送るThunk
+export const notifyGoalReachedAsync = createAsyncThunk<void, { bookTitle: string }, { rejectValue: string }>(
+  'timer/notifyGoalReached',
+  async ({ bookTitle }, { rejectWithValue }) => {
+    try {
+      await NotificationService.showGoalNotification(bookTitle);
+    } catch (error: any) {
+      return rejectWithValue(error?.message || '通知の送信に失敗しました');
+    }
+  }
+);
+
 // 非同期Thunk: 読書セッションの完了（副作用含む）
 export const completeReadingSessionAsync = createAsyncThunk<void, { bookTitle: string }, { rejectValue: string }>(
   'timer/completeReadingSessionAsync',
   async ({ bookTitle }, { dispatch, rejectWithValue }) => {
     try {
-      await NotificationService.showGoalNotification(bookTitle);
+      await dispatch(notifyGoalReachedAsync({ bookTitle })).unwrap();
       dispatch(completeReadingSession());
     } catch (error: any) {
       return rejectWithValue(error?.message || '読書セッションの完了に失敗しました');
