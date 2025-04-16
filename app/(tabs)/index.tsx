@@ -8,8 +8,9 @@ import { useResponsive } from '../../hooks/useResponsive';
 import { Header } from '../../components/layouts/Header';
 import { BookCard } from '../../components/common/BookCard';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
-import { getAllBooks, Book as BookType } from '../../lib/services/BookService';
+import { getAllBooks, getUserBooksByStatus, Book as BookType } from '../../lib/services/BookService';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { BookStatus } from '../../types/models';
 
 // recommendedBooksが読み込めない問題を解決するためのフォールバックデータ
 const RECOMMENDED_BOOKS = [
@@ -76,14 +77,16 @@ export default function HomeScreen() {
   const recommendedBooks = RECOMMENDED_BOOKS;
   
   // 読書中の本を取得（より堅牢な方法で）
-  let currentlyReadingBooks: BookType[] = [];
+  // getUserBooksByStatusを使用して「reading」ステータスの本を直接取得
+  let currentlyReadingBooks: any[] = [];
   try {
-    const books = getAllBooks();
-    if (Array.isArray(books)) {
-      currentlyReadingBooks = books.filter(book => book && book.status === 'reading');
-    }
+    // 読書中（reading）ステータスの本を取得し、モデルの型に変換
+    currentlyReadingBooks = getUserBooksByStatus('reading').map(book => ({
+      ...book,
+      status: (book.status || 'reading') as BookStatus
+    }));
   } catch (error) {
-    console.error('Error loading books:', error);
+    console.error('Error loading reading books:', error);
   }
 
   const handleNotificationPress = () => {
@@ -195,7 +198,7 @@ export default function HomeScreen() {
               ))
             ) : (
               <Typography variant="body" style={{ padding: spacing.md }}>
-                {t('home.noCurrentlyReading')}
+                現在読書中の本はありません
               </Typography>
             )}
           </ScrollView>
