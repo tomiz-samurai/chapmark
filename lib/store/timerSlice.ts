@@ -1,5 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { TimerState, StartTimerParams } from '../../types/models';
+import NotificationService from '../services/NotificationService';
 
 const initialState: TimerState = {
   isRunning: false,
@@ -14,6 +15,19 @@ const initialState: TimerState = {
   isBackgroundActive: false,
   lastBackgroundTimestamp: null
 };
+
+// 非同期Thunk: 読書セッションの完了（副作用含む）
+export const completeReadingSessionAsync = createAsyncThunk<void, { bookTitle: string }, { rejectValue: string }>(
+  'timer/completeReadingSessionAsync',
+  async ({ bookTitle }, { dispatch, rejectWithValue }) => {
+    try {
+      await NotificationService.showGoalNotification(bookTitle);
+      dispatch(completeReadingSession());
+    } catch (error: any) {
+      return rejectWithValue(error?.message || '読書セッションの完了に失敗しました');
+    }
+  }
+);
 
 export const timerSlice = createSlice({
   name: 'timer',

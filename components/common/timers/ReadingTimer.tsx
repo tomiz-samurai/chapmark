@@ -20,6 +20,8 @@ import Animated, {
 import { GoalTimeSelector } from '../selectors/GoalTimeSelector';
 import { useAppSelector } from '../../../lib/hooks/useAppSelector';
 import { useAppDispatch } from '../../../lib/hooks/useAppDispatch';
+import { startTimer, pauseTimer, resetTimer, completeReadingSessionAsync, updateTimer } from '../../../lib/store/timerSlice';
+import { updateBookStatusAsync } from '../../../lib/store/bookSlice';
 
 interface ReadingTimerProps {
   book: Book | null;
@@ -95,38 +97,41 @@ export function ReadingTimer({
 
   // コンポーネントのアンマウント時にタイマーリソースをクリーンアップ
   useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (isRunning) {
+      interval = setInterval(() => {
+        dispatch(updateTimer());
+      }, 1000);
+    } else if (interval) {
+      clearInterval(interval);
+    }
     return () => {
-      // コンポーネントのアンマウント時にタイマーのクリーンアップを実行
-      TimerService.cleanup();
+      if (interval) clearInterval(interval);
     };
-  }, []);
+  }, [isRunning, dispatch]);
 
   // タイマーの開始/一時停止を切り替え
   const handleToggleTimer = () => {
     if (!book) return;
-    
     if (isRunning) {
-      TimerService.pauseTimer();
+      dispatch(pauseTimer());
     } else {
       if (book.id) {
-        TimerService.startTimer(book.id, book.currentPage);
+        dispatch(updateBookStatusAsync({ id: book.id, status: 'reading' }));
+        dispatch(startTimer({ bookId: book.id, currentPage: book.currentPage }));
       }
     }
   };
 
   // タイマーのリセット
   const handleResetTimer = () => {
-    TimerService.resetTimer();
+    dispatch(resetTimer());
   };
 
   // 読書セッションの完了
   const handleFinishReading = () => {
     if (!book) return;
-    
-    // 読書セッションを完了し、必要に応じてページ情報を渡す
-    TimerService.completeReading(book.currentPage);
-    
-    // onFinishコールバックがあれば呼び出す（モーダル表示など）
+    dispatch(completeReadingSessionAsync({ bookTitle: book.title }));
     if (onFinish) {
       onFinish();
     }

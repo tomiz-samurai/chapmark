@@ -5,7 +5,7 @@ import { useAppDispatch } from './useAppDispatch';
 import { useAppSelector } from './useAppSelector';
 import { updateCurrentPage, updateTotalPages } from '../store/bookSlice';
 import { clearCurrentSession } from '../store/sessionSlice';
-import { resetTimer } from '../store/timerSlice';
+import { resetTimer, completeReadingSessionAsync } from '../store/timerSlice';
 import TimerService from '../services/TimerService';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 
@@ -28,11 +28,8 @@ export function useReadingSession() {
   // 読書セッション完了時の処理
   const handleFinishReading = (book: Book | null) => {
     if (!book) return;
-    
-    // TimerServiceを使って読書セッションを完了
-    TimerService.completeReading(book.currentPage);
-    
-    // モーダル表示用の状態を設定
+    // Redux経由で読書セッション完了処理
+    dispatch(completeReadingSessionAsync({ bookTitle: book.title }));
     setModalCurrentPage(book.currentPage);
     setModalTotalPages(book.totalPages);
     setShowCompletionModal(true);

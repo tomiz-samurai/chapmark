@@ -68,7 +68,16 @@ export const getAllBooks = (): Book[] => {
     return acc;
   }, []);
 
-  return uniqueBooks;
+  // userAddedBooksの内容で上書き
+  const mergedBooks = uniqueBooks.map(book => {
+    const userBook = userAddedBooks.find(b => b.id === book.id);
+    return userBook ? { ...book, ...userBook } : book;
+  });
+  // userAddedBooksにしか存在しない本も追加
+  const onlyUserBooks = userAddedBooks.filter(
+    userBook => !uniqueBooks.some(book => book.id === userBook.id)
+  );
+  return [...mergedBooks, ...onlyUserBooks];
 };
 
 // 追加した本を保存するための配列
