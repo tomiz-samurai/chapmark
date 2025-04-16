@@ -6,6 +6,8 @@ import { QuoteInput } from '../quotes/QuoteInput';
 import { NoteInput } from '../notes/NoteInput';
 import { Button } from '../common/Button';
 import { colors, spacing } from '../../constants/theme';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { useTheme } from '../../lib/hooks/useTheme';
 
 type EntryType = 'quote' | 'note';
 
@@ -23,7 +25,9 @@ export const QuickEntryModal = ({
   currentPage 
 }: QuickEntryModalProps) => {
   const dispatch = useDispatch();
-  const [entryType, setEntryType] = useState<EntryType>('note');
+  const { t } = useAppTranslation();
+  const { colors } = useTheme();
+  const [entryType, setEntryType] = useState<EntryType>('quote');
   
   // 保存完了時の処理
   const handleSaveComplete = () => {
@@ -50,23 +54,23 @@ export const QuickEntryModal = ({
       <TouchableWithoutFeedback onPress={handleBackdropPress}>
         <View style={styles.centeredView}>
           <TouchableWithoutFeedback onPress={handleModalPress}>
-            <View style={styles.modalView}>
-              <View style={styles.header}>
-                <Typography variant="title" style={styles.title}>
-                  {entryType === 'quote' ? '引用を追加' : 'メモを追加'}
+            <View style={[styles.modalView, { backgroundColor: colors.card }]}>
+              <View style={[styles.header, { borderBottomColor: colors.border }]}>
+                <Typography variant="title" style={{ color: colors.text }}>
+                  {t('book.quickEntry')}
                 </Typography>
                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                  <Typography variant="body" style={styles.closeButtonText}>
+                  <Typography variant="body" style={{ fontSize: 20, color: colors.textSecondary }}>
                     ✕
                   </Typography>
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.tabContainer}>
+              <View style={[styles.tabContainer, { borderBottomColor: colors.border }]}>
                 <TouchableOpacity
                   style={[
                     styles.tabButton,
-                    entryType === 'quote' ? styles.activeTabButton : null
+                    entryType === 'quote' ? [styles.activeTabButton, { borderBottomColor: colors.primary }] : null
                   ]}
                   onPress={() => setEntryType('quote')}
                 >
@@ -74,17 +78,17 @@ export const QuickEntryModal = ({
                     variant="body"
                     style={[
                       styles.tabButtonText,
-                      entryType === 'quote' ? styles.activeTabButtonText : null
+                      { color: entryType === 'quote' ? colors.primary : colors.textSecondary }
                     ]}
                   >
-                    引用
+                    {t('book.quotes')}
                   </Typography>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[
                     styles.tabButton,
-                    entryType === 'note' ? styles.activeTabButton : null
+                    entryType === 'note' ? [styles.activeTabButton, { borderBottomColor: colors.primary }] : null
                   ]}
                   onPress={() => setEntryType('note')}
                 >
@@ -92,10 +96,10 @@ export const QuickEntryModal = ({
                     variant="body"
                     style={[
                       styles.tabButtonText,
-                      entryType === 'note' ? styles.activeTabButtonText : null
+                      { color: entryType === 'note' ? colors.primary : colors.textSecondary }
                     ]}
                   >
-                    メモ
+                    {t('book.notes')}
                   </Typography>
                 </TouchableOpacity>
               </View>

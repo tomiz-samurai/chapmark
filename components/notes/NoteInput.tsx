@@ -6,6 +6,8 @@ import { Button } from '../common/Button';
 import { colors, spacing, typography } from '../../constants/theme';
 import { addNote } from '../../lib/store/noteSlice';
 import { RootState } from '../../lib/store';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { useTheme } from '../../lib/hooks/useTheme';
 
 interface NoteInputProps {
   bookId: string;
@@ -19,6 +21,8 @@ interface NoteInputProps {
 
 export const NoteInput = ({ bookId, onSave, initialNote }: NoteInputProps) => {
   const dispatch = useDispatch();
+  const { t } = useAppTranslation();
+  const { colors } = useTheme();
   const book = useSelector((state: RootState) => {
     const books = (state as any).book?.books || [];
     return books.find((b: any) => b.id === bookId);
@@ -111,55 +115,70 @@ export const NoteInput = ({ bookId, onSave, initialNote }: NoteInputProps) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.card }]}>
       {book && (
-        <View style={styles.bookInfo}>
-          <Typography variant="body" style={styles.bookTitle}>
+        <View style={[styles.bookInfo, { borderBottomColor: colors.border }]}>
+          <Typography variant="body" style={{ color: colors.text, fontWeight: 'bold' }}>
             {book.title}
           </Typography>
-          <Typography variant="caption" style={styles.bookAuthor}>
+          <Typography variant="caption" style={{ color: colors.textSecondary }}>
             {book.author}
           </Typography>
         </View>
       )}
       
       <View style={styles.formGroup}>
-        <Typography variant="caption" style={styles.label}>
-          メモ内容
+        <Typography variant="caption" style={{ color: colors.text, fontWeight: '500', marginBottom: spacing.xs }}>
+          {t('book.noteContent')}
         </Typography>
         <TextInput
-          style={styles.textArea}
+          style={[styles.textArea, { 
+            borderColor: colors.border, 
+            color: colors.text,
+            backgroundColor: colors.background
+          }]}
           multiline
           value={content}
           onChangeText={setContent}
-          placeholder="気づきや感想を自由に書き留めましょう"
+          placeholder={t('book.noteContentPlaceholder')}
+          placeholderTextColor={colors.textSecondary}
         />
       </View>
       
       <View style={styles.row}>
         <View style={styles.formGroupHalf}>
-          <Typography variant="caption" style={styles.label}>
-            ページ
+          <Typography variant="caption" style={{ color: colors.text, fontWeight: '500', marginBottom: spacing.xs }}>
+            {t('timer.page')}
           </Typography>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { 
+              borderColor: colors.border, 
+              color: colors.text,
+              backgroundColor: colors.background
+            }]}
             value={pageNumber}
             onChangeText={validatePageNumber}
-            placeholder="例: 42"
+            placeholder={t('book.pagePlaceholder')}
             keyboardType="number-pad"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
         
         <View style={styles.formGroupHalf}>
-          <Typography variant="caption" style={styles.label}>
-            タグ
+          <Typography variant="caption" style={{ color: colors.text, fontWeight: '500', marginBottom: spacing.xs }}>
+            {t('book.tags')}
           </Typography>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { 
+              borderColor: colors.border, 
+              color: colors.text,
+              backgroundColor: colors.background
+            }]}
             value={tagInput}
             onChangeText={handleTagInputChange}
-            placeholder="タグを入力（,で区切り）"
+            placeholder={t('book.tagsPlaceholder')}
             onSubmitEditing={handleTagInputSubmit}
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
       </View>
@@ -167,15 +186,15 @@ export const NoteInput = ({ bookId, onSave, initialNote }: NoteInputProps) => {
       {tags.length > 0 && (
         <View style={styles.tagsContainer}>
           {tags.map((tag, index) => (
-            <View key={index} style={styles.tag}>
-              <Typography variant="caption" style={styles.tagText}>
+            <View key={index} style={[styles.tag, { backgroundColor: colors.secondaryLight }]}>
+              <Typography variant="caption" style={{ color: colors.textSecondary }}>
                 {tag}
               </Typography>
               <TouchableOpacity
                 onPress={() => removeTag(tag)}
                 style={styles.tagRemove}
               >
-                <Typography variant="caption" style={styles.tagRemoveText}>
+                <Typography variant="caption" style={{ color: colors.textSecondary }}>
                   ×
                 </Typography>
               </TouchableOpacity>
@@ -185,11 +204,12 @@ export const NoteInput = ({ bookId, onSave, initialNote }: NoteInputProps) => {
       )}
       
       <Button
-        title={initialNote ? "更新" : "保存"}
+        title={'common.post'}
         variant="primary"
         onPress={handleSave}
         disabled={!canSave}
         style={styles.saveButton}
+        isTranslationKey={true}
       />
     </View>
   );

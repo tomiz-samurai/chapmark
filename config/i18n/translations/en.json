@@ -12,7 +12,9 @@
     "noCover": "No Cover",
     "success": "Success",
     "continue": "Continue",
-    "discard": "Discard"
+    "discard": "Discard",
+    "update": "Update",
+    "post": "Post"
   },
   "navigation": {
     "home": "Home",
@@ -40,7 +42,7 @@
     "search": "Search Books",
     "searchPlaceholder": "Search by title or author",
     "searchNoResults": "No Results Found",
-    "searchNoResultsMessage": "No books matching your search criteria.",
+    "searchNoResultsMessage": "No books match your search criteria.",
     "filters": {
       "all": "All",
       "reading": "Reading",
@@ -50,7 +52,7 @@
       "dropped": "Dropped"
     },
     "sort": {
-      "title": "Sort",
+      "title": "Sort By",
       "titleAsc": "Title (A-Z)",
       "titleDesc": "Title (Z-A)",
       "author": "Author",
@@ -65,7 +67,7 @@
     "status": "Status",
     "emptyState": {
       "title": "No Books Found",
-      "message": "Your bookshelf is empty. Add books using the '+' button."
+      "message": "You haven't added any books to your library yet. Add books by tapping the + button."
     },
     "form": {
       "title": "Title",
@@ -84,20 +86,58 @@
       "addToLibrary": "Add to Library",
       "bookInfo": "Book Information",
       "pageCount": "Page Count",
-      "pages": " pages",
+      "pages": "pages",
       "publishDate": "Publish Date",
       "publisher": "Publisher",
       "category": "Category",
       "description": "Description",
       "selectStatus": "Select Status",
       "confirmStatusChange": "Confirm Status Change",
-      "alreadyCompletedMessage": "This book is already marked as 'Completed'. Do you want to change it and start reading?",
-      "changeStatusToReadingMessage": "Change status from '{{status}}' to 'Reading' and start reading?",
-      "statusChangeSuccess": "Book status changed to '{{status}}'",
+      "alreadyCompletedMessage": "This book is already marked as Completed. Do you want to change it and start reading?",
+      "changeStatusToReadingMessage": "Change status from \"{{status}}\" to \"Reading\" and start reading?",
+      "statusChangeSuccess": "Book status changed to {{status}}",
       "addedToLibrary": "Book added to your library",
       "goToLibrary": "Go to Library",
-      "descriptionLanguageNote": "Note: This description is displayed in {{language}}"
+      "descriptionLanguageNote": "※This description is displayed in {{language}}"
     }
+  },
+  "book": {
+    "quotes": "Quotes",
+    "notes": "Notes",
+    "contents": "Contents",
+    "noQuotes": "No quotes yet",
+    "noNotes": "No notes yet",
+    "addQuote": "Add Quote",
+    "addNote": "Add Note",
+    "editQuote": "Edit Quote",
+    "editNote": "Edit Note",
+    "deleteQuote": "Delete Quote",
+    "deleteNote": "Delete Note",
+    "confirmDelete": "Confirm Delete",
+    "confirmDeleteQuoteMessage": "Are you sure you want to delete this quote?",
+    "confirmDeleteNoteMessage": "Are you sure you want to delete this note?",
+    "quoteDeleted": "Quote deleted",
+    "noteDeleted": "Note deleted",
+    "noteContent": "Note Content",
+    "noteContentPlaceholder": "Write down your thoughts and observations",
+    "pagePlaceholder": "e.g. 42",
+    "tags": "Tags",
+    "tagsPlaceholder": "Enter tags (separate with comma)",
+    "quickEntry": "Add Quote/Note",
+    "quoteContent": "Quote Content",
+    "quoteContentPlaceholder": "Enter a memorable passage from the book",
+    "quoteDescription": "Notes/Comments",
+    "quoteDescriptionPlaceholder": "Write your thoughts about this quote",
+    "quoteText": "Quote Text",
+    "quotePlaceholder": "Enter a memorable passage from the book",
+    "quoteInsight": "Insight",
+    "insightPlaceholder": "Write your thoughts or insights about this quote",
+    "chapterSection": "Chapter/Section",
+    "chapterPlaceholder": "e.g. Chapter 1",
+    "visibilitySettings": "Visibility Settings",
+    "public": "Public",
+    "private": "Private",
+    "characterLimit": "{{current}}/{{max}} characters"
   },
   "timer": {
     "start": "Start",
@@ -107,27 +147,27 @@
     "reset": "Reset",
     "setGoal": "Set Goal",
     "finishReading": "Finish Reading",
-    "selectBook": "Select a book to read",
+    "selectBook": "Select Book",
     "change": "Change",
     "current": "Current",
     "total": "Total",
     "readingRecord": "Reading Record",
     "readingTime": "Reading Time",
     "pagesRead": "Pages Read",
-    "progressRate": "Progress",
+    "progressRate": "Progress Rate",
     "currentPage": "Current Page",
     "totalPages": "Total Pages",
     "save": "Save",
     "saved": "Saved",
-    "recordSaved": "Your reading record has been saved.",
+    "recordSaved": "Reading record saved",
     "pleaseSelectBook": "Please select a book",
-    "page": "pages",
+    "page": "Page",
     "targetTime": "Target Time",
     "goalTime": "Goal Time",
     "goalReached": "Goal Reached!",
-    "goalNotification": "You've reached your reading goal time for {{book}}!",
-    "time15min": "15 min",
-    "time30min": "30 min",
+    "goalNotification": "You've reached your reading goal for {{book}}!",
+    "time15min": "15 minutes",
+    "time30min": "30 minutes",
     "time1hour": "1 hour",
     "time2hours": "2 hours"
   },
@@ -136,14 +176,14 @@
     "uiLanguage": "Interface Language",
     "contentLanguage": "Content Language",
     "syncLanguages": "Sync Language Settings",
-    "languageExplanation": "Interface language controls the app display, while content language affects book recommendations and other content."
+    "languageExplanation": "Interface language sets the app's display language, while content language is used for book recommendations and other content."
   },
   "home": {
     "yearlyReadingGoal": "Yearly Reading Goal",
-    "booksToGoal": "{{count}} books to goal",
+    "booksToGoal": "{{count}} books to reach your goal",
     "weeklyReadingTime": "Weekly Reading Time",
-    "monthlyCompletedBooks": "Monthly Completed Books",
-    "monthOnMonthChange": "Month-on-month change",
+    "monthlyCompletedBooks": "Books Completed This Month",
+    "monthOnMonthChange": "Month-on-month",
     "recommendedBooks": "Recommended Books",
     "currentlyReading": "Currently Reading",
     "notifications": "Notifications",
@@ -155,9 +195,9 @@
     "recommendedBooks": "Recommended Books",
     "newReleases": "New Releases",
     "collections": {
-      "monthlyCareerRecommendations": "This Month's Career Growth Books",
-      "mustReadClassics": "Essential Reads for Business Professionals",
-      "criticalThinking": "Books to Sharpen Your Thinking"
+      "monthlyCareerRecommendations": "Monthly Career Recommendations",
+      "mustReadClassics": "Must-Read Business Classics",
+      "criticalThinking": "Books to Enhance Critical Thinking"
     }
   },
   "profile": {
@@ -188,12 +228,12 @@
       "emailPlaceholder": "example@email.com",
       "jobTitlePlaceholder": "Engineer, Manager, etc.",
       "industryPlaceholder": "IT, Finance, Manufacturing, etc.",
-      "positionPlaceholder": "Team Lead, Director, Executive, etc.",
-      "bioPlaceholder": "Tell us a bit about yourself",
-      "careerGoalPlaceholder": "Career goals you want to achieve in the next 5 years",
+      "positionPlaceholder": "Section Chief, Director, Executive, etc.",
+      "bioPlaceholder": "A brief introduction about yourself",
+      "careerGoalPlaceholder": "Your career goals for the next 5 years",
       "nameRequired": "Name is required",
       "discardChanges": "Discard changes?",
-      "removeImageConfirm": "Are you sure you want to remove your profile image?"
+      "removeImageConfirm": "Remove profile image?"
     }
   }
 } 

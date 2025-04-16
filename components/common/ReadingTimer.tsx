@@ -175,17 +175,16 @@ export function ReadingTimer({
       }
     ]}>
       <View style={styles.timerLayout}>
-        {/* 本のカバー画像 */}
-        <View style={styles.coverContainer}>
-          <Image
-            source={getCoverSource()}
-            style={[
-              styles.coverImage,
-              compact && styles.coverImageCompact
-            ]}
-            resizeMode="contain"
-          />
-        </View>
+        {/* 本のカバー画像 - compact モードでは非表示 */}
+        {!compact && (
+          <View style={styles.coverContainer}>
+            <Image
+              source={getCoverSource()}
+              style={styles.coverImage}
+              resizeMode="contain"
+            />
+          </View>
+        )}
 
         {/* タイマー表示部分 */}
         <Animated.View style={[styles.timerSection, animatedStyle]}>
@@ -260,39 +259,50 @@ export function ReadingTimer({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 16,
-    elevation: 2,
+    borderRadius: 20,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    width: '100%',
   },
   emptyContainer: {
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 20,
+    padding: 28,
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
   },
   timerLayout: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   coverContainer: {
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   coverImage: {
-    width: 70,
-    height: 105,
-    borderRadius: 8,
+    width: 80,
+    height: 120,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   coverImageCompact: {
-    width: 60,
-    height: 90,
+    width: 70,
+    height: 105,
   },
   timerSection: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
   },
   timerText: {
     fontWeight: '300',
@@ -305,24 +315,28 @@ const styles = StyleSheet.create({
   },
   mainButton: {
     flex: 1,
-    marginRight: 10,
+    marginRight: 8,
     marginBottom: 10,
+    borderRadius: 12,
   },
   secondaryButton: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 8,
     marginBottom: 10,
+    borderRadius: 12,
   },
   finishButton: {
     width: '100%',
-    marginTop: 4,
+    marginTop: 6,
+    borderRadius: 12,
   },
   selectPrompt: {
     fontSize: 16,
     textAlign: 'center',
+    paddingHorizontal: 20,
   },
   goalText: {
-    marginTop: 6,
+    marginTop: 8,
     fontSize: 14,
   },
 }); 

@@ -12,7 +12,9 @@
     "noCover": "表紙なし",
     "success": "成功",
     "continue": "続ける",
-    "discard": "破棄"
+    "discard": "破棄",
+    "update": "更新",
+    "post": "投稿"
   },
   "navigation": {
     "home": "ホーム",
@@ -99,6 +101,44 @@
       "descriptionLanguageNote": "※この概要は{{language}}で表示されています"
     }
   },
+  "book": {
+    "quotes": "引用",
+    "notes": "メモ",
+    "contents": "コンテンツ",
+    "noQuotes": "引用がありません",
+    "noNotes": "メモがありません",
+    "addQuote": "引用を追加",
+    "addNote": "メモを追加",
+    "editQuote": "引用を編集",
+    "editNote": "メモを編集",
+    "deleteQuote": "引用を削除",
+    "deleteNote": "メモを削除",
+    "confirmDelete": "削除の確認",
+    "confirmDeleteQuoteMessage": "この引用を削除してもよろしいですか？",
+    "confirmDeleteNoteMessage": "このメモを削除してもよろしいですか？",
+    "quoteDeleted": "引用を削除しました",
+    "noteDeleted": "メモを削除しました",
+    "noteContent": "メモ内容",
+    "noteContentPlaceholder": "気づきや感想を自由に書き留めましょう",
+    "pagePlaceholder": "例: 42",
+    "tags": "タグ",
+    "tagsPlaceholder": "タグを入力（,で区切り）",
+    "quickEntry": "引用・メモを追加",
+    "quoteContent": "引用内容",
+    "quoteContentPlaceholder": "本文から印象に残った文章を入力してください",
+    "quoteDescription": "メモ・コメント",
+    "quoteDescriptionPlaceholder": "この引用に対する感想や考えを書き留めましょう",
+    "quoteText": "引用文",
+    "quotePlaceholder": "本文から印象に残った文章を入力してください",
+    "quoteInsight": "感想・洞察",
+    "insightPlaceholder": "この引用についての感想や考えを書き留めましょう",
+    "chapterSection": "章・セクション",
+    "chapterPlaceholder": "例: 第1章",
+    "visibilitySettings": "公開設定",
+    "public": "公開",
+    "private": "非公開",
+    "characterLimit": "{{current}}/{{max}}文字"
+  },
   "timer": {
     "start": "開始",
     "pause": "一時停止",
@@ -129,7 +169,8 @@
     "time15min": "15分",
     "time30min": "30分",
     "time1hour": "1時間",
-    "time2hours": "2時間"
+    "time2hours": "2時間",
+    "pageProgress": "ページ進捗"
   },
   "settings": {
     "language": "言語設定",

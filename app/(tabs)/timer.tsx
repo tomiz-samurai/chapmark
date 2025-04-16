@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, Image, TextInput, Keyboard, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Alert, Image, TextInput, Keyboard, KeyboardAvoidingView, Platform, TouchableOpacity, ScrollView } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
 import { useSelector, useDispatch } from 'react-redux';
@@ -21,6 +21,7 @@ import TimerService, { formatTime, calculateProgress, calculateReadPages } from 
 import { useTheme } from '../../lib/hooks/useTheme';
 import { getAllBooks, getBookById } from '../../lib/services/BookService';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { QuickEntryModal } from '../../components/modals/QuickEntryModal';
 
 // ダミーデータ（実際の実装では本のリストはストアまたはAPIから取得）
 const READING_BOOKS: Book[] = [
@@ -72,6 +73,7 @@ export default function TimerScreen() {
   const [showBookSelectorModal, setShowBookSelectorModal] = useState(false);
   const [modalCurrentPage, setModalCurrentPage] = useState<number | undefined>(undefined);
   const [modalTotalPages, setModalTotalPages] = useState<number | undefined>(undefined);
+  const [quickEntryModalVisible, setQuickEntryModalVisible] = useState(false);
   
   // 選択中の書籍
   const selectedBook = selectedBookId 
@@ -256,6 +258,16 @@ export default function TimerScreen() {
     dispatch(setGoalTime(seconds));
   };
 
+  // クイックエントリーモーダルを開く
+  const handleOpenQuickEntry = () => {
+    setQuickEntryModalVisible(true);
+  };
+
+  // クイックエントリーモーダルを閉じる
+  const handleCloseQuickEntry = () => {
+    setQuickEntryModalVisible(false);
+  };
+
   // 本の選択表示コンポーネント
   const renderSelectedBook = () => {
     if (!selectedBook) {
@@ -264,7 +276,7 @@ export default function TimerScreen() {
           style={[styles.selectBookButton, { backgroundColor: colors.card }]} 
           onPress={handleOpenBookSelector}
         >
-          <BookIcon size={20} color={colors.textSecondary} />
+          <BookIcon size={18} color={colors.textSecondary} />
           <Typography variant="body" style={{ color: colors.text, marginLeft: spacing.small, fontSize: 14 }}>
             {t('timer.selectBook')}
           </Typography>
@@ -281,7 +293,7 @@ export default function TimerScreen() {
           <Image source={{ uri: selectedBook.coverImage }} style={styles.bookCover} />
         ) : (
           <View style={[styles.placeholderCover, { backgroundColor: colors.border }]}>
-            <BookIcon size={20} color={colors.textSecondary} />
+            <BookIcon size={18} color={colors.textSecondary} />
           </View>
         )}
         <View style={styles.bookInfo}>
@@ -305,7 +317,7 @@ export default function TimerScreen() {
           )}
         </View>
         <View style={styles.changeButton}>
-          <Typography variant="caption" style={{ color: colors.primary, fontSize: 12 }}>
+          <Typography variant="caption" style={{ color: colors.primary, fontSize: 12, fontWeight: '500' }}>
             {t('timer.change')}
           </Typography>
         </View>
@@ -325,10 +337,7 @@ export default function TimerScreen() {
         onNotificationPress={() => {}}
       />
       
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.mainContainer}
-      >
+      <View style={styles.mainContainer}>
         <View style={styles.contentContainer}>
           {/* 本の選択表示 */}
           <View style={styles.selectorContainer}>
@@ -337,92 +346,102 @@ export default function TimerScreen() {
           
           {/* タイマーと進捗表示エリア */}
           <View style={styles.timerContainer}>
-            <View style={styles.timerAndProgressWrapper}>
-              {/* タイマーコンポーネント */}
-              <ReadingTimer 
-                book={selectedBook}
-                onFinish={handleFinishReading}
-                goalTime={(state as any).timer?.goalTime || null}
-                onSetGoalTime={handleSetGoalTime}
-                compact={true}
-              />
-              
-              {/* ページ進捗コンポーネント */}
-              {selectedBook && (
-                <View style={[styles.pageProgressContainer, { backgroundColor: colors.card }]}>
-                  <View style={styles.pageInputSection}>
-                    <View style={styles.inputRow}>
-                      <View style={styles.inputWrapper}>
-                        <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 12 }}>
-                          {t('timer.current')}
-                        </Typography>
-                        <TextInput
-                          style={[styles.pageInput, { 
-                            backgroundColor: colors.background,
-                            borderColor: colors.border,
-                            color: colors.text,
-                            height: 30,
-                            fontSize: 14
-                          }]}
-                          value={selectedBook.currentPage?.toString()}
-                          onChangeText={(text) => {
-                            const page = parseInt(text, 10);
-                            if (!isNaN(page)) handleCurrentPageChange(page);
-                          }}
-                          keyboardType="number-pad"
-                          returnKeyType="done"
-                          placeholder="0"
-                        />
-                      </View>
-                      
-                      <Typography style={{ color: colors.textSecondary, marginHorizontal: 4 }}>
-                        /
+            {/* タイマーコンポーネント */}
+            <ReadingTimer 
+              book={selectedBook}
+              onFinish={handleFinishReading}
+              goalTime={(state as any).timer?.goalTime || null}
+              onSetGoalTime={handleSetGoalTime}
+              compact={true}
+            />
+            
+            {/* ページ進捗コンポーネント */}
+            {selectedBook && (
+              <View style={[styles.pageProgressContainer, { backgroundColor: colors.card }]}>
+                <View style={styles.pageInputSection}>
+                  <Typography variant="body" style={[styles.progressTitle, { color: colors.text }]}>
+                    {t('timer.pageProgress')}
+                  </Typography>
+                  
+                  <View style={styles.inputRow}>
+                    <View style={styles.inputWrapper}>
+                      <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 12 }}>
+                        {t('timer.current')}
                       </Typography>
-                      
-                      <View style={styles.inputWrapper}>
-                        <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 12 }}>
-                          {t('timer.total')}
-                        </Typography>
-                        <TextInput
-                          style={[styles.pageInput, { 
-                            backgroundColor: colors.background,
-                            borderColor: colors.border,
-                            color: colors.text,
-                            height: 30,
-                            fontSize: 14
-                          }]}
-                          value={selectedBook.totalPages?.toString()}
-                          onChangeText={(text) => {
-                            const pages = parseInt(text, 10);
-                            if (!isNaN(pages)) handleTotalPagesChange(pages);
-                          }}
-                          keyboardType="number-pad"
-                          returnKeyType="done"
-                          placeholder="0"
-                        />
-                      </View>
+                      <TextInput
+                        style={[styles.pageInput, { 
+                          backgroundColor: colors.background,
+                          borderColor: colors.border,
+                          color: colors.text
+                        }]}
+                        value={selectedBook.currentPage?.toString()}
+                        onChangeText={(text) => {
+                          const page = parseInt(text, 10);
+                          if (!isNaN(page)) handleCurrentPageChange(page);
+                        }}
+                        keyboardType="number-pad"
+                        returnKeyType="done"
+                        placeholder="0"
+                      />
                     </View>
                     
-                    <View style={[styles.progressSection, { marginTop: 2 }]}>
-                      <View style={styles.progressBarWithPercentage}>
-                        <View style={styles.progressBarContainer}>
-                          <ProgressBar 
-                            progress={calculateProgress(selectedBook.currentPage, selectedBook.totalPages)} 
-                            height={3}
-                          />
-                        </View>
-                        <Typography variant="caption" style={[styles.progressText, { color: colors.textSecondary, fontSize: 10 }]}>
-                          {calculateProgress(selectedBook.currentPage, selectedBook.totalPages)}%
-                        </Typography>
+                    <Typography style={{ color: colors.textSecondary, marginHorizontal: 8 }}>
+                      /
+                    </Typography>
+                    
+                    <View style={styles.inputWrapper}>
+                      <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 12 }}>
+                        {t('timer.total')}
+                      </Typography>
+                      <TextInput
+                        style={[styles.pageInput, { 
+                          backgroundColor: colors.background,
+                          borderColor: colors.border,
+                          color: colors.text
+                        }]}
+                        value={selectedBook.totalPages?.toString()}
+                        onChangeText={(text) => {
+                          const pages = parseInt(text, 10);
+                          if (!isNaN(pages)) handleTotalPagesChange(pages);
+                        }}
+                        keyboardType="number-pad"
+                        returnKeyType="done"
+                        placeholder="0"
+                      />
+                    </View>
+                  </View>
+                  
+                  <View style={styles.progressSection}>
+                    <View style={styles.progressBarWithPercentage}>
+                      <View style={styles.progressBarContainer}>
+                        <ProgressBar 
+                          progress={calculateProgress(selectedBook.currentPage, selectedBook.totalPages)} 
+                          height={4}
+                        />
                       </View>
+                      <Typography variant="caption" style={[styles.progressText, { color: colors.textSecondary }]}>
+                        {calculateProgress(selectedBook.currentPage, selectedBook.totalPages)}%
+                      </Typography>
                     </View>
                   </View>
                 </View>
-              )}
-            </View>
+              </View>
+            )}
+            
+            {/* クイックエントリーボタン */}
+            {selectedBook && (
+              <TouchableOpacity
+                style={[styles.floatingQuickEntryButton, { backgroundColor: colors.primary }]}
+                onPress={handleOpenQuickEntry}
+              >
+                <Typography variant="body" style={{ color: '#fff', fontWeight: '600' }}>
+                  {t('book.quickEntry')}
+                </Typography>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </View>
 
       {/* 本選択モーダル */}
       <Modal
@@ -566,6 +585,16 @@ export default function TimerScreen() {
           </View>
         )}
       </Modal>
+      
+      {/* クイックエントリーモーダル */}
+      {selectedBook && (
+        <QuickEntryModal
+          visible={quickEntryModalVisible}
+          onClose={handleCloseQuickEntry}
+          bookId={selectedBook.id}
+          currentPage={selectedBook.currentPage}
+        />
+      )}
     </View>
   );
 }
@@ -578,24 +607,34 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
+    paddingHorizontal: 14,
+    paddingTop: 8,
+    paddingBottom: 10,
     flex: 1,
-    padding: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
   },
   selectorContainer: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   timerContainer: {
-    flex: 1,
-  },
-  timerAndProgressWrapper: {
-    flex: 1,
+    alignItems: 'center',
+    marginTop: 0,
   },
   pageProgressContainer: {
     borderRadius: 16,
-    padding: 12,
+    padding: 14,
     marginTop: 12,
+    marginBottom: 8,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  progressTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 10,
   },
   pageInputSection: {
     width: '100%',
@@ -611,14 +650,16 @@ const styles = StyleSheet.create({
   },
   pageInput: {
     width: 50,
+    height: 36,
     borderWidth: 1,
-    borderRadius: 6,
+    borderRadius: 8,
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 6,
+    fontSize: 15,
   },
   progressSection: {
     width: '100%',
-    marginTop: 4,
+    marginTop: 8,
   },
   progressBarWithPercentage: {
     flexDirection: 'row',
@@ -630,8 +671,9 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   progressText: {
-    width: 40,
+    width: 42,
     textAlign: 'right',
+    fontSize: 12,
   },
   modalContent: {
     padding: 20,
@@ -663,15 +705,15 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sessionHighlight: {
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 20,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   sessionHighlightContent: {
     alignItems: 'center',
@@ -679,26 +721,26 @@ const styles = StyleSheet.create({
   achievementSection: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   achievementItem: {
     alignItems: 'center',
   },
   achievementIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   inputSection: {
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 16,
   },
@@ -714,11 +756,12 @@ const styles = StyleSheet.create({
   },
   modalInput: {
     width: '100%',
-    height: 40,
+    height: 44,
     borderWidth: 1,
     borderRadius: 8,
     padding: 8,
     textAlign: 'center',
+    fontSize: 16,
   },
   progressContainer: {
     marginTop: 8,
@@ -731,28 +774,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    padding: 10,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
   bookCover: {
-    width: 40,
-    height: 60,
+    width: 36,
+    height: 54,
     borderRadius: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
   },
   placeholderCover: {
-    width: 40,
-    height: 60,
+    width: 36,
+    height: 54,
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#e0e0e0',
   },
   bookInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 10,
   },
   bookTitle: {
     fontWeight: 'bold',
     fontSize: 14,
+    marginBottom: 2,
   },
   bookProgress: {
     marginTop: 4,
@@ -766,8 +820,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
+    padding: 12,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
   // 本選択モーダル用スタイル
   bookSelectorModalContainer: {
@@ -775,5 +834,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 12,
     paddingBottom: 20,
+  },
+  floatingQuickEntryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    marginTop: 14,
+    marginBottom: 12,
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
   },
 }); 

@@ -100,19 +100,19 @@ export function Button({
     switch (size) {
       case 'small':
         return {
-          container: { paddingVertical: 8, paddingHorizontal: 12 },
-          text: { fontSize: 12 },
+          container: { paddingVertical: 10, paddingHorizontal: 14 },
+          text: { fontSize: 13 },
           icon: 16,
         };
       case 'large':
         return {
-          container: { paddingVertical: 16, paddingHorizontal: 24 },
+          container: { paddingVertical: 18, paddingHorizontal: 26 },
           text: { fontSize: 18 },
           icon: 24,
         };
       default:
         return {
-          container: { paddingVertical: 12, paddingHorizontal: 16 },
+          container: { paddingVertical: 14, paddingHorizontal: 20 },
           text: { fontSize: 16 },
           icon: 20,
         };
@@ -167,10 +167,15 @@ export function Button({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   buttonContent: {
     flexDirection: 'row',

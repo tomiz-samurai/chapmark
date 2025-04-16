@@ -6,6 +6,8 @@ import { Button } from '../common/Button';
 import { colors, spacing, typography } from '../../constants/theme';
 import { addQuote } from '../../lib/store/quoteSlice';
 import { RootState } from '../../lib/store';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { useTheme } from '../../lib/hooks/useTheme';
 
 interface QuoteInputProps {
   bookId: string;
@@ -20,6 +22,8 @@ interface QuoteInputProps {
 
 export const QuoteInput = ({ bookId, onSave, initialQuote }: QuoteInputProps) => {
   const dispatch = useDispatch();
+  const { t } = useAppTranslation();
+  const { colors } = useTheme();
   const book = useSelector((state: RootState) => {
     const books = (state as any).book?.books || [];
     return books.find((b: any) => b.id === bookId);
@@ -83,13 +87,13 @@ export const QuoteInput = ({ bookId, onSave, initialQuote }: QuoteInputProps) =>
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.card }]}>
       {book && (
-        <View style={styles.bookInfo}>
-          <Typography variant="subtitle" style={styles.bookTitle}>
+        <View style={[styles.bookInfo, { borderBottomColor: colors.border }]}>
+          <Typography variant="subtitle" style={{ color: colors.text, fontWeight: 'bold' }}>
             {book.title}
           </Typography>
-          <Typography variant="caption" style={styles.bookAuthor}>
+          <Typography variant="caption" style={{ color: colors.textSecondary }}>
             {book.author}
           </Typography>
         </View>
@@ -97,14 +101,14 @@ export const QuoteInput = ({ bookId, onSave, initialQuote }: QuoteInputProps) =>
       
       <View style={styles.formGroup}>
         <View style={styles.labelContainer}>
-          <Typography variant="caption" style={styles.label}>
-            引用テキスト
+          <Typography variant="caption" style={[styles.label, { color: colors.text }]}>
+            {t('book.quoteText')}
           </Typography>
           <Typography 
             variant="caption" 
             style={[
               styles.counter, 
-              quoteCharCount > QUOTE_MAX_LENGTH ? styles.counterError : null
+              quoteCharCount > QUOTE_MAX_LENGTH ? { color: colors.error } : { color: colors.textSecondary }
             ]}
           >
             {quoteCharCount}/{QUOTE_MAX_LENGTH}
@@ -112,25 +116,30 @@ export const QuoteInput = ({ bookId, onSave, initialQuote }: QuoteInputProps) =>
         </View>
         
         <TextInput
-          style={styles.textArea}
+          style={[styles.textArea, { 
+            borderColor: colors.border, 
+            color: colors.text,
+            backgroundColor: colors.background
+          }]}
           multiline
           value={quoteText}
           onChangeText={setQuoteText}
-          placeholder="印象に残った文章を入力してください"
+          placeholder={t('book.quotePlaceholder')}
           maxLength={QUOTE_MAX_LENGTH + 10} // 少し余裕を持たせる
+          placeholderTextColor={colors.textSecondary}
         />
       </View>
       
       <View style={styles.formGroup}>
         <View style={styles.labelContainer}>
-          <Typography variant="caption" style={styles.label}>
-            感想・洞察
+          <Typography variant="caption" style={[styles.label, { color: colors.text }]}>
+            {t('book.quoteInsight')}
           </Typography>
           <Typography 
             variant="caption" 
             style={[
               styles.counter, 
-              insightCharCount > INSIGHT_MAX_LENGTH ? styles.counterError : null
+              insightCharCount > INSIGHT_MAX_LENGTH ? { color: colors.error } : { color: colors.textSecondary }
             ]}
           >
             {insightCharCount}/{INSIGHT_MAX_LENGTH}
@@ -138,85 +147,101 @@ export const QuoteInput = ({ bookId, onSave, initialQuote }: QuoteInputProps) =>
         </View>
         
         <TextInput
-          style={styles.textArea}
+          style={[styles.textArea, { 
+            borderColor: colors.border, 
+            color: colors.text,
+            backgroundColor: colors.background
+          }]}
           multiline
           value={insight}
           onChangeText={setInsight}
-          placeholder="この引用について思ったことを自由に書いてください"
+          placeholder={t('book.insightPlaceholder')}
           maxLength={INSIGHT_MAX_LENGTH + 10} // 少し余裕を持たせる
+          placeholderTextColor={colors.textSecondary}
         />
       </View>
       
       <View style={styles.row}>
         <View style={styles.formGroupHalf}>
-          <Typography variant="caption" style={styles.label}>
-            ページ
+          <Typography variant="caption" style={[styles.label, { color: colors.text }]}>
+            {t('timer.page')}
           </Typography>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { 
+              borderColor: colors.border, 
+              color: colors.text,
+              backgroundColor: colors.background
+            }]}
             value={pageNumber}
             onChangeText={validatePageNumber}
-            placeholder="例: 42"
+            placeholder={t('book.pagePlaceholder')}
             keyboardType="number-pad"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
         
         <View style={styles.formGroupHalf}>
-          <Typography variant="caption" style={styles.label}>
-            章・セクション
+          <Typography variant="caption" style={[styles.label, { color: colors.text }]}>
+            {t('book.chapterSection')}
           </Typography>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { 
+              borderColor: colors.border, 
+              color: colors.text,
+              backgroundColor: colors.background
+            }]}
             value={chapter}
             onChangeText={setChapter}
-            placeholder="例: 第3章"
+            placeholder={t('book.chapterPlaceholder')}
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
       </View>
       
       <View style={styles.visibilityContainer}>
-        <Typography variant="caption" style={styles.label}>
-          公開設定
+        <Typography variant="caption" style={[styles.label, { color: colors.text }]}>
+          {t('book.visibilitySettings')}
         </Typography>
         <View style={styles.toggleContainer}>
           <TouchableOpacity
             style={[
               styles.toggleButton,
-              isPublic ? styles.toggleButtonActive : null
+              isPublic ? [styles.toggleButtonActive, { backgroundColor: colors.primary }] : null
             ]}
             onPress={() => setIsPublic(true)}
           >
             <Typography 
               variant="caption" 
-              style={isPublic ? styles.toggleTextActive : styles.toggleText}
+              style={{ color: isPublic ? colors.neutralLight : colors.textSecondary }}
             >
-              公開
+              {t('book.public')}
             </Typography>
           </TouchableOpacity>
           
           <TouchableOpacity
             style={[
               styles.toggleButton,
-              !isPublic ? styles.toggleButtonActive : null
+              !isPublic ? [styles.toggleButtonActive, { backgroundColor: colors.primary }] : null
             ]}
             onPress={() => setIsPublic(false)}
           >
             <Typography 
               variant="caption" 
-              style={!isPublic ? styles.toggleTextActive : styles.toggleText}
+              style={{ color: !isPublic ? colors.neutralLight : colors.textSecondary }}
             >
-              非公開
+              {t('book.private')}
             </Typography>
           </TouchableOpacity>
         </View>
       </View>
       
       <Button
-        title={initialQuote ? "更新" : "保存"}
+        title={'common.post'}
         variant="primary"
         onPress={handleSave}
         disabled={!canSave}
         style={styles.saveButton}
+        isTranslationKey={true}
       />
     </View>
   );

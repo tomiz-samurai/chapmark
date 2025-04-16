@@ -12,6 +12,11 @@ import { getBookById, updateBookStatus, addBookToLibrary } from '../../lib/servi
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
 import { selectBook } from '../../lib/store/bookSlice';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { BookContents } from '../../components/books/BookContents';
+import { Modal as CommonModal } from '../../components/common/Modal';
+import { QuoteInput } from '../../components/quotes/QuoteInput';
+import { NoteInput } from '../../components/notes/NoteInput';
+import { Quote, Note } from '../../lib/types';
 
 // ステータスのオプション
 const STATUS_OPTIONS = [
@@ -61,6 +66,12 @@ export default function BookDetail() {
   
   // ステータス変更モーダルの状態
   const [statusModalVisible, setStatusModalVisible] = useState(false);
+  
+  // 引用・メモ入力モーダルの状態
+  const [quoteModalVisible, setQuoteModalVisible] = useState(false);
+  const [noteModalVisible, setNoteModalVisible] = useState(false);
+  const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
   
   // 本の状態を管理
   const [book, setBook] = useState(getBookById(bookId));
@@ -265,6 +276,42 @@ export default function BookDetail() {
     );
   };
 
+  // 引用追加モーダルを開く
+  const handleAddQuote = () => {
+    setEditingQuote(null);
+    setQuoteModalVisible(true);
+  };
+  
+  // メモ追加モーダルを開く
+  const handleAddNote = () => {
+    setEditingNote(null);
+    setNoteModalVisible(true);
+  };
+  
+  // 引用編集モーダルを開く
+  const handleEditQuote = (quote: Quote) => {
+    setEditingQuote(quote);
+    setQuoteModalVisible(true);
+  };
+  
+  // メモ編集モーダルを開く
+  const handleEditNote = (note: Note) => {
+    setEditingNote(note);
+    setNoteModalVisible(true);
+  };
+  
+  // 引用保存完了時
+  const handleQuoteSaved = () => {
+    setQuoteModalVisible(false);
+    setEditingQuote(null);
+  };
+  
+  // メモ保存完了時
+  const handleNoteSaved = () => {
+    setNoteModalVisible(false);
+    setEditingNote(null);
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
@@ -411,50 +458,89 @@ export default function BookDetail() {
         {/* 概要 - カスタム関数を使用 */}
         {renderDescription()}
         
+        {/* 引用・メモタブ */}
+        {book.status && (
+          <BookContents
+            bookId={bookId}
+            onAddQuote={handleAddQuote}
+            onAddNote={handleAddNote}
+            onEditQuote={handleEditQuote}
+            onEditNote={handleEditNote}
+          />
+        )}
+        
         {/* 余白 */}
         <View style={styles.bottomPadding} />
       </ScrollView>
 
       {/* ステータス変更モーダル */}
-      <Modal
+      <CommonModal
         visible={statusModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setStatusModalVisible(false)}
+        onClose={() => setStatusModalVisible(false)}
+        title={t('books.detail.selectStatus')}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Typography variant="title" style={styles.modalTitle}>
-              {t('books.detail.selectStatus')}
-            </Typography>
-            
-            {STATUS_OPTIONS.map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                style={styles.statusOption}
-                onPress={() => handleSelectStatus(option.value as any)}
-              >
-                <View style={[styles.statusColor, { backgroundColor: option.color }]} />
-                <Typography variant="body" style={{ flex: 1 }}>
-                  {t(option.label)}
-                </Typography>
-                {book.status === option.value && (
-                  <Check size={20} color={colors.primary.main} />
-                )}
-              </TouchableOpacity>
-            ))}
-            
-            <TouchableOpacity 
-              style={styles.cancelButton}
-              onPress={() => setStatusModalVisible(false)}
+        <View style={styles.statusModalContent}>
+          {STATUS_OPTIONS.map((option) => (
+            <TouchableOpacity
+              key={option.value}
+              style={styles.statusOption}
+              onPress={() => handleSelectStatus(option.value as any)}
             >
-              <Typography variant="body" color={colors.gray[600]}>
-                {t('common.cancel')}
+              <View style={[styles.statusColor, { backgroundColor: option.color }]} />
+              <Typography variant="body" style={{ flex: 1 }}>
+                {t(option.label)}
               </Typography>
+              {book.status === option.value && (
+                <Check size={20} color={colors.primary.main} />
+              )}
             </TouchableOpacity>
-          </View>
+          ))}
+          
+          <TouchableOpacity 
+            style={styles.cancelButton}
+            onPress={() => setStatusModalVisible(false)}
+          >
+            <Typography variant="body" color={colors.gray[500]}>
+              {t('common.cancel')}
+            </Typography>
+          </TouchableOpacity>
         </View>
-      </Modal>
+      </CommonModal>
+      
+      {/* 引用入力モーダル */}
+      <CommonModal
+        visible={quoteModalVisible}
+        onClose={() => setQuoteModalVisible(false)}
+        title={editingQuote ? t('book.editQuote', '引用を編集') : t('book.addQuote', '引用を追加')}
+      >
+        <QuoteInput
+          bookId={bookId}
+          onSave={handleQuoteSaved}
+          initialQuote={editingQuote ? {
+            text: editingQuote.text,
+            insight: editingQuote.insight || '',
+            pageNumber: editingQuote.pageNumber,
+            chapter: editingQuote.chapter
+          } : undefined}
+        />
+      </CommonModal>
+      
+      {/* メモ入力モーダル */}
+      <CommonModal
+        visible={noteModalVisible}
+        onClose={() => setNoteModalVisible(false)}
+        title={editingNote ? t('book.editNote', 'メモを編集') : t('book.addNote', 'メモを追加')}
+      >
+        <NoteInput
+          bookId={bookId}
+          onSave={handleNoteSaved}
+          initialNote={editingNote ? {
+            content: editingNote.content,
+            pageNumber: editingNote.pageNumber,
+            tags: editingNote.tags
+          } : undefined}
+        />
+      </CommonModal>
     </SafeAreaView>
   );
 }
@@ -617,21 +703,8 @@ const styles = StyleSheet.create({
   bottomPadding: {
     height: spacing.xl * 2,
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: colors.white,
+  statusModalContent: {
     padding: spacing.md,
-    borderRadius: borderRadius.lg,
-    width: '80%',
-    maxHeight: '80%',
-  },
-  modalTitle: {
-    marginBottom: spacing.md,
   },
   statusOption: {
     flexDirection: 'row',
@@ -649,13 +722,5 @@ const styles = StyleSheet.create({
   cancelButton: {
     marginTop: spacing.md,
     alignItems: 'center',
-  },
-  statusButton: {
-    padding: spacing.sm,
-    borderRadius: borderRadius.sm,
-  },
-  statusButtonText: {
-    color: colors.white,
-    fontWeight: 'bold',
   },
 }); 
