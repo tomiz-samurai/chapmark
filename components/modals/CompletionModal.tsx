@@ -6,7 +6,7 @@ import { Button } from '../common';
 import { ProgressBar } from '../common';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
-import TimerService, { calculateProgress, calculateReadPages, formatTime } from '../../lib/services/TimerService';
+import { calculateProgress, calculateReadPages, formatTime } from '../../lib/services/TimerService';
 import { Book as BookIcon } from 'lucide-react-native';
 
 interface CompletionModalProps {
