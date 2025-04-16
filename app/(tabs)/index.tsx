@@ -76,17 +76,17 @@ export default function HomeScreen() {
     return null;
   }
 
-  // 直接フォールバックデータを使用
-  const recommendedBooks = RECOMMENDED_BOOKS;
-  
-  // 読書中の本を取得（より堅牢な方法で）
-  // getUserBooksByStatusを使用して「reading」ステータスの本を直接取得
-  let currentlyReadingBooks: any[] = [];
+  // おすすめ書籍をgetAllBooks()から取得
+  const allBooks = getAllBooks();
+  // 例: rating順で上位3件をおすすめとする
+  const recommendedBooks = [...allBooks].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 3);
+
+  // 読書中の本を取得
+  let currentlyReadingBooks: BookType[] = [];
   try {
-    // 読書中（reading）ステータスの本を取得し、モデルの型に変換
     currentlyReadingBooks = getUserBooksByStatus('reading').map(book => ({
       ...book,
-      status: (book.status || 'reading') as BookStatus
+      status: (book.status as Exclude<BookStatus, 'all'>) || 'reading'
     }));
   } catch (error) {
     console.error('Error loading reading books:', error);

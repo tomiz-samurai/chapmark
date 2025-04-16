@@ -3,6 +3,7 @@ import { View, ScrollView, StyleSheet, ViewStyle } from 'react-native';
 import { CollectionHeader } from '../layouts/CollectionHeader';
 import { BookCard } from '../common/cards/BookCard';
 import { spacing } from '../../constants/theme';
+import { EmptyState } from '../common/displays/EmptyState';
 
 interface Book {
   id: string;
@@ -25,6 +26,14 @@ const NewReleasesSection: React.FC<NewReleasesSectionProps> = ({
   title,
   cardStyle,
 }) => {
+  if (!books || books.length === 0) {
+    return (
+      <EmptyState
+        title="新着書籍がありません"
+        message="現在新着書籍はありません。"
+      />
+    );
+  }
   return (
     <View style={styles.section}>
       <CollectionHeader 

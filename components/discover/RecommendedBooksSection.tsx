@@ -3,6 +3,7 @@ import { View, ScrollView, StyleSheet, ViewStyle } from 'react-native';
 import { CollectionHeader } from '../layouts/CollectionHeader';
 import { BookCard } from '../common/cards/BookCard';
 import { spacing } from '../../constants/theme';
+import { EmptyState } from '../common/displays/EmptyState';
 
 interface Book {
   id: string;
@@ -27,6 +28,14 @@ const RecommendedBooksSection: React.FC<RecommendedBooksSectionProps> = ({
   title,
   cardStyle,
 }) => {
+  if (!books || books.length === 0) {
+    return (
+      <EmptyState
+        title="おすすめ書籍がありません"
+        message="条件に合致する書籍が見つかりませんでした。"
+      />
+    );
+  }
   return (
     <View style={styles.section}>
       <CollectionHeader 

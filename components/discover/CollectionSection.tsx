@@ -3,6 +3,7 @@ import { View, StyleSheet, FlatList, ViewStyle } from 'react-native';
 import { CollectionHeader } from '../layouts/CollectionHeader';
 import { BookCard } from '../common/cards/BookCard';
 import { spacing } from '../../constants/theme';
+import { EmptyState } from '../common/displays/EmptyState';
 
 interface Book {
   id: string;
@@ -27,6 +28,14 @@ const CollectionSection: React.FC<CollectionSectionProps> = ({
   onSeeAllPress,
   cardStyle,
 }) => {
+  if (!books || books.length === 0) {
+    return (
+      <EmptyState
+        title="コレクションが空です"
+        message="このコレクションには書籍がありません。"
+      />
+    );
+  }
   return (
     <View style={styles.section}>
       <CollectionHeader 

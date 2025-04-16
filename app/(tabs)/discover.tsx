@@ -16,14 +16,28 @@ import CollectionSection from '../../components/discover/CollectionSection';
 
 import { popularCategories, recommendationCollections, recommendedBooks as mockRecommendedBooks, newReleaseBooks as mockNewReleaseBooks } from '../../lib/mockData';
 import { colors, spacing } from '../../constants/theme';
-import { getBooksByCategory } from '../../lib/services/BookService';
+import { getBooksByCategory, getAllBooks, Book as ServiceBook } from '../../lib/services/BookService';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { useDiscoverCategory } from '../../lib/hooks/useDiscoverCategory';
+import { useDiscoverBooks } from '../../lib/hooks/useDiscoverBooks';
 
 export default function DiscoverScreen() {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { selectedCategory, handleCategoryPress } = useDiscoverCategory();
   const { navigateToBookDetail, navigateToBookList, navigateToCollection } = useBookNavigation();
   const { t } = useAppTranslation();
+
+  // 全ての本データを取得
+  const allBooks: ServiceBook[] = getAllBooks();
+
+  // カテゴリフィルタ
+  const filteredBooks = useDiscoverBooks(allBooks, selectedCategory);
+
+  // 新着書籍（例: publishedDate降順で上位3件）
+  const newReleaseBooks = [...allBooks]
+    .filter(book => book.publishedDate)
+    .sort((a, b) => (b.publishedDate || '').localeCompare(a.publishedDate || ''))
+    .slice(0, 3);
 
   // デバッグ用: コンポーネントマウント時に一度だけ実行
   useEffect(() => {
@@ -44,20 +58,6 @@ export default function DiscoverScreen() {
     
     console.log("=== END DEBUG ===");
   }, []);
-
-  const handleCategoryPress = (category: string) => {
-    setSelectedCategory(selectedCategory === category ? null : category);
-  };
-
-  // モックデータの配列を直接使用（代入ではなく）
-  // カテゴリーでフィルタリング
-  const filteredBooks = selectedCategory
-    ? mockRecommendedBooks.filter(book => 
-        book.category && book.category.some(cat => 
-          cat.toLowerCase() === selectedCategory.toLowerCase()
-        )
-      )
-    : mockRecommendedBooks;
 
   return (
     <View style={styles.container}>
@@ -90,7 +90,7 @@ export default function DiscoverScreen() {
 
         {/* 新着書籍 */}
         <NewReleasesSection
-          books={mockNewReleaseBooks}
+          books={newReleaseBooks}
           onBookPress={(bookId) => navigateToBookDetail(bookId, '/(tabs)/discover')}
           onSeeAllPress={() => navigateToBookList('new-releases')}
           title={t('discover.newReleases')}
@@ -102,7 +102,7 @@ export default function DiscoverScreen() {
             key={collection.id}
             collectionId={collection.id}
             title={t(collection.titleKey)}
-            books={collection.books}
+            books={collection.books.map(colBook => allBooks.find(b => b.id === colBook.id)).filter(Boolean) as ServiceBook[]}
             onBookPress={(bookId) => navigateToBookDetail(bookId, '/(tabs)/discover')}
             onSeeAllPress={navigateToCollection}
           />
