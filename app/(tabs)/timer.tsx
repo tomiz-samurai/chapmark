@@ -27,7 +27,6 @@ import { spacing } from '../../constants/theme';
 import { BookSelection } from '../../components/books/BookSelection';
 import { useBookSelection } from '../../lib/hooks/useBookSelection';
 import { useReadingSession } from '../../lib/hooks/useReadingSession';
-import { getUserBooksByStatus } from '../../lib/services/BookService';
 
 export default function TimerScreen() {
   const { colors, spacing } = useTheme();
@@ -93,11 +92,8 @@ export default function TimerScreen() {
     return <Loading />;
   }
 
-  // 読書中の本を取得し、モデルの型に変換
-  const readingBooks = getUserBooksByStatus('reading').map(book => ({
-    ...book,
-    status: (book.status || 'reading') as BookStatus
-  }));
+  // 読書中の本をfilter
+  const readingBooks = books.filter(book => book.status === 'reading');
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

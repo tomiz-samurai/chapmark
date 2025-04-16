@@ -4,19 +4,21 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, router } from 'expo-router';
 import { ChevronLeft, Star, Clock, BookOpen, Calendar, Building, Tag, Check } from 'lucide-react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { Typography } from '../../components/Typography';
 import { colors, spacing, borderRadius, shadows } from '../../constants/theme';
-import { getBookById, updateBookStatus, addBookToLibrary } from '../../lib/services/BookService';
+import { getBookById } from '../../lib/services/BookService';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
-import { selectBook } from '../../lib/store/bookSlice';
+import { selectBook, addBookToLibraryAsync, updateBookStatusAsync } from '../../lib/store/bookSlice';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { BookContents } from '../../components/books/BookContents';
 import { Modal as CommonModal } from '../../components/common';
 import { QuoteInput } from '../../components/quotes/QuoteInput';
 import { NoteInput } from '../../components/notes/NoteInput';
 import { Quote, Note, Book, BookStatus } from '../../types/models';
+import { useAppDispatch } from '../../lib/hooks/useAppDispatch';
+import { useAppSelector } from '../../lib/hooks/useAppSelector';
 
 // ステータスのオプション
 const STATUS_OPTIONS = [
@@ -58,7 +60,7 @@ export default function BookDetail() {
   const { id } = useLocalSearchParams();
   const bookId = typeof id === 'string' ? id : '';
   const { goBack, navigateToLibrary } = useBookNavigation();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { t, i18n } = useAppTranslation();
   
   // 画像エラー状態の追加
@@ -73,15 +75,17 @@ export default function BookDetail() {
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   
+  const books = useAppSelector(state => state.book?.books || []);
+  
   // 本の状態を管理
-  const [book, setBook] = useState(getBookById(bookId));
+  const [book, setBook] = useState(books.find(b => b.id === bookId));
 
   // 書籍説明の言語情報（将来のAPI連携用）
   const [descriptionLanguage, setDescriptionLanguage] = useState('');
   
   // ステータス変更後に本の情報を更新する関数
   const refreshBookData = () => {
-    const updatedBook = getBookById(bookId);
+    const updatedBook = books.find(b => b.id === bookId);
     setBook(updatedBook);
   };
   
@@ -108,7 +112,7 @@ export default function BookDetail() {
     switch(status) {
       case 'reading': return t('books.reading');
       case 'completed': return t('books.completed');
-      case 'planned': return t('books.toRead');
+      case 'planned': return '読みたい本';
       case 'on-hold': return t('books.onHold');
       case 'dropped': return t('books.dropped');
       default: return '';
@@ -148,52 +152,43 @@ export default function BookDetail() {
   };
   
   // 読書を開始する共通処理
-  const startReading = () => {
-    if (updateBookStatus(bookId, 'reading')) {
-      refreshBookData();
-      
-      // Reduxストアに選択中の本を設定
-      dispatch(selectBook(bookId));
-      
-      // タイマー画面に遷移
-      router.push('/(tabs)/timer');
-    }
+  const startReading = async () => {
+    await dispatch(updateBookStatusAsync({ id: bookId, status: 'reading' })).unwrap();
+    refreshBookData();
+    dispatch(selectBook(bookId));
+    router.push('/(tabs)/timer');
   };
   
   // ステータスオプションを選択した時の処理
-  const handleSelectStatus = (status: 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped') => {
-    if (updateBookStatus(bookId, status)) {
-      setStatusModalVisible(false);
+  const handleSelectStatus = async (status: BookStatus) => {
+    await dispatch(updateBookStatusAsync({ id: bookId, status })).unwrap();
+    setStatusModalVisible(false);
+    refreshBookData();
+    Alert.alert(
+      t('common.success'),
+      t('books.detail.statusChangeSuccess', { status: getStatusText(status) }),
+      [
+        { text: t('common.close'), style: 'cancel' },
+        { text: t('books.detail.goToLibrary'), onPress: navigateToLibrary }
+      ]
+    );
+  };
+  
+  // 本棚へ追加ボタンの処理
+  const handleAddToLibrary = async () => {
+    if (book.status) {
+      setStatusModalVisible(true);
+    } else {
+      await dispatch(addBookToLibraryAsync({ book, status: 'planned' })).unwrap();
       refreshBookData();
       Alert.alert(
         t('common.success'),
-        t('books.detail.statusChangeSuccess', { status: getStatusText(status) }),
+        t('books.detail.addedToLibrary'),
         [
           { text: t('common.close'), style: 'cancel' },
           { text: t('books.detail.goToLibrary'), onPress: navigateToLibrary }
         ]
       );
-    }
-  };
-  
-  // 本棚へ追加ボタンの処理
-  const handleAddToLibrary = () => {
-    if (book.status) {
-      // 既に本棚にある場合はステータス変更モーダルを表示
-      setStatusModalVisible(true);
-    } else {
-      // 本棚にない場合はこれから読むステータスで追加
-      if (addBookToLibrary(book, 'planned')) {
-        refreshBookData();
-        Alert.alert(
-          t('common.success'),
-          t('books.detail.addedToLibrary'),
-          [
-            { text: t('common.close'), style: 'cancel' },
-            { text: t('books.detail.goToLibrary'), onPress: navigateToLibrary }
-          ]
-        );
-      }
     }
   };
 
@@ -484,7 +479,7 @@ export default function BookDetail() {
             <TouchableOpacity
               key={option.value}
               style={styles.statusOption}
-              onPress={() => handleSelectStatus(option.value as 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped')}
+              onPress={() => handleSelectStatus(option.value as BookStatus)}
             >
               <View style={[styles.statusColor, { backgroundColor: option.color }]} />
               <Typography variant="body" style={{ flex: 1 }}>

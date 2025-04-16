@@ -15,7 +15,7 @@ export const STATUS_TABS = [
   { label: 'books.filters.all', value: 'all' },
   { label: 'books.filters.reading', value: 'reading' },
   { label: 'books.filters.completed', value: 'completed' },
-  { label: 'books.filters.planned', value: 'planned' },
+  { label: '読みたい本', value: 'planned' },
   { label: 'books.filters.onHold', value: 'on-hold' },
   { label: 'books.filters.dropped', value: 'dropped' },
 ];
