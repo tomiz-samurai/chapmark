@@ -9,6 +9,10 @@ import { BookCard } from '../../components/common';
 import { CategoryButton } from '../../components/common';
 import { CollectionHeader } from '../../components/layouts';
 import { Header } from '../../components/layouts/Header';
+import DiscoverCategoryBar from '../../components/discover/DiscoverCategoryBar';
+import RecommendedBooksSection from '../../components/discover/RecommendedBooksSection';
+import NewReleasesSection from '../../components/discover/NewReleasesSection';
+import CollectionSection from '../../components/discover/CollectionSection';
 
 import { popularCategories, recommendationCollections, recommendedBooks as mockRecommendedBooks, newReleaseBooks as mockNewReleaseBooks } from '../../lib/mockData';
 import { colors, spacing } from '../../constants/theme';
@@ -68,96 +72,40 @@ export default function DiscoverScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* カテゴリー */}
-        <View style={styles.section}>
-          <CollectionHeader 
-            title={t('discover.popularCategories')} 
-            showSeeAll={false}
-          />
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriesContainer}
-          >
-            {popularCategories.map((category) => (
-              <CategoryButton
-                key={category}
-                title={category}
-                isActive={selectedCategory === category}
-                onPress={() => handleCategoryPress(category)}
-              />
-            ))}
-          </ScrollView>
-        </View>
+        <DiscoverCategoryBar
+          categories={popularCategories}
+          selectedCategory={selectedCategory}
+          onCategoryPress={handleCategoryPress}
+          title={t('discover.popularCategories')}
+        />
 
         {/* おすすめ書籍 */}
-        <View style={styles.section}>
-          <CollectionHeader 
-            title={selectedCategory || t('discover.recommendedBooks')} 
-            onSeeAllPress={() => navigateToBookList('recommended')}
-          />
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalScrollContent}
-          >
-            {filteredBooks.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                variant="compact"
-                onPress={() => navigateToBookDetail(book.id, '/(tabs)/discover')}
-                style={styles.recommendedBookCard}
-              />
-            ))}
-          </ScrollView>
-        </View>
+        <RecommendedBooksSection
+          books={filteredBooks}
+          selectedCategory={selectedCategory}
+          onBookPress={(bookId) => navigateToBookDetail(bookId, '/(tabs)/discover')}
+          onSeeAllPress={() => navigateToBookList('recommended')}
+          title={t('discover.recommendedBooks')}
+        />
 
         {/* 新着書籍 */}
-        <View style={styles.section}>
-          <CollectionHeader 
-            title={t('discover.newReleases')} 
-            onSeeAllPress={() => navigateToBookList('new-releases')}
-          />
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalScrollContent}
-          >
-            {mockNewReleaseBooks.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                variant="compact"
-                onPress={() => navigateToBookDetail(book.id, '/(tabs)/discover')}
-                style={styles.horizontalBookCard}
-              />
-            ))}
-          </ScrollView>
-        </View>
+        <NewReleasesSection
+          books={mockNewReleaseBooks}
+          onBookPress={(bookId) => navigateToBookDetail(bookId, '/(tabs)/discover')}
+          onSeeAllPress={() => navigateToBookList('new-releases')}
+          title={t('discover.newReleases')}
+        />
 
         {/* まとめコレクション */}
         {recommendationCollections.map((collection) => (
-          <View key={collection.id} style={styles.section}>
-            <CollectionHeader 
-              title={t(collection.titleKey)} 
-              onSeeAllPress={() => navigateToCollection(collection.id)}
-            />
-            <FlatList
-              data={collection.books}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalScrollContent}
-              renderItem={({ item }) => (
-                <BookCard
-                  book={item}
-                  variant="horizontal"
-                  onPress={() => navigateToBookDetail(item.id, '/(tabs)/discover')}
-                  style={styles.collectionBookCard}
-                />
-              )}
-            />
-          </View>
+          <CollectionSection
+            key={collection.id}
+            collectionId={collection.id}
+            title={t(collection.titleKey)}
+            books={collection.books}
+            onBookPress={(bookId) => navigateToBookDetail(bookId, '/(tabs)/discover')}
+            onSeeAllPress={navigateToCollection}
+          />
         ))}
         
         {/* 余白 */}
