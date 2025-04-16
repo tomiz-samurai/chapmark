@@ -1,1 +1,1 @@
-export * from './Avatar'; export * from './EmptyState'; export * from './Modal'; export * from './NotificationBadge'; export * from './QuoteItem'; export * from './ReadingTimer'; export * from './TabView'; export * from './CollectionHeader';
+export * from './Avatar'; export * from './EmptyState'; export * from './NotificationBadge'; export * from './ReadingTimer'; export * from './TabView'; export * from './CollectionHeader';

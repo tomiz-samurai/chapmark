@@ -1,154 +1,129 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { getRelativeTime } from '../../lib/utils/dateUtils';
+import { Quote } from '../../types/models/quote';
 import { Typography } from '../Typography';
-import { colors, spacing } from '../../constants/theme';
-import { Quote } from '../../lib/types';
-import { Ionicons } from '@expo/vector-icons';
-import { formatDate } from '../../lib/utils/dateUtils';
 
 interface QuoteItemProps {
   quote: Quote;
-  onPress?: () => void;
-  onEdit?: () => void;
-  onDelete?: () => void;
+  onPress?: (quote: Quote) => void;
+  onEdit?: (quote: Quote) => void;
+  onDelete?: (quote: Quote) => void;
   showActions?: boolean;
 }
 
-export const QuoteItem = ({ 
-  quote, 
-  onPress, 
-  onEdit, 
-  onDelete, 
-  showActions = false 
-}: QuoteItemProps) => {
+/**
+ * 引用を表示するカードコンポーネント
+ */
+export const QuoteItem: React.FC<QuoteItemProps> = ({
+  quote,
+  onPress,
+  onEdit,
+  onDelete,
+  showActions = true,
+}) => {
   return (
-    <TouchableOpacity 
-      style={styles.container} 
-      onPress={onPress}
-      activeOpacity={onPress ? 0.7 : 1}
+    <Pressable
+      style={styles.container}
+      onPress={() => onPress && onPress(quote)}
     >
       <View style={styles.quoteContainer}>
-        <View style={styles.quoteIconContainer}>
-          <Ionicons name="quote" size={20} color={colors.primary.main} />
-        </View>
-        <Typography variant="body" style={styles.quoteText}>
-          {quote.text}
-        </Typography>
+        <Text style={styles.quoteText}>{quote.text}</Text>
+        {quote.insight && (
+          <Text style={styles.insightText}>{quote.insight}</Text>
+        )}
       </View>
-
-      {quote.insight && (
-        <View style={styles.insightContainer}>
-          <Typography variant="body" style={styles.insightText}>
-            {quote.insight}
-          </Typography>
-        </View>
-      )}
-
-      <View style={styles.metaContainer}>
-        <View style={styles.leftMeta}>
+      
+      <View style={styles.metadataContainer}>
+        <View style={styles.pageInfo}>
           {quote.pageNumber && (
-            <Typography variant="caption" style={styles.pageText}>
-              P.{quote.pageNumber}
-            </Typography>
+            <Text style={styles.metadataText}>P.{quote.pageNumber}</Text>
           )}
           {quote.chapter && (
-            <Typography variant="caption" style={styles.chapterText}>
-              | {quote.chapter}
-            </Typography>
+            <Text style={styles.metadataText}> | {quote.chapter}</Text>
           )}
         </View>
-
-        <Typography variant="caption" style={styles.dateText}>
-          {formatDate(quote.createdAt)}
-        </Typography>
+        
+        <Text style={styles.dateText}>
+          {getRelativeTime(quote.createdAt)}
+        </Text>
       </View>
-
+      
       {showActions && (
         <View style={styles.actionsContainer}>
-          {onEdit && (
-            <TouchableOpacity style={styles.actionButton} onPress={onEdit}>
-              <Ionicons name="create-outline" size={18} color={colors.gray[600]} />
-            </TouchableOpacity>
-          )}
-          {onDelete && (
-            <TouchableOpacity style={styles.actionButton} onPress={onDelete}>
-              <Ionicons name="trash-outline" size={18} color={colors.gray[600]} />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => onEdit && onEdit(quote)}
+          >
+            <MaterialIcons name="edit" size={18} color="#555" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => onDelete && onDelete(quote)}
+          >
+            <MaterialIcons name="delete" size={18} color="#555" />
+          </TouchableOpacity>
         </View>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.gray[50],
-    borderRadius: 8,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 1,
+    shadowRadius: 2,
     elevation: 2,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary.main,
   },
   quoteContainer: {
-    flexDirection: 'row',
-    marginBottom: spacing.sm,
-  },
-  quoteIconContainer: {
-    marginRight: spacing.xs,
-    alignSelf: 'flex-start',
+    marginBottom: 12,
   },
   quoteText: {
-    flex: 1,
     fontSize: 16,
-    color: colors.gray[800],
+    lineHeight: 24,
+    color: '#333',
+    marginBottom: 8,
     fontStyle: 'italic',
-    lineHeight: 22,
-  },
-  insightContainer: {
-    marginBottom: spacing.sm,
-    paddingLeft: spacing.lg,
   },
   insightText: {
-    color: colors.gray[700],
     fontSize: 14,
     lineHeight: 20,
+    color: '#555',
+    marginTop: 8,
   },
-  metaContainer: {
+  metadataContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    paddingTop: 12,
   },
-  leftMeta: {
+  pageInfo: {
     flexDirection: 'row',
-    alignItems: 'center',
   },
-  pageText: {
-    color: colors.gray[600],
+  metadataText: {
     fontSize: 12,
-  },
-  chapterText: {
-    color: colors.gray[600],
-    fontSize: 12,
-    marginLeft: spacing.xs,
+    color: '#777',
   },
   dateText: {
-    color: colors.gray[500],
     fontSize: 12,
+    color: '#999',
   },
   actionsContainer: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: spacing.sm,
   },
   actionButton: {
-    padding: spacing.xs,
-    marginLeft: spacing.sm,
+    marginLeft: 12,
   },
 }); 
