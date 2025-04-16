@@ -58,6 +58,8 @@ export function useLibrary() {
   const [books, setBooks] = useState<Book[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<BookStatus>('all');
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
+  // エラー状態
+  const [error, setError] = useState<string | null>(null);
   
   // 表示関連の状態管理
   const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -83,10 +85,15 @@ export function useLibrary() {
   
   // 本の一覧を更新
   const refreshBooks = () => {
-    const serviceBooks = getUserBooks();
-    // サービスの Book から モデルの Book へ変換
-    const modelBooks = serviceBooks.map(convertServiceBookToModelBook);
-    setBooks(modelBooks);
+    try {
+      const serviceBooks = getUserBooks();
+      // サービスの Book から モデルの Book へ変換
+      const modelBooks = serviceBooks.map(convertServiceBookToModelBook);
+      setBooks(modelBooks);
+      setError(null);
+    } catch (e) {
+      setError('books.error.fetchFailed');
+    }
   };
   
   // 設定の読み込み
@@ -184,6 +191,7 @@ export function useLibrary() {
     } catch (error) {
       console.error('本のフィルタリングとソート処理中にエラーが発生しました:', error);
       result = [];
+      setError('books.error.filterSortFailed');
     }
     
     setFilteredBooks(result);
@@ -273,6 +281,8 @@ export function useLibrary() {
     newBookTitle,
     newBookAuthor,
     newBookStatus,
+    error,
+    setError,
     
     // アクション
     setSelectedStatus,

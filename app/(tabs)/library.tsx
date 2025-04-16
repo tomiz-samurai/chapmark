@@ -1,7 +1,7 @@
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
-import { Book, Plus, X, Save, Search, Grid, List, Filter } from 'lucide-react-native';
-import { View, StyleSheet, Modal, TextInput, Alert, Platform, TouchableOpacity } from 'react-native';
+import { Book as BookIcon, Plus, X, Save, Search, Grid, List, Filter } from 'lucide-react-native';
+import { View, StyleSheet, Modal, Alert, Platform, TouchableOpacity } from 'react-native';
 import { Header } from '../../components/layouts/Header';
 import { Loading } from '../../components/common';
 import { Typography } from '../../components/Typography';
@@ -10,8 +10,13 @@ import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { useLibrary, SORT_OPTIONS } from '../../lib/hooks/useLibrary';
 import { BookGrid } from '../../components/books/BookGrid';
 import { BookList } from '../../components/books/BookList';
+import { Book } from '../../types/models/book';
 import { FilterBar } from '../../components/books/FilterBar';
 import { useTheme } from '../../lib/hooks/useTheme';
+import { Input } from '../../components/common/inputs/Input';
+import { useState } from 'react';
+import { colors as baseColors } from '../../constants/theme';
+import { EmptyState } from '../../components/common/displays/EmptyState';
 
 export default function LibraryScreen() {
   const { colors, spacing } = useTheme();
@@ -38,6 +43,8 @@ export default function LibraryScreen() {
     newBookTitle,
     newBookAuthor,
     newBookStatus,
+    error,
+    setError,
     
     setSelectedStatus,
     setSearchQuery,
@@ -54,6 +61,10 @@ export default function LibraryScreen() {
     refreshBooks
   } = useLibrary();
 
+  // 追加: バリデーションエラー状態
+  const [titleError, setTitleError] = useState<string | undefined>(undefined);
+  const [authorError, setAuthorError] = useState<string | undefined>(undefined);
+
   const handleNotificationPress = () => {
     // 通知画面への遷移などの処理
     console.log('Notification pressed');
@@ -61,15 +72,33 @@ export default function LibraryScreen() {
   
   // 本追加の処理
   const submitAddBook = () => {
+    let hasError = false;
+    if (!newBookTitle.trim()) {
+      setTitleError(t('books.form.requiredTitleError'));
+      hasError = true;
+    } else {
+      setTitleError(undefined);
+    }
+    if (!newBookAuthor.trim()) {
+      setAuthorError(t('books.form.requiredAuthorError'));
+      hasError = true;
+    } else {
+      setAuthorError(undefined);
+    }
+    if (hasError) return;
     const success = handleAddBook();
-    
     if (!success) {
+      // 追加失敗時のエラー（通常はここに来ない想定）
       Alert.alert(t('common.error'), t('books.form.requiredFieldsError'));
+    } else {
+      // 成功時はフォームリセット
+      setTitleError(undefined);
+      setAuthorError(undefined);
     }
   };
   
   // ソートアイコンの表示
-  const renderSortIcon = (option) => {
+  const renderSortIcon = (option: typeof SORT_OPTIONS[number]['value']) => {
     if (sortOption !== option) return null;
     
     return (
@@ -81,6 +110,25 @@ export default function LibraryScreen() {
 
   if (!fontsLoaded) {
     return <Loading />;
+  }
+
+  // 致命的エラー時はEmptyStateで表示
+  if (error) {
+    return (
+      <EmptyState
+        icon={<X size={48} color={colors.error} />}
+        title={t('common.error')}
+        message={t(error)}
+        actionLabel={t('common.retry')}
+        onAction={() => {
+          setError(null);
+          refreshBooks();
+        }}
+        isTitleTranslationKey={false}
+        isMessageTranslationKey={false}
+        isActionLabelTranslationKey={false}
+      />
+    );
   }
 
   return (
@@ -139,7 +187,7 @@ export default function LibraryScreen() {
         accessibilityLabel={t('books.addBook')}
         accessibilityRole="button"
       >
-        <Plus size={24} color={colors.white} />
+        <Plus size={24} color={baseColors.white} />
       </TouchableOpacity>
       
       {/* 本追加モーダル */}
@@ -150,7 +198,7 @@ export default function LibraryScreen() {
         onRequestClose={() => setAddModalVisible(false)}
       >
         <View style={styles.modalContainer}>
-          <View style={[styles.modalContent, { backgroundColor: colors.white }]}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
             <View style={[styles.modalHeader, { borderBottomColor: colors.background }]}>
               <Typography variant="title">{t('books.addBook')}</Typography>
               <TouchableOpacity onPress={() => setAddModalVisible(false)}>
@@ -160,26 +208,23 @@ export default function LibraryScreen() {
             
             <View style={styles.formContainer}>
               <View style={styles.formGroup}>
-                <Typography variant="caption" color={colors.text}>
-                  {t('books.form.title')} *
-                </Typography>
-                <TextInput
-                  style={[styles.input, { borderColor: colors.background, color: colors.text }]}
+                <Input
+                  label={t('books.form.title') + ' *'}
                   value={newBookTitle}
                   onChangeText={setNewBookTitle}
                   placeholder={t('books.form.titlePlaceholder')}
+                  error={titleError}
+                  autoFocus
                 />
               </View>
               
               <View style={styles.formGroup}>
-                <Typography variant="caption" color={colors.text}>
-                  {t('books.form.author')} *
-                </Typography>
-                <TextInput
-                  style={[styles.input, { borderColor: colors.background, color: colors.text }]}
+                <Input
+                  label={t('books.form.author') + ' *'}
                   value={newBookAuthor}
                   onChangeText={setNewBookAuthor}
                   placeholder={t('books.form.authorPlaceholder')}
+                  error={authorError}
                 />
               </View>
               
@@ -208,7 +253,7 @@ export default function LibraryScreen() {
                         variant="caption"
                         style={[
                           { color: colors.text },
-                          newBookStatus === status && { color: colors.white },
+                          newBookStatus === status && { color: baseColors.white },
                         ]}
                       >
                         {t(`books.filters.${status === 'on-hold' ? 'onHold' : status}`)}
@@ -223,8 +268,8 @@ export default function LibraryScreen() {
               style={[styles.saveButton, { backgroundColor: colors.primary }]}
               onPress={submitAddBook}
             >
-              <Save size={20} color={colors.white} style={styles.saveIcon} />
-              <Typography variant="body" color={colors.white}>
+              <Save size={20} color={baseColors.white} style={styles.saveIcon} />
+              <Typography variant="body" color={baseColors.white}>
                 {t('common.save')}
               </Typography>
             </TouchableOpacity>
@@ -249,7 +294,7 @@ export default function LibraryScreen() {
               activeOpacity={1}
               onPress={e => e.stopPropagation()}
             >
-              <View style={[styles.sortModalContent, { backgroundColor: colors.white }]}>
+              <View style={[styles.sortModalContent, { backgroundColor: colors.card }]}>
                 <View style={[styles.sortModalHeader, { borderBottomColor: colors.background }]}>
                   <Typography variant="title">{t('books.sort.title')}</Typography>
                   <TouchableOpacity onPress={() => setShowSortModal(false)}>
@@ -263,9 +308,9 @@ export default function LibraryScreen() {
                     style={[
                       styles.sortOption,
                       { borderBottomColor: colors.background },
-                      sortOption === option.value && { backgroundColor: colors.backgroundAlt }
+                      sortOption === option.value && { backgroundColor: colors.background }
                     ]}
-                    onPress={() => handleSortChange(option.value)}
+                    onPress={() => handleSortChange(option.value as any)}
                   >
                     <Typography 
                       variant="body" 
