@@ -169,7 +169,12 @@
     "time15min": "15 minutes",
     "time30min": "30 minutes",
     "time1hour": "1 hour",
-    "time2hours": "2 hours"
+    "time2hours": "2 hours",
+    "pageProgress": "Page Progress",
+    "quickEntry": "Quick Entry",
+    "sessionCompleted": "Session Completed",
+    "saveRecord": "Save Record",
+    "confirmProgress": "Confirm your reading progress"
   },
   "settings": {
     "language": "Language Settings",

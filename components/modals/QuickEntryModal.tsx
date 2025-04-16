@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Modal as RNModal, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { View, StyleSheet, Modal as RNModal, TouchableOpacity, TouchableWithoutFeedback, ScrollView, SafeAreaView } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { Typography } from '../Typography';
 import { QuoteInput } from '../quotes/QuoteInput';
@@ -50,16 +50,22 @@ export const QuickEntryModal = ({
       transparent={true}
       visible={visible}
       onRequestClose={onClose}
+      statusBarTranslucent={true}
     >
       <TouchableWithoutFeedback onPress={handleBackdropPress}>
         <View style={styles.centeredView}>
           <TouchableWithoutFeedback onPress={handleModalPress}>
-            <View style={[styles.modalView, { backgroundColor: colors.card }]}>
+            <SafeAreaView style={[styles.modalView, { backgroundColor: colors.card }]}>
               <View style={[styles.header, { borderBottomColor: colors.border }]}>
                 <Typography variant="title" style={{ color: colors.text }}>
                   {t('book.quickEntry')}
                 </Typography>
-                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                <TouchableOpacity 
+                  onPress={onClose} 
+                  style={styles.closeButton}
+                  accessibilityLabel={t('common.close')}
+                  accessibilityRole="button"
+                >
                   <Typography variant="body" style={{ fontSize: 20, color: colors.textSecondary }}>
                     ✕
                   </Typography>
@@ -73,6 +79,9 @@ export const QuickEntryModal = ({
                     entryType === 'quote' ? [styles.activeTabButton, { borderBottomColor: colors.primary }] : null
                   ]}
                   onPress={() => setEntryType('quote')}
+                  accessibilityLabel={t('book.quotes')}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: entryType === 'quote' }}
                 >
                   <Typography
                     variant="body"
@@ -91,6 +100,9 @@ export const QuickEntryModal = ({
                     entryType === 'note' ? [styles.activeTabButton, { borderBottomColor: colors.primary }] : null
                   ]}
                   onPress={() => setEntryType('note')}
+                  accessibilityLabel={t('book.notes')}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: entryType === 'note' }}
                 >
                   <Typography
                     variant="body"
@@ -104,7 +116,7 @@ export const QuickEntryModal = ({
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.contentContainer}>
+              <ScrollView style={styles.contentContainer} keyboardShouldPersistTaps="handled">
                 {entryType === 'quote' ? (
                   <QuoteInput 
                     bookId={bookId} 
@@ -122,8 +134,8 @@ export const QuickEntryModal = ({
                     }
                   />
                 )}
-              </View>
-            </View>
+              </ScrollView>
+            </SafeAreaView>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
@@ -138,7 +150,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalView: {
-    backgroundColor: colors.gray[50],
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '90%',
@@ -147,42 +158,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: spacing.md,
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
-  },
-  title: {
-    color: colors.gray[800],
   },
   closeButton: {
-    padding: spacing.xs,
-  },
-  closeButtonText: {
-    fontSize: 20,
-    color: colors.gray[500],
+    padding: 8,
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabContainer: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
   },
   tabButton: {
     flex: 1,
-    paddingVertical: spacing.sm,
+    paddingVertical: 12,
     alignItems: 'center',
   },
   activeTabButton: {
     borderBottomWidth: 2,
-    borderBottomColor: colors.primary.main,
   },
   tabButtonText: {
-    color: colors.gray[600],
-  },
-  activeTabButtonText: {
-    color: colors.primary.main,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '500',
   },
   contentContainer: {
-    padding: spacing.md,
+    padding: 16,
   },
 }); 

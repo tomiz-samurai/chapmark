@@ -1,7 +1,7 @@
 /**
  * 書籍の状態を表す型
  */
-export type BookStatus = 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped';
+export type BookStatus = 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped' | 'all';
 
 /**
  * 書籍モデルのインターフェース

@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ReadingSession } from '../types';
+import { ReadingSession } from '../../types/models/session';
 
 export interface SessionState {
   sessions: ReadingSession[];

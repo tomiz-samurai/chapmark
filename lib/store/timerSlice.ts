@@ -1,18 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-export interface TimerState {
-  isRunning: boolean;
-  startTime: string | null; // ISO文字列形式で保存
-  pausedTime: number; // 一時停止中の累積秒数
-  displaySeconds: number; // 表示用の累積秒数
-  lastActiveTime: string | null; // 最後にアクティブだった時間（ISO文字列）
-  activeBook: string | null; // 現在読書中の本のID
-  startPage: number | null; // 読み始めのページ
-  goalTime: number | null; // 目標時間（秒）
-  goalReached: boolean; // 目標時間に到達したか
-  isBackgroundActive: boolean; // バックグラウンドでアクティブかどうか
-  lastBackgroundTimestamp: string | null; // バックグラウンドに入った時刻
-}
+import { TimerState, StartTimerParams } from '../../types/models/timer';
 
 const initialState: TimerState = {
   isRunning: false,
@@ -33,7 +20,7 @@ export const timerSlice = createSlice({
   initialState,
   reducers: {
     // タイマーの開始
-    startTimer: (state, action: PayloadAction<{ bookId: string; currentPage?: number }>) => {
+    startTimer: (state, action: PayloadAction<StartTimerParams>) => {
       const now = new Date().toISOString();
       state.isRunning = true;
       state.startTime = now;

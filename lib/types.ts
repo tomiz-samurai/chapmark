@@ -1,5 +1,5 @@
 // 書籍の状態を表す型
-export type BookStatus = 'reading' | 'completed' | 'planned' | 'all';
+export type BookStatus = 'reading' | 'completed' | 'planned' | 'on-hold' | 'dropped' | 'all';
 
 // 書籍の基本情報
 export interface Book {

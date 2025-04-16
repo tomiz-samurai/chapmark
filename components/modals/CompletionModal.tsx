@@ -130,6 +130,8 @@ export function CompletionModal({
                 onChangeText={validateAndUpdateCurrentPage}
                 keyboardType="number-pad"
                 returnKeyType="done"
+                accessibilityLabel={t('timer.current')}
+                accessibilityHint={t('timer.currentPage')}
               />
             </View>
             
@@ -151,6 +153,8 @@ export function CompletionModal({
                 onChangeText={validateAndUpdateTotalPages}
                 keyboardType="number-pad"
                 returnKeyType="done"
+                accessibilityLabel={t('timer.total')}
+                accessibilityHint={t('timer.totalPages')}
               />
             </View>
           </View>
@@ -169,6 +173,7 @@ export function CompletionModal({
             title={t('timer.saveRecord')}
             onPress={handleSave}
             variant="primary"
+            disabled={currentPage === undefined || totalPages === undefined}
           />
           
           <Button
@@ -194,6 +199,7 @@ const styles = StyleSheet.create({
   },
   statItem: {
     alignItems: 'center',
+    flex: 1,
   },
   inputContainer: {
     marginBottom: 24,
@@ -208,11 +214,13 @@ const styles = StyleSheet.create({
   },
   input: {
     width: 80,
-    height: 40,
+    height: 44,
     borderWidth: 1,
     borderRadius: 8,
     textAlign: 'center',
     marginTop: 4,
+    fontSize: 16,
+    paddingHorizontal: 8,
   },
   progressContainer: {
     marginTop: 16,

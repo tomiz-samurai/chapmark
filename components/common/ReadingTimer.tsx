@@ -1,10 +1,8 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
 import { Typography } from '../Typography';
 import { Button } from './Button';
-import { Book } from '../../lib/types';
-import { RootState } from '../../lib/store';
+import { Book } from '../../types/models/book';
 import TimerService, { formatTime } from '../../lib/services/TimerService';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { BookIcon } from 'lucide-react-native';
@@ -20,6 +18,8 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import { GoalTimeSelector } from './GoalTimeSelector';
+import { useAppSelector } from '../../lib/hooks/useAppSelector';
+import { useAppDispatch } from '../../lib/hooks/useAppDispatch';
 
 interface ReadingTimerProps {
   book: Book | null;
@@ -36,8 +36,8 @@ export function ReadingTimer({
   onSetGoalTime,
   compact = false
 }: ReadingTimerProps) {
-  const dispatch = useDispatch();
-  const timerState = useSelector((state: RootState) => (state as any).timer);
+  const dispatch = useAppDispatch();
+  const timerState = useAppSelector(state => state.timer);
   const { isRunning, displaySeconds, goalReached } = timerState;
   const { colors, spacing } = useTheme();
   const { t } = useAppTranslation();

@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Quote } from '../types';
+import { Quote } from '../../types/models/quote';
 
 export interface QuoteState {
   quotes: Quote[];

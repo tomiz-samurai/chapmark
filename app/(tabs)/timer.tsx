@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert, Image, TextInput, Keyboard, KeyboardAvoidingView, Platform, TouchableOpacity, ScrollView } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
-import { useSelector, useDispatch } from 'react-redux';
 import { Book as BookIcon } from 'lucide-react-native';
 import { Loading } from '../../components/common/Loading';
 import { Header } from '../../components/layouts/Header';
@@ -12,8 +11,7 @@ import { ProgressBar } from '../../components/common/ProgressBar';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Typography } from '../../components/Typography';
-import { Book } from '../../lib/types';
-import { RootState } from '../../lib/store';
+import { Book } from '../../types/models/book';
 import { selectBook, updateCurrentPage, updateTotalPages, fetchBooksSuccess } from '../../lib/store/bookSlice';
 import { clearCurrentSession } from '../../lib/store/sessionSlice';
 import { resetTimer, finishSession, setGoalTime } from '../../lib/store/timerSlice';
@@ -22,6 +20,11 @@ import { useTheme } from '../../lib/hooks/useTheme';
 import { getAllBooks, getBookById } from '../../lib/services/BookService';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { QuickEntryModal } from '../../components/modals/QuickEntryModal';
+import { useAppSelector } from '../../lib/hooks/useAppSelector';
+import { useAppDispatch } from '../../lib/hooks/useAppDispatch';
+import { TimerControls } from '../../components/timer/TimerControls';
+import { PageProgress } from '../../components/timer/PageProgress';
+import { CompletionModal } from '../../components/modals/CompletionModal';
 
 // ダミーデータ（実際の実装では本のリストはストアまたはAPIから取得）
 const READING_BOOKS: Book[] = [
@@ -55,18 +58,18 @@ export default function TimerScreen() {
     PlayfairDisplay_700Bold,
   });
   
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   
   // Redux状態の取得
-  const state = useSelector((state: RootState) => state);
+  const state = useAppSelector((state) => state);
   
   // Redux状態へのアクセス
-  // 型アサーションを使用して型エラーを回避
-  const books = (state as any).book?.books || [];
-  const selectedBookId = (state as any).book?.selectedBookId || null;
-  const displaySeconds = (state as any).timer?.displaySeconds || 0;
-  const startPage = (state as any).timer?.startPage || null;
-  const currentSession = (state as any).session?.currentSession || null;
+  const books = state.book?.books || [];
+  const selectedBookId = state.book?.selectedBookId || null;
+  const displaySeconds = state.timer?.displaySeconds || 0;
+  const startPage = state.timer?.startPage || null;
+  const currentSession = state.session?.currentSession || null;
+  const isTimerRunning = state.timer?.isRunning || false;
   
   // ローカル状態
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -350,251 +353,69 @@ export default function TimerScreen() {
             <ReadingTimer 
               book={selectedBook}
               onFinish={handleFinishReading}
-              goalTime={(state as any).timer?.goalTime || null}
+              goalTime={state.timer?.goalTime || null}
               onSetGoalTime={handleSetGoalTime}
               compact={true}
             />
             
             {/* ページ進捗コンポーネント */}
             {selectedBook && (
-              <View style={[styles.pageProgressContainer, { backgroundColor: colors.card }]}>
-                <View style={styles.pageInputSection}>
-                  <Typography variant="body" style={[styles.progressTitle, { color: colors.text }]}>
-                    {t('timer.pageProgress')}
-                  </Typography>
-                  
-                  <View style={styles.inputRow}>
-                    <View style={styles.inputWrapper}>
-                      <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 12 }}>
-                        {t('timer.current')}
-                      </Typography>
-                      <TextInput
-                        style={[styles.pageInput, { 
-                          backgroundColor: colors.background,
-                          borderColor: colors.border,
-                          color: colors.text
-                        }]}
-                        value={selectedBook.currentPage?.toString()}
-                        onChangeText={(text) => {
-                          const page = parseInt(text, 10);
-                          if (!isNaN(page)) handleCurrentPageChange(page);
-                        }}
-                        keyboardType="number-pad"
-                        returnKeyType="done"
-                        placeholder="0"
-                      />
-                    </View>
-                    
-                    <Typography style={{ color: colors.textSecondary, marginHorizontal: 8 }}>
-                      /
-                    </Typography>
-                    
-                    <View style={styles.inputWrapper}>
-                      <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 12 }}>
-                        {t('timer.total')}
-                      </Typography>
-                      <TextInput
-                        style={[styles.pageInput, { 
-                          backgroundColor: colors.background,
-                          borderColor: colors.border,
-                          color: colors.text
-                        }]}
-                        value={selectedBook.totalPages?.toString()}
-                        onChangeText={(text) => {
-                          const pages = parseInt(text, 10);
-                          if (!isNaN(pages)) handleTotalPagesChange(pages);
-                        }}
-                        keyboardType="number-pad"
-                        returnKeyType="done"
-                        placeholder="0"
-                      />
-                    </View>
-                  </View>
-                  
-                  <View style={styles.progressSection}>
-                    <View style={styles.progressBarWithPercentage}>
-                      <View style={styles.progressBarContainer}>
-                        <ProgressBar 
-                          progress={calculateProgress(selectedBook.currentPage, selectedBook.totalPages)} 
-                          height={4}
-                        />
-                      </View>
-                      <Typography variant="caption" style={[styles.progressText, { color: colors.textSecondary }]}>
-                        {calculateProgress(selectedBook.currentPage, selectedBook.totalPages)}%
-                      </Typography>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            )}
-            
-            {/* クイックエントリーボタン */}
-            {selectedBook && (
-              <TouchableOpacity
-                style={[styles.floatingQuickEntryButton, { backgroundColor: colors.primary }]}
-                onPress={handleOpenQuickEntry}
-              >
-                <Typography variant="body" style={{ color: '#fff', fontWeight: '600' }}>
-                  {t('book.quickEntry')}
-                </Typography>
-              </TouchableOpacity>
+              <PageProgress
+                book={selectedBook}
+                onCurrentPageChange={handleCurrentPageChange}
+                onTotalPagesChange={handleTotalPagesChange}
+              />
             )}
           </View>
+          
+          {/* クイックエントリーのフローティングボタン */}
+          {selectedBook && (
+            <TouchableOpacity 
+              style={[styles.quickEntryButton, { backgroundColor: colors.primary }]} 
+              onPress={handleOpenQuickEntry}
+              accessibilityLabel={t('book.quickEntry')}
+              accessibilityRole="button"
+            >
+              <Typography variant="body" style={{ color: 'white', fontSize: 12, fontWeight: '600' }}>
+                {t('book.quickEntry')}
+              </Typography>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
-
+      
       {/* 本選択モーダル */}
       <Modal
         visible={showBookSelectorModal}
-        onClose={handleCloseBookSelector}
         title={t('timer.selectBook')}
+        onClose={handleCloseBookSelector}
       >
-        <View style={styles.bookSelectorModalContainer}>
-          <BookSelector 
-            books={books} 
-            selectedBookId={selectedBookId}
-            onSelectBook={handleSelectBook}
-            isModal={true}
-          />
-        </View>
-      </Modal>
-
-      {/* 読書完了モーダル */}
-      <Modal
-        visible={showCompletionModal}
-        onClose={handleCloseCompletionModal}
-        title={t('timer.readingRecord')}
-      >
-        {selectedBook && (
-          <View style={styles.modalContent}>
-            {/* 書籍情報 */}
-            <View style={styles.bookInfoContainer}>
-              {selectedBook.coverImage && (
-                <Image 
-                  source={{ uri: selectedBook.coverImage }} 
-                  style={styles.modalCoverImage} 
-                />
-              )}
-              <View style={styles.modalBookInfo}>
-                <Typography variant="title" style={{ color: colors.text }}>
-                  {selectedBook.title}
-                </Typography>
-                <Typography variant="body" style={{ color: colors.textSecondary }}>
-                  {selectedBook.author}
-                </Typography>
-              </View>
-            </View>
-
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-            {/* 読書セッション情報 */}
-            <View style={styles.sessionInfoContainer}>
-              {/* 読書時間 - ハイライトセクション */}
-              <View style={[styles.sessionHighlight, { backgroundColor: colors.secondaryLight }]}>
-                <View style={styles.sessionHighlightContent}>
-                  <Typography variant="label" style={{ color: colors.primaryDark, marginBottom: 2 }}>
-                    {t('timer.readingTime')}
-                  </Typography>
-                  <Typography variant="display" style={{ color: colors.primaryDark, fontSize: 24 }}>
-                    {formatTime(displaySeconds)}
-                  </Typography>
-                </View>
-              </View>
-              
-              {/* 読了ページ数と進捗率 */}
-              <View style={styles.achievementSection}>
-                <View style={styles.achievementItem}>
-                  <View style={[styles.achievementIcon, { backgroundColor: colors.primary }]}>
-                    <Typography variant="title" style={{ color: colors.secondaryLight, fontSize: 16 }}>
-                      {getReadPages()}
-                    </Typography>
-                  </View>
-                  <Typography variant="caption" style={{ color: colors.textSecondary, marginTop: 2, fontSize: 10 }}>
-                    {t('timer.pagesRead')}
-                  </Typography>
-                </View>
-                
-                <View style={styles.achievementItem}>
-                  <View style={[styles.achievementIcon, { backgroundColor: colors.secondaryDark }]}>
-                    <Typography variant="title" style={{ color: colors.background, fontSize: 16 }}>
-                      {calculateModalProgress()}%
-                    </Typography>
-                  </View>
-                  <Typography variant="caption" style={{ color: colors.textSecondary, marginTop: 2, fontSize: 10 }}>
-                    {t('timer.progressRate')}
-                  </Typography>
-                </View>
-              </View>
-              
-              {/* 入力フィールド */}
-              <View style={[styles.inputSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <View style={styles.inputRow}>
-                  <View style={styles.inputColumn}>
-                    <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>
-                      {t('timer.currentPage')}
-                    </Typography>
-                    <TextInput
-                      style={[styles.modalInput, { 
-                        borderColor: colors.border, 
-                        backgroundColor: colors.background,
-                        color: colors.text
-                      }]}
-                      value={modalCurrentPage !== undefined ? modalCurrentPage.toString() : ''}
-                      onChangeText={validateAndUpdateModalCurrentPage}
-                      keyboardType="number-pad"
-                      placeholder="0"
-                    />
-                  </View>
-                  
-                  <View style={styles.inputColumn}>
-                    <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>
-                      {t('timer.totalPages')}
-                    </Typography>
-                    <TextInput
-                      style={[styles.modalInput, { 
-                        borderColor: colors.border, 
-                        backgroundColor: colors.background,
-                        color: colors.text
-                      }]}
-                      value={modalTotalPages !== undefined ? modalTotalPages.toString() : ''}
-                      onChangeText={validateAndUpdateModalTotalPages}
-                      keyboardType="number-pad"
-                      placeholder="0"
-                    />
-                  </View>
-                </View>
-                
-                <View style={styles.progressContainer}>
-                  <ProgressBar 
-                    progress={calculateModalProgress()} 
-                    height={6}
-                    progressColor={colors.secondary}
-                    backgroundColor={colors.neutralLight}
-                  />
-                </View>
-              </View>
-            </View>
-
-            <Button 
-              title={t('timer.save')} 
-              onPress={handleSaveSession} 
-              variant="primary"
-              size="medium"
-              style={styles.saveButton}
-            />
-          </View>
-        )}
+        <BookSelector
+          books={books.filter((book: Book) => book.status === 'reading')}
+          selectedBookId={selectedBookId}
+          onSelectBook={handleSelectBook}
+          isModal={true}
+        />
       </Modal>
       
+      {/* 読書完了モーダル */}
+      <CompletionModal
+        visible={showCompletionModal}
+        onClose={handleCloseCompletionModal}
+        onSave={handleSaveSession}
+        startPage={startPage}
+        initialCurrentPage={modalCurrentPage}
+        initialTotalPages={modalTotalPages}
+        readingTime={displaySeconds}
+      />
+      
       {/* クイックエントリーモーダル */}
-      {selectedBook && (
-        <QuickEntryModal
-          visible={quickEntryModalVisible}
-          onClose={handleCloseQuickEntry}
-          bookId={selectedBook.id}
-          currentPage={selectedBook.currentPage}
-        />
-      )}
+      <QuickEntryModal
+        visible={quickEntryModalVisible}
+        onClose={handleCloseQuickEntry}
+        bookId={selectedBookId || ''}
+        currentPage={selectedBook?.currentPage}
+      />
     </View>
   );
 }
@@ -836,6 +657,19 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   floatingQuickEntryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    marginTop: 14,
+    marginBottom: 12,
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  quickEntryButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 30,

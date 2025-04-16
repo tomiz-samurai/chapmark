@@ -5,7 +5,7 @@ import { Typography } from '../Typography';
 import { EmptyState } from './EmptyState';
 import { ProgressBar } from './ProgressBar';
 import { spacing } from '../../constants/theme';
-import { Book as BookType } from '../../lib/types';
+import { Book as BookType } from '../../types/models/book';
 import { useTheme } from '../../lib/hooks/useTheme';
 
 interface BookSelectorProps {

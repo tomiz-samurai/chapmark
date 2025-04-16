@@ -2,11 +2,16 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import timerReducer, { TimerState } from './timerSlice';
-import bookReducer, { BookState } from './bookSlice';
-import sessionReducer, { SessionState } from './sessionSlice';
-import quoteReducer, { QuoteState } from './quoteSlice';
-import noteReducer, { NoteState } from './noteSlice';
+import timerReducer from './timerSlice';
+import bookReducer from './bookSlice';
+import sessionReducer from './sessionSlice';
+import quoteReducer from './quoteSlice';
+import noteReducer from './noteSlice';
+import { TimerState } from '../../types/models/timer';
+import { BookState } from './bookSlice';
+import { SessionState } from './sessionSlice';
+import { QuoteState } from './quoteSlice';
+import { NoteState } from './noteSlice';
 
 // persist configuration
 const persistConfig = {
