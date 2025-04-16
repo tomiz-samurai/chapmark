@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, StyleSheet, Modal as RNModal, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { X } from 'lucide-react-native';
-import { Typography } from '../Typography';
-import { colors, spacing } from '../../constants/theme';
-import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { Typography } from '../../Typography';
+import { colors, spacing } from '../../../constants/theme';
+import { useAppTranslation } from '../../../hooks/useAppTranslation';
 
 interface ModalProps {
   visible: boolean;

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TextInput, Image } from 'react-native';
 import { Typography } from '../Typography';
-import { Modal } from '../common/Modal';
-import { Button } from '../common/Button';
-import { ProgressBar } from '../common/ProgressBar';
+import { Modal } from '../common';
+import { Button } from '../common';
+import { ProgressBar } from '../common';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import TimerService, { calculateProgress, calculateReadPages, formatTime } from '../../lib/services/TimerService';

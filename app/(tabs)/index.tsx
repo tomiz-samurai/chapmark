@@ -6,12 +6,14 @@ import { Typography } from '../../components/Typography';
 import { colors, spacing } from '../../constants/theme';
 import { useResponsive } from '../../hooks/useResponsive';
 import { Header } from '../../components/layouts/Header';
-import { BookCard } from '../../components/common/BookCard';
+import { BookCard } from '../../components/common';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
 import { getAllBooks, getUserBooksByStatus, Book as BookType } from '../../lib/services/BookService';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { BookStatus } from '../../types/models';
-import { CollectionHeader } from '../../components/common/CollectionHeader';
+import { CollectionHeader } from '../../components/common/displays/CollectionHeader';
+import { useFonts as useExpoFonts } from 'expo-font';
+import { router } from 'expo-router';
 
 // recommendedBooksが読み込めない問題を解決するためのフォールバックデータ
 const RECOMMENDED_BOOKS = [
@@ -102,6 +104,10 @@ export default function HomeScreen() {
     navigateToBookDetail(book.id, '/(tabs)');
   };
 
+  const handleViewAllReading = () => {
+    navigateToBookList('reading');
+  };
+
   return (
     <View style={styles.container}>
       <Header
@@ -153,7 +159,8 @@ export default function HomeScreen() {
         <View style={styles.recommendedSection}>
           <CollectionHeader 
             title={t('home.recommendedBooks')} 
-            onSeeAllPress={handleViewAllRecommended} 
+            onViewAll={handleViewAllRecommended} 
+            viewAllLabel={t('common.viewAll')}
           />
           
           <ScrollView
@@ -178,18 +185,17 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* 現在読んでいる本セクション */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Typography variant="title">{t('home.currentlyReading')}</Typography>
-            <Pressable>
-              <Typography variant="caption" style={styles.viewAllText}>{t('common.viewAll')}</Typography>
-            </Pressable>
-          </View>
+        {/* Currently reading books */}
+        <View style={styles.currentlyReadingSection}>
+          <CollectionHeader 
+            title={t('home.currentlyReading')}
+            onViewAll={handleViewAllReading}
+            viewAllLabel={t('common.viewAll')}
+          />
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            style={styles.booksScrollView}
+            contentContainerStyle={styles.currentlyReadingScrollContent}
           >
             {Array.isArray(currentlyReadingBooks) && currentlyReadingBooks.length > 0 ? (
               currentlyReadingBooks.map((book) => (
@@ -328,6 +334,13 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   recommendedScrollContent: {
+    paddingRight: spacing.md,
+    gap: spacing.sm,
+  },
+  currentlyReadingSection: {
+    padding: spacing.md,
+  },
+  currentlyReadingScrollContent: {
     paddingRight: spacing.md,
     gap: spacing.sm,
   },

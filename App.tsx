@@ -8,7 +8,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './lib/store';
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
-import { Loading } from './components/common/Loading';
+import { Loading } from './components/common';
 import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
 

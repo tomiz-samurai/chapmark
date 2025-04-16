@@ -5,9 +5,9 @@ import { StatusBar } from 'expo-status-bar';
 import { Search } from 'lucide-react-native';
 
 import { Typography } from '../../components/Typography';
-import { BookCard } from '../../components/common/BookCard';
-import { CategoryButton } from '../../components/common/CategoryButton';
-import { CollectionHeader } from '../../components/common/CollectionHeader';
+import { BookCard } from '../../components/common';
+import { CategoryButton } from '../../components/common';
+import { CollectionHeader } from '../../components/layouts';
 import { Header } from '../../components/layouts/Header';
 
 import { popularCategories, recommendationCollections, recommendedBooks as mockRecommendedBooks, newReleaseBooks as mockNewReleaseBooks } from '../../lib/mockData';

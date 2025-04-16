@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
-import { Typography } from '../../Typography';
+import { Typography } from '../../../components/Typography';
 import { colors, borderRadius, spacing } from '../../../constants/theme';
 
 interface CategoryButtonProps {

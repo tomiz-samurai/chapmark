@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Typography } from '../Typography';
-import { Button } from '../common/Button';
+import { Button } from '../common';
 import { colors, spacing, typography } from '../../constants/theme';
 import { addNote } from '../../lib/store/noteSlice';
 import { RootState } from '../../lib/store';

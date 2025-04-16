@@ -17,8 +17,8 @@ import {
 import { Stack, useRouter } from 'expo-router';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { colors, spacing, typography, borderRadius } from '../../constants/theme';
-import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
+import { Input } from '../../components/common';
+import { Button } from '../../components/common';
 import { Camera, Check, ArrowLeft, User, Briefcase, Trash2 } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import Reanimated, { 

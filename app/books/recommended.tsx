@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 
 import { Typography } from '../../components/Typography';
-import { BookCard } from '../../components/common/BookCard';
+import { BookCard } from '../../components/common';
 import { recommendedBooks } from '../../lib/mockData';
 import { colors, spacing } from '../../constants/theme';
 

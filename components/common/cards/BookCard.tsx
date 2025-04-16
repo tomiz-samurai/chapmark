@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, Image, TouchableOpacity, Dimensions, ImageSourcePropType } from 'react-native';
 import { Star } from 'lucide-react-native';
-import { colors, shadows, borderRadius, spacing, typography } from '../../constants/theme';
-import { Typography } from '../Typography';
+import { colors, shadows, borderRadius, spacing, typography } from '../../../constants/theme';
+import { Typography } from '../../Typography';
 import { Book } from '../../lib/services/BookService';
-import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { useAppTranslation } from '../../../hooks/useAppTranslation';
 
 interface BookCardProps {
   book: Book;

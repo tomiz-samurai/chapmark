@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Typography } from '../Typography';
-import { useTheme } from '../../lib/hooks/useTheme';
+import { Typography } from '../../Typography';
+import { useTheme } from '../../../lib/hooks/useTheme';
 import { Clock } from 'lucide-react-native';
-import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { useAppTranslation } from '../../../hooks/useAppTranslation';
 import * as Haptics from 'expo-haptics';
 
 interface GoalTimeSelectorProps {

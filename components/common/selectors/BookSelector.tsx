@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
 import { Book } from 'lucide-react-native';
-import { Typography } from '../Typography';
-import { EmptyState } from './EmptyState';
-import { ProgressBar } from './ProgressBar';
-import { spacing } from '../../constants/theme';
-import { Book as BookType } from '../../types/models/book';
-import { useTheme } from '../../lib/hooks/useTheme';
+import { Typography } from '../../Typography';
+import { EmptyState } from '../displays/EmptyState';
+import { ProgressBar } from '../feedback/ProgressBar';
+import { spacing } from '../../../constants/theme';
+import { Book as BookType } from '../../../types/models/book';
+import { useTheme } from '../../../lib/hooks/useTheme';
 
 interface BookSelectorProps {
   books: BookType[];

@@ -7,7 +7,7 @@ import {
   Text 
 } from 'react-native';
 import { Quote } from '../../types/models';
-import { QuoteItem } from '../common/QuoteItem';
+import { QuoteItem } from '../common/displays/QuoteItem';
 import { colors, spacing } from '../../constants/theme';
 import { Book } from 'lucide-react-native';
 
@@ -60,9 +60,9 @@ export const QuoteList: React.FC<QuoteListProps> = ({
       renderItem={({ item }) => (
         <QuoteItem
           quote={item}
-          onPress={onPressQuote}
-          onEdit={onEditQuote}
-          onDelete={onDeleteQuote}
+          onPress={onPressQuote ? () => onPressQuote(item) : undefined}
+          onEdit={onEditQuote ? () => onEditQuote(item) : undefined}
+          onDelete={onDeleteQuote ? () => onDeleteQuote(item) : undefined}
           showActions={showActions}
         />
       )}

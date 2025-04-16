@@ -2,8 +2,8 @@ import React from 'react';
 import { FlatList, StyleSheet, ListRenderItemInfo } from 'react-native';
 import { Book as BookIcon } from 'lucide-react-native';
 import { Book } from '../../lib/services/BookService';
-import { BookCard } from '../common/BookCard';
-import { EmptyState } from '../common/EmptyState';
+import { BookCard } from '../common';
+import { EmptyState } from '../common';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 

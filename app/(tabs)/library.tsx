@@ -3,7 +3,7 @@ import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
 import { Book, Plus, X, Save, Search, Grid, List, Filter } from 'lucide-react-native';
 import { View, StyleSheet, Modal, TextInput, Alert, Platform, TouchableOpacity } from 'react-native';
 import { Header } from '../../components/layouts/Header';
-import { Loading } from '../../components/common/Loading';
+import { Loading } from '../../components/common';
 import { Typography } from '../../components/Typography';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
 import { useAppTranslation } from '../../hooks/useAppTranslation';

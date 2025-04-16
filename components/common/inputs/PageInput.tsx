@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, TextInput, Keyboard } from 'react-native';
 import { Typography } from '../../Typography';
-import { ProgressBar } from '../feedback/ProgressBar';
+import { ProgressBar } from '../../common/feedback/ProgressBar';
 import { colors, spacing, typography } from '../../../constants/theme';
 
 interface PageInputProps {

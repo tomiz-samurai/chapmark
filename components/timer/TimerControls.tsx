@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Button } from '../common/Button';
+import { Button } from '../common';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 

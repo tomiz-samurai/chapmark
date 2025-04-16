@@ -1,5 +1,5 @@
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { colors } from '../../constants/theme';
+import { colors } from '../../../constants/theme';
 
 interface LoadingProps {
   size?: number | 'small' | 'large';

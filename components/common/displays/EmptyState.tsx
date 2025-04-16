@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, typography } from '../../constants/theme';
-import { Button } from './Button';
-import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { colors, spacing, typography } from '../../../constants/theme';
+import { Button } from '../buttons/Button';
+import { useAppTranslation } from '../../../hooks/useAppTranslation';
 
 interface EmptyStateProps {
   title: string;

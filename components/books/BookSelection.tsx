@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Book as BookIcon } from 'lucide-react-native';
 import { Typography } from '../Typography';
-import { ProgressBar } from '../common/ProgressBar';
+import { ProgressBar } from '../common';
 import { Book } from '../../types/models';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { useAppTranslation } from '../../hooks/useAppTranslation';

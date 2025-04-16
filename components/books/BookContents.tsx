@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, FlatList, Text } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { Plus } from 'lucide-react-native';
-import { TabView } from '../common/TabView';
+import { TabView } from '../common';
 import { QuoteList } from '../quotes/QuoteList';
 import { NoteList } from '../notes/NoteList';
 import { Typography } from '../Typography';

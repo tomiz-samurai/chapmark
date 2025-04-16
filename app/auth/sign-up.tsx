@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
-import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
+import { Input } from '../../components/common';
+import { Button } from '../../components/common';
 import { Typography } from '../../components/Typography';
 import { colors, spacing } from '../../constants/theme';
 

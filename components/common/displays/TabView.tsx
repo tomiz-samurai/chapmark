@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { Typography } from '../Typography';
-import { colors, spacing, borderRadius } from '../../constants/theme';
+import { Typography } from '../../Typography';
+import { colors, spacing, borderRadius } from '../../../constants/theme';
 
 interface TabViewProps {
   tabs: {

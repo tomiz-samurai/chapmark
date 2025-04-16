@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { Typography } from '../Typography';
-import { Button } from './Button';
-import { Book } from '../../types/models/book';
-import TimerService, { formatTime } from '../../lib/services/TimerService';
-import { useTheme } from '../../lib/hooks/useTheme';
+import { Typography } from '../../Typography';
+import { Button } from '../buttons/Button';
+import { Book } from '../../../types/models/book';
+import TimerService, { formatTime } from '../../../lib/services/TimerService';
+import { useTheme } from '../../../lib/hooks/useTheme';
 import { BookIcon } from 'lucide-react-native';
-import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { useAppTranslation } from '../../../hooks/useAppTranslation';
 import * as Haptics from 'expo-haptics';
 import Animated, { 
   useAnimatedStyle, 
@@ -17,9 +17,9 @@ import Animated, {
   withSequence,
   Easing
 } from 'react-native-reanimated';
-import { GoalTimeSelector } from './GoalTimeSelector';
-import { useAppSelector } from '../../lib/hooks/useAppSelector';
-import { useAppDispatch } from '../../lib/hooks/useAppDispatch';
+import { GoalTimeSelector } from '../selectors/GoalTimeSelector';
+import { useAppSelector } from '../../../lib/hooks/useAppSelector';
+import { useAppDispatch } from '../../../lib/hooks/useAppDispatch';
 
 interface ReadingTimerProps {
   book: Book | null;

@@ -1,6 +1,6 @@
 import { Image, View, StyleSheet } from 'react-native';
 import { User } from 'lucide-react-native';
-import { colors, borderRadius } from '../../constants/theme';
+import { colors, borderRadius } from '../../../constants/theme';
 
 interface AvatarProps {
   size?: number;

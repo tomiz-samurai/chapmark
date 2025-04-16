@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Bell } from 'lucide-react-native';
 import { colors, spacing, typography } from '../../constants/theme';
 import { Typography } from '../Typography';
-import { NotificationBadge } from '../common/NotificationBadge';
+import { NotificationBadge } from '../common';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { ReactNode } from 'react';
 

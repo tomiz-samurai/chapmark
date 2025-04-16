@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
-import { colors, spacing, typography } from '../../../constants/theme';
+import { View, StyleSheet, Animated } from 'react-native';
+import { Typography } from '../../../components/Typography';
+import { useTheme } from '../../../lib/hooks/useTheme';
 
 interface ProgressBarProps {
-  progress: number; // 0 to 1
+  progress: number; // 0から100の値
   height?: number;
-  style?: object;
+  style?: any;
   showPercentage?: boolean;
   backgroundColor?: string;
   progressColor?: string;
@@ -13,86 +14,84 @@ interface ProgressBarProps {
   animationDuration?: number;
 }
 
-export function ProgressBar({
+export const ProgressBar: React.FC<ProgressBarProps> = ({
   progress,
   height = 8,
   style,
   showPercentage = false,
-  backgroundColor = colors.gray[200],
-  progressColor = colors.primary.main,
+  backgroundColor,
+  progressColor,
   animated = true,
   animationDuration = 500,
-}: ProgressBarProps) {
-  // Ensure progress is between 0 and 1
-  const normalizedProgress = Math.min(Math.max(progress, 0), 1);
+}) => {
+  const { colors } = useTheme();
+  const animatedWidth = useRef(new Animated.Value(0)).current;
   
-  // Animation value for the width
-  const progressAnim = useRef(new Animated.Value(0)).current;
-  
+  // progressが変更されたときにアニメーションを実行
   useEffect(() => {
+    // 値を0〜100から0〜1の範囲に変換
+    const normalizedProgress = progress / 100;
+    const clampedProgress = Math.min(Math.max(normalizedProgress, 0), 1);
+    
     if (animated) {
-      Animated.timing(progressAnim, {
-        toValue: normalizedProgress,
+      Animated.timing(animatedWidth, {
+        toValue: clampedProgress,
         duration: animationDuration,
         useNativeDriver: false,
       }).start();
     } else {
-      progressAnim.setValue(normalizedProgress);
+      animatedWidth.setValue(clampedProgress);
     }
-  }, [normalizedProgress, animated, animationDuration, progressAnim]);
-  
-  // Calculate percentage for display
-  const percentage = Math.round(normalizedProgress * 100);
-  
+  }, [progress, animated, animationDuration]);
+
   return (
-    <View style={[styles.container, style]}>
-      <View 
+    <View 
+      style={[
+        styles.container, 
+        style,
+        { 
+          height, 
+          backgroundColor: backgroundColor || colors.background,
+          borderRadius: height / 2,
+        }
+      ]}
+    >
+      <Animated.View 
         style={[
-          styles.progressBackground, 
-          { 
-            height, 
-            backgroundColor 
+          styles.progress,
+          {
+            width: animatedWidth.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['0%', '100%'],
+            }),
+            height,
+            backgroundColor: progressColor || colors.secondary,
+            borderRadius: height / 2,
           }
         ]}
-      >
-        <Animated.View 
-          style={[
-            styles.progressFill, 
-            { 
-              width: progressAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: ['0%', '100%'],
-              }),
-              height,
-              backgroundColor: progressColor 
-            }
-          ]}
-        />
-      </View>
-      
+      />
       {showPercentage && (
-        <Text style={styles.percentageText}>{percentage}%</Text>
+        <Typography variant="caption" style={styles.progressText}>
+          {progress}%
+        </Typography>
       )}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: spacing.xs,
-  },
-  progressBackground: {
-    borderRadius: 4,
+    width: '100%',
+    position: 'relative',
     overflow: 'hidden',
   },
-  progressFill: {
-    borderRadius: 4,
+  progress: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
   },
-  percentageText: {
-    marginTop: spacing.xs,
-    fontSize: typography.fontSize.sm,
-    fontFamily: typography.fontFamily.regular,
-    color: colors.gray[600],
-    textAlign: 'right',
+  progressText: {
+    position: 'absolute',
+    right: 8,
   },
 }); 

@@ -13,7 +13,7 @@ import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
 import { selectBook } from '../../lib/store/bookSlice';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { BookContents } from '../../components/books/BookContents';
-import { Modal as CommonModal } from '../../components/common/Modal';
+import { Modal as CommonModal } from '../../components/common';
 import { QuoteInput } from '../../components/quotes/QuoteInput';
 import { NoteInput } from '../../components/notes/NoteInput';
 import { Quote, Note, Book, BookStatus } from '../../types/models';

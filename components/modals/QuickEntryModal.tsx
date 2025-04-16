@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { Typography } from '../Typography';
 import { QuoteInput } from '../quotes/QuoteInput';
 import { NoteInput } from '../notes/NoteInput';
-import { Button } from '../common/Button';
+import { Button } from '../common';
 import { colors, spacing } from '../../constants/theme';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { useTheme } from '../../lib/hooks/useTheme';
