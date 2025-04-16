@@ -20,7 +20,7 @@ import Animated, {
 import { GoalTimeSelector } from '../selectors/GoalTimeSelector';
 import { useAppSelector } from '../../../lib/hooks/useAppSelector';
 import { useAppDispatch } from '../../../lib/hooks/useAppDispatch';
-import { startTimer, pauseTimer, resetTimer, completeReadingSessionAsync, updateTimer } from '../../../lib/store/timerSlice';
+import { startTimer, pauseTimer, resetTimer, completeReadingSessionAsync, updateTimer, startReadingSessionAsync } from '../../../lib/store/timerSlice';
 import { updateBookStatusAsync } from '../../../lib/store/bookSlice';
 
 interface ReadingTimerProps {
@@ -117,8 +117,7 @@ export function ReadingTimer({
       dispatch(pauseTimer());
     } else {
       if (book.id) {
-        dispatch(updateBookStatusAsync({ id: book.id, status: 'reading' }));
-        dispatch(startTimer({ bookId: book.id, currentPage: book.currentPage }));
+        dispatch(startReadingSessionAsync({ bookId: book.id, currentPage: book.currentPage }));
       }
     }
   };
@@ -131,7 +130,12 @@ export function ReadingTimer({
   // 読書セッションの完了
   const handleFinishReading = () => {
     if (!book) return;
-    dispatch(completeReadingSessionAsync({ bookTitle: book.title }));
+    dispatch(completeReadingSessionAsync({
+      bookId: book.id,
+      bookTitle: book.title,
+      currentPage: book.currentPage,
+      totalPages: book.totalPages
+    }));
     if (onFinish) {
       onFinish();
     }

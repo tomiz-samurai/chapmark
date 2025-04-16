@@ -58,6 +58,23 @@ export const completeReadingSessionAsync = createAsyncThunk<
   }
 );
 
+// 読書セッション開始用のThunk
+export const startReadingSessionAsync = createAsyncThunk<
+  void,
+  { bookId: string; currentPage?: number },
+  { rejectValue: string }
+>(
+  'timer/startReadingSessionAsync',
+  async ({ bookId, currentPage }, { dispatch, rejectWithValue }) => {
+    try {
+      await dispatch(updateBookStatusAsync({ id: bookId, status: 'reading' })).unwrap();
+      dispatch(startTimer({ bookId, currentPage }));
+    } catch (error: any) {
+      return rejectWithValue(error?.message || '読書セッションの開始に失敗しました');
+    }
+  }
+);
+
 export const timerSlice = createSlice({
   name: 'timer',
   initialState,
