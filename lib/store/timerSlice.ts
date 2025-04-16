@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { TimerState, StartTimerParams } from '../../types/models';
 import NotificationService from '../services/NotificationService';
+import { updateBookStatusAsync } from './bookSlice';
 
 const initialState: TimerState = {
   isRunning: false,
@@ -29,11 +30,27 @@ export const notifyGoalReachedAsync = createAsyncThunk<void, { bookTitle: string
 );
 
 // 非同期Thunk: 読書セッションの完了（副作用含む）
-export const completeReadingSessionAsync = createAsyncThunk<void, { bookTitle: string }, { rejectValue: string }>(
+export const completeReadingSessionAsync = createAsyncThunk<
+  void,
+  { bookId: string; bookTitle: string; currentPage?: number; totalPages?: number },
+  { rejectValue: string }
+>(
   'timer/completeReadingSessionAsync',
-  async ({ bookTitle }, { dispatch, rejectWithValue }) => {
+  async ({ bookId, bookTitle, currentPage, totalPages }, { dispatch, rejectWithValue }) => {
     try {
+      // 1. 本の進捗・ステータス更新
+      if (bookId) {
+        await dispatch(updateBookStatusAsync({ id: bookId, status: 'completed' })).unwrap();
+        if (typeof currentPage === 'number') {
+          dispatch({ type: 'book/updateCurrentPage', payload: { id: bookId, page: currentPage } });
+        }
+        if (typeof totalPages === 'number') {
+          dispatch({ type: 'book/updateTotalPages', payload: { id: bookId, pages: totalPages } });
+        }
+      }
+      // 2. 通知
       await dispatch(notifyGoalReachedAsync({ bookTitle })).unwrap();
+      // 3. タイマー停止
       dispatch(completeReadingSession());
     } catch (error: any) {
       return rejectWithValue(error?.message || '読書セッションの完了に失敗しました');

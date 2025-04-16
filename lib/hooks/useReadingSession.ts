@@ -29,7 +29,12 @@ export function useReadingSession() {
   const handleFinishReading = (book: Book | null) => {
     if (!book) return;
     // Redux経由で読書セッション完了処理
-    dispatch(completeReadingSessionAsync({ bookTitle: book.title }));
+    dispatch(completeReadingSessionAsync({
+      bookId: book.id,
+      bookTitle: book.title,
+      currentPage: book.currentPage,
+      totalPages: book.totalPages
+    }));
     setModalCurrentPage(book.currentPage);
     setModalTotalPages(book.totalPages);
     setShowCompletionModal(true);
