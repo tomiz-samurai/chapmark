@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Pressable, Image, Text } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Image, Text, TouchableOpacity } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
 import { Book as BookIcon, TrendingUp, Clock } from 'lucide-react-native';
@@ -11,6 +11,7 @@ import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
 import { getAllBooks, getUserBooksByStatus, Book as BookType } from '../../lib/services/BookService';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { BookStatus } from '../../types/models';
+import { CollectionHeader } from '../../components/common/CollectionHeader';
 
 // recommendedBooksが読み込めない問題を解決するためのフォールバックデータ
 const RECOMMENDED_BOOKS = [
@@ -60,14 +61,14 @@ const BOOKS_READ = 8; // 現在の読了数
 const PROGRESS = (BOOKS_READ / READING_GOAL) * 100;
 
 export default function HomeScreen() {
-  const { isLargeDevice } = useResponsive();
-  const { navigateToBookDetail } = useBookNavigation();
   const { t } = useAppTranslation();
+  const { isLargeDevice } = useResponsive();
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_600SemiBold,
     PlayfairDisplay_700Bold,
   });
+  const { navigateToBookDetail, navigateToBookList } = useBookNavigation();
 
   if (!fontsLoaded) {
     return null;
@@ -91,6 +92,14 @@ export default function HomeScreen() {
 
   const handleNotificationPress = () => {
     console.log('Notification pressed');
+  };
+
+  const handleViewAllRecommended = () => {
+    navigateToBookList('recommended');
+  };
+
+  const handleBookPress = (book: BookType) => {
+    navigateToBookDetail(book.id, '/(tabs)');
   };
 
   return (
@@ -140,25 +149,24 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* おすすめの本セクション */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Typography variant="title">{t('home.recommendedBooks')}</Typography>
-            <Pressable>
-              <Typography variant="caption" style={styles.viewAllText}>{t('common.viewAll')}</Typography>
-            </Pressable>
-          </View>
-          <ScrollView 
-            horizontal 
+        {/* おすすめの書籍セクション */}
+        <View style={styles.recommendedSection}>
+          <CollectionHeader 
+            title={t('home.recommendedBooks')} 
+            onSeeAllPress={handleViewAllRecommended} 
+          />
+          
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
-            style={styles.booksScrollView}
+            contentContainerStyle={styles.recommendedScrollContent}
           >
             {recommendedBooks && recommendedBooks.length > 0 ? (
               recommendedBooks.map((book) => (
                 <BookCard
                   key={book?.id || `book-${Math.random()}`}
                   book={book}
-                  onPress={() => console.log('Book pressed:', book?.title)}
+                  onPress={() => handleBookPress(book)}
                   style={{ marginRight: spacing.md }}
                 />
               ))
@@ -315,5 +323,12 @@ const styles = StyleSheet.create({
   emptyStateText: {
     color: colors.primary.main,
     fontWeight: 'bold',
+  },
+  recommendedSection: {
+    padding: spacing.md,
+  },
+  recommendedScrollContent: {
+    paddingRight: spacing.md,
+    gap: spacing.sm,
   },
 });
