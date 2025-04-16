@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import i18n from '../../config/i18n';
 import { Platform } from 'react-native';
 
 // 通知の設定
@@ -10,20 +11,37 @@ Notifications.setNotificationHandler({
   }),
 });
 
+/**
+ * 通知サービスクラス
+ * アプリ内の通知機能を一元管理
+ */
 export class NotificationServiceClass {
-  // 通知権限をリクエスト
+  // 通知許可をリクエスト
   public async requestPermissions() {
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('reading-timer', {
-        name: '読書タイマー',
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
+    try {
+      // Android向けの通知チャンネル設定
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('reading-timer', {
+          name: '読書タイマー',
+          importance: Notifications.AndroidImportance.HIGH,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#FF231F7C',
+        });
+      }
+      
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      
+      return finalStatus === 'granted';
+    } catch (error) {
+      console.error('通知許可の取得に失敗しました:', error);
+      return false;
     }
-
-    const { status } = await Notifications.requestPermissionsAsync();
-    return status === 'granted';
   }
 
   // 目標達成通知の表示
@@ -32,8 +50,8 @@ export class NotificationServiceClass {
 
     try {
       await Notifications.presentNotificationAsync({
-        title: '目標達成！',
-        body: `${bookTitle}の読書目標時間に到達しました！`,
+        title: i18n.t('common.success'),
+        body: i18n.t('timer.goalNotification', { book: bookTitle }),
         data: { type: 'goal-reached' },
       });
       return true;

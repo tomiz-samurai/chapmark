@@ -162,6 +162,7 @@
     "recordSaved": "Reading record saved",
     "pleaseSelectBook": "Please select a book",
     "page": "Page",
+    "pageDisplay": "{{current}} / {{total}} Pages",
     "targetTime": "Target Time",
     "goalTime": "Goal Time",
     "goalReached": "Goal Reached!",

@@ -93,7 +93,8 @@ export function CompletionModal({
   return (
     <Modal
       visible={visible}
-      title={t('timer.sessionCompleted')}
+      title="timer.sessionCompleted"
+      isTitleTranslationKey={true}
       onClose={onClose}
     >
       <View style={styles.container}>

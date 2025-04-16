@@ -162,6 +162,7 @@
     "recordSaved": "読書の記録を保存しました。",
     "pleaseSelectBook": "本を選択してください",
     "page": "ページ",
+    "pageDisplay": "{{current}} / {{total}} ページ",
     "targetTime": "目標時間",
     "goalTime": "目標時間",
     "goalReached": "目標達成！",

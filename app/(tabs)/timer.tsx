@@ -315,7 +315,7 @@ export default function TimerScreen() {
                 showPercentage={false}
               />
               <Typography variant="caption" style={{ color: colors.textSecondary, fontSize: 9, marginTop: 2 }}>
-                {selectedBook.currentPage} / {selectedBook.totalPages} {t('timer.page')}
+                {t('timer.pageDisplay', { current: selectedBook.currentPage, total: selectedBook.totalPages })}
               </Typography>
             </View>
           )}
@@ -388,7 +388,8 @@ export default function TimerScreen() {
       {/* 本選択モーダル */}
       <Modal
         visible={showBookSelectorModal}
-        title={t('timer.selectBook')}
+        title="timer.selectBook"
+        isTitleTranslationKey={true}
         onClose={handleCloseBookSelector}
       >
         <View style={styles.bookSelectorModalWrapper}>
