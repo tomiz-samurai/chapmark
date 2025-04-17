@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Note } from '../../types/models/note';
+import { CreateNoteInput, UpdateNoteInput } from '../../types/models/note';
 
 export interface NoteState {
   notes: Note[];
@@ -36,7 +37,7 @@ export const noteSlice = createSlice({
     },
     
     // ノートの追加
-    addNote: (state, action: PayloadAction<Omit<Note, 'id' | 'createdAt' | 'updatedAt'>>) => {
+    addNote: (state, action: PayloadAction<CreateNoteInput>) => {
       const now = new Date();
       const newNote: Note = {
         ...action.payload,
@@ -48,7 +49,7 @@ export const noteSlice = createSlice({
     },
     
     // ノートの更新
-    updateNote: (state, action: PayloadAction<{ id: string; updates: Partial<Omit<Note, 'id' | 'createdAt' | 'updatedAt'>> }>) => {
+    updateNote: (state, action: PayloadAction<{ id: string; updates: UpdateNoteInput }>) => {
       const index = state.notes.findIndex(note => note.id === action.payload.id);
       if (index !== -1) {
         state.notes[index] = { 
