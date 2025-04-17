@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { Book, BookStatus } from '../../types/models/book';
 import * as BookService from '../services/BookService';
+import { RootState } from '../store';
 
 export interface BookState {
   books: Book[];
@@ -219,4 +220,8 @@ export const {
   removeBook
 } = bookSlice.actions;
 
-export default bookSlice.reducer; 
+export default bookSlice.reducer;
+
+// ステータス別書籍取得用セレクタ
+export const selectBooksByStatus = (state: RootState, status: BookStatus) =>
+  state.book.books.filter(book => book.status === status); 

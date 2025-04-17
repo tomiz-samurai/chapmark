@@ -8,7 +8,10 @@ import { useResponsive } from '../../hooks/useResponsive';
 import { Header } from '../../components/layouts/Header';
 import { BookCard } from '../../components/common';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
-import { getAllBooks, getUserBooksByStatus } from '../../lib/services/BookService';
+import { useEffect } from 'react';
+import { useAppDispatch } from '../../lib/hooks/useAppDispatch';
+import { useAppSelector } from '../../lib/hooks/useAppSelector';
+import { fetchAllBooksAsync, selectBooksByStatus } from '../../lib/store/bookSlice';
 import { Book as BookType } from '../../types/models/book';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { BookStatus } from '../../types/models';
@@ -72,30 +75,20 @@ export default function HomeScreen() {
     PlayfairDisplay_700Bold,
   });
   const { navigateToBookDetail, navigateToBookList } = useBookNavigation();
+  const dispatch = useAppDispatch();
+  const books = useAppSelector((state) => state.book.books);
+  const readingBooks = useAppSelector((state) => selectBooksByStatus(state, 'reading'));
+
+  useEffect(() => {
+    dispatch(fetchAllBooksAsync());
+  }, [dispatch]);
 
   if (!fontsLoaded) {
     return null;
   }
 
-  // おすすめ書籍をgetAllBooks()から取得
-  const allBooks = getAllBooks();
-  // 例: rating順で上位3件をおすすめとする
-  const recommendedBooks = [...allBooks].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 3);
-
-  // 読書中の本を取得
-  let currentlyReadingBooks: BookType[] = [];
-  try {
-    currentlyReadingBooks = getUserBooksByStatus('reading').map(book => {
-      // 'all' の場合は status を 'reading' に変換し、Book型の要件を満たす
-      if (book.status === 'all') {
-        return { ...book, status: 'reading' };
-      } else {
-        return { ...book, status: book.status };
-      }
-    });
-  } catch (error) {
-    console.error('Error loading reading books:', error);
-  }
+  // おすすめ書籍をbooksから取得
+  const recommendedBooks = [...books].sort((a: BookType, b: BookType) => (b.rating || 0) - (a.rating || 0)).slice(0, 3);
 
   const handleNotificationPress = () => {
     console.log('Notification pressed');
@@ -200,24 +193,20 @@ export default function HomeScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.currentlyReadingScrollContent}
+            contentContainerStyle={styles.recommendedScrollContent}
           >
-            {Array.isArray(currentlyReadingBooks) && currentlyReadingBooks.length > 0 ? (
-              currentlyReadingBooks.map((book) => (
-                book ? (
-                  <BookCard
-                    key={book.id || `reading-${Math.random()}`}
-                    book={book}
-                    variant="horizontal"
-                    showStatus={true}
-                    style={{ marginRight: spacing.md }}
-                    onPress={() => book.id ? navigateToBookDetail(book.id, '/(tabs)') : null}
-                  />
-                ) : null
+            {readingBooks && readingBooks.length > 0 ? (
+              readingBooks.map((book: BookType) => (
+                <BookCard
+                  key={book?.id || `reading-book-${Math.random()}`}
+                  book={book}
+                  onPress={() => handleBookPress(book)}
+                  style={{ marginRight: spacing.md }}
+                />
               ))
             ) : (
               <Typography variant="body" style={{ padding: spacing.md }}>
-                現在読書中の本はありません
+                {t('home.noCurrentlyReadingBooks')}
               </Typography>
             )}
           </ScrollView>
