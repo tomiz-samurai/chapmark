@@ -33,8 +33,7 @@ export class TimerServiceClass {
 
   // AppStateの変更を処理
   private handleAppStateChange = (nextAppState: AppStateStatus) => {
-    // 型アサーションを使ってエラーを回避
-    const state = store.getState() as any;
+    const state = store.getState(); // RootState型
     const { timer } = state;
 
     // アプリがバックグラウンドに移動した場合
@@ -68,8 +67,7 @@ export class TimerServiceClass {
 
   // 目標時間の設定
   public setGoalTime(seconds: number) {
-    // 型アサーションを使ってエラーを回避
-    const state = store.getState() as any;
+    const state = store.getState(); // RootState型
     const { timer } = state;
     
     // タップ感触フィードバック
@@ -81,8 +79,7 @@ export class TimerServiceClass {
 
   // 目標時間到達時の処理
   private handleGoalReached() {
-    // 型アサーションを使ってエラーを回避
-    const state = store.getState() as any;
+    const state = store.getState(); // RootState型
     const { timer, book } = state;
     
     // 目標達成を記録
@@ -94,7 +91,7 @@ export class TimerServiceClass {
     }
     
     // 通知送信
-    const selectedBook = book.books.find((b: any) => b.id === timer.activeBook);
+    const selectedBook = book.books.find((b) => b.id === timer.activeBook);
     if (selectedBook) {
       NotificationService.showGoalNotification(selectedBook.title);
     }
@@ -115,7 +112,7 @@ export class TimerServiceClass {
         store.dispatch(updateTimer());
         
         // 目標時間に達したかチェック
-        const state = store.getState() as any;
+        const state = store.getState(); // RootState型
         const { timer } = state;
         
         if (timer.goalTime && timer.displaySeconds >= timer.goalTime && !timer.goalReached) {
@@ -143,8 +140,7 @@ export class TimerServiceClass {
 
   // タイマーを再開
   public resumeTimer() {
-    // 型アサーションを使ってエラーを回避
-    const state = store.getState() as any;
+    const state = store.getState(); // RootState型
     const { timer } = state;
     
     // タップ感触フィードバック
@@ -163,7 +159,7 @@ export class TimerServiceClass {
           store.dispatch(updateTimer());
           
           // 目標時間に達したかチェック
-          const currentState = store.getState() as any;
+          const currentState = store.getState(); // RootState型
           const { timer: currentTimer } = currentState;
           
           if (currentTimer.goalTime && currentTimer.displaySeconds >= currentTimer.goalTime && !currentTimer.goalReached) {
