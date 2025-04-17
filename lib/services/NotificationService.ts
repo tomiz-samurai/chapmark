@@ -11,13 +11,21 @@ Notifications.setNotificationHandler({
   }),
 });
 
+export interface NotificationData {
+  type?: string;
+  [key: string]: unknown;
+}
+
 /**
  * 通知サービスクラス
  * アプリ内の通知機能を一元管理
  */
 export class NotificationServiceClass {
-  // 通知許可をリクエスト
-  public async requestPermissions() {
+  /**
+   * 通知許可をリクエスト
+   * @returns {Promise<boolean>} 通知許可が与えられたかどうか
+   */
+  public async requestPermissions(): Promise<boolean> {
     try {
       // Android向けの通知チャンネル設定
       if (Platform.OS === 'android') {
@@ -44,15 +52,19 @@ export class NotificationServiceClass {
     }
   }
 
-  // 目標達成通知の表示
-  public async showGoalNotification(bookTitle: string) {
+  /**
+   * 目標達成通知の表示
+   * @param {string} bookTitle - 本のタイトル
+   * @returns {Promise<boolean>} 通知が正常に表示されたかどうか
+   */
+  public async showGoalNotification(bookTitle: string): Promise<boolean> {
     await this.requestPermissions();
 
     try {
       await Notifications.presentNotificationAsync({
         title: i18n.t('common.success'),
         body: i18n.t('timer.goalNotification', { book: bookTitle }),
-        data: { type: 'goal-reached' },
+        data: { type: 'goal-reached' } as NotificationData,
       });
       return true;
     } catch (error) {
@@ -61,8 +73,14 @@ export class NotificationServiceClass {
     }
   }
 
-  // 通知を表示（汎用）
-  public async showNotification(title: string, body: string, data = {}) {
+  /**
+   * 任意の内容で通知を表示
+   * @param {string} title - 通知タイトル
+   * @param {string} body - 通知本文
+   * @param {NotificationData} data - 通知に付与する追加データ
+   * @returns {Promise<boolean>} 通知が正常に表示されたかどうか
+   */
+  public async showNotification(title: string, body: string, data: NotificationData = {}): Promise<boolean> {
     await this.requestPermissions();
 
     try {
