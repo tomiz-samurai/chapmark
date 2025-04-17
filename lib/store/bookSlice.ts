@@ -16,6 +16,12 @@ const initialState: BookState = {
   error: null
 };
 
+// 型安全なBookStatus変換関数
+const toBookStatus = (status: any): BookStatus => {
+  const valid: BookStatus[] = ['reading', 'completed', 'planned', 'on-hold', 'dropped', 'all'];
+  return valid.includes(status) ? status : 'planned';
+};
+
 // 非同期Thunk: 全ての本を取得
 export const fetchAllBooksAsync = createAsyncThunk<Book[], void, { rejectValue: string }>(
   'book/fetchAllBooks',
@@ -25,7 +31,7 @@ export const fetchAllBooksAsync = createAsyncThunk<Book[], void, { rejectValue: 
       // BookServiceのBook型をmodelsのBook型に変換（必要なら）
       return books.map((book) => ({
         ...book,
-        status: (book.status || 'planned') as BookStatus
+        status: toBookStatus(book.status || 'planned')
       }));
     } catch (error: any) {
       return rejectWithValue(error?.message || '本の取得に失敗しました');
@@ -38,7 +44,6 @@ export const addBookToLibraryAsync = createAsyncThunk<Book, { book: Book; status
   'book/addBookToLibrary',
   async ({ book, status }, { rejectWithValue }) => {
     try {
-      // BookServiceのBook型とmodelsのBook型の整合性を担保
       // statusが'all'の場合は'planned'に変換
       const safeStatus = (!status || status === 'all') ? 'planned' : status;
       const bookForService = {
@@ -48,7 +53,7 @@ export const addBookToLibraryAsync = createAsyncThunk<Book, { book: Book; status
       const addedBook = BookService.addBookToLibrary(bookForService, safeStatus);
       return {
         ...addedBook,
-        status: (addedBook.status || 'planned') as BookStatus
+        status: toBookStatus(addedBook.status || 'planned')
       };
     } catch (error: any) {
       return rejectWithValue(error?.message || '本の追加に失敗しました');
@@ -69,7 +74,7 @@ export const updateBookStatusAsync = createAsyncThunk<Book | undefined, { id: st
       }
       return {
         ...updatedBook,
-        status: (updatedBook.status || 'planned') as BookStatus
+        status: toBookStatus(updatedBook.status || 'planned')
       };
     } catch (error: any) {
       return rejectWithValue(error?.message || '本のステータス更新に失敗しました');

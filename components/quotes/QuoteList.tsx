@@ -68,6 +68,7 @@ export const QuoteList: React.FC<QuoteListProps> = ({
       )}
       contentContainerStyle={styles.listContainer}
       showsVerticalScrollIndicator={false}
+      scrollEnabled={false}
     />
   );
 };

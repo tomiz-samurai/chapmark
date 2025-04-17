@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ReadingSession } from '../../types/models/session';
+import { CreateSessionInput } from '../../types/models/session';
 
 export interface SessionState {
   sessions: ReadingSession[];
@@ -38,11 +39,12 @@ export const sessionSlice = createSlice({
     },
     
     // 新しい読書セッションの開始
-    startSession: (state, action: PayloadAction<Omit<ReadingSession, 'id' | 'endTime' | 'completed'>>) => {
+    startSession: (state, action: PayloadAction<CreateSessionInput>) => {
       const newSession: ReadingSession = {
         ...action.payload,
         id: Date.now().toString(),
-        completed: false
+        completed: false,
+        duration: 0
       };
       state.currentSession = newSession;
     },

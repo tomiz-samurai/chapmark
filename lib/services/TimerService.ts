@@ -24,7 +24,7 @@ const TIMER_INTERVAL = 1000;
 export class TimerServiceClass {
   private timerId: number | null = null;
   private appState: AppStateStatus = AppState.currentState;
-  private appStateSubscription: any = null;
+  private appStateSubscription: { remove: () => void } | null = null;
 
   constructor() {
     // AppStateの監視を初期化
