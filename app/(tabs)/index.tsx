@@ -8,7 +8,8 @@ import { useResponsive } from '../../hooks/useResponsive';
 import { Header } from '../../components/layouts/Header';
 import { BookCard } from '../../components/common';
 import { useBookNavigation } from '../../lib/hooks/useBookNavigation';
-import { getAllBooks, getUserBooksByStatus, Book as BookType } from '../../lib/services/BookService';
+import { getAllBooks, getUserBooksByStatus } from '../../lib/services/BookService';
+import { Book as BookType } from '../../types/models/book';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { BookStatus } from '../../types/models';
 import { CollectionHeader } from '../../components/common/displays/CollectionHeader';
@@ -84,10 +85,14 @@ export default function HomeScreen() {
   // 読書中の本を取得
   let currentlyReadingBooks: BookType[] = [];
   try {
-    currentlyReadingBooks = getUserBooksByStatus('reading').map(book => ({
-      ...book,
-      status: (book.status as Exclude<BookStatus, 'all'>) || 'reading'
-    }));
+    currentlyReadingBooks = getUserBooksByStatus('reading').map(book => {
+      // 'all' の場合は status を 'reading' に変換し、Book型の要件を満たす
+      if (book.status === 'all') {
+        return { ...book, status: 'reading' };
+      } else {
+        return { ...book, status: book.status };
+      }
+    });
   } catch (error) {
     console.error('Error loading reading books:', error);
   }

@@ -17,6 +17,18 @@ interface FilterBarProps {
   onToggleSearch: () => void;
 }
 
+// BookStatus型かどうかを判定する型ガード
+function isBookStatus(value: string): value is BookStatus {
+  return [
+    'reading',
+    'completed',
+    'planned',
+    'on-hold',
+    'dropped',
+    'all',
+  ].includes(value);
+}
+
 /**
  * 本の一覧に対するフィルターとステータスタブを提供するコンポーネント
  */
@@ -71,7 +83,11 @@ export function FilterBar({
                   { backgroundColor: colors.primary }
                 ],
               ]}
-              onPress={() => onStatusChange(tab.value as BookStatus)}
+              onPress={() => {
+                if (isBookStatus(tab.value)) {
+                  onStatusChange(tab.value);
+                }
+              }}
             >
               <Typography
                 variant="caption"

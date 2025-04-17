@@ -38,6 +38,17 @@ interface NewBookData {
   status: BookStatus;
 }
 
+// ViewMode, SortOption, SortDirection の型ガード関数を追加
+function isViewMode(value: string): value is ViewMode {
+  return value === 'grid' || value === 'list';
+}
+function isSortOption(value: string): value is SortOption {
+  return value === 'title' || value === 'author' || value === 'recent' || value === 'none';
+}
+function isSortDirection(value: string): value is SortDirection {
+  return value === 'asc' || value === 'desc';
+}
+
 /**
  * 本の一覧表示と管理に関するロジックをカプセル化するカスタムフック
  */
@@ -81,18 +92,16 @@ export function useLibrary() {
   const loadSettings = async () => {
     try {
       const savedViewMode = await AsyncStorage.getItem(VIEW_MODE_STORAGE_KEY);
-      if (savedViewMode) {
-        setViewMode(savedViewMode as ViewMode);
+      if (savedViewMode && isViewMode(savedViewMode)) {
+        setViewMode(savedViewMode);
       }
-      
       const savedSortOption = await AsyncStorage.getItem(SORT_OPTION_STORAGE_KEY);
-      if (savedSortOption) {
-        setSortOption(savedSortOption as SortOption);
+      if (savedSortOption && isSortOption(savedSortOption)) {
+        setSortOption(savedSortOption);
       }
-      
       const savedSortDirection = await AsyncStorage.getItem(SORT_DIRECTION_STORAGE_KEY);
-      if (savedSortDirection) {
-        setSortDirection(savedSortDirection as SortDirection);
+      if (savedSortDirection && isSortDirection(savedSortDirection)) {
+        setSortDirection(savedSortDirection);
       }
     } catch (error) {
       console.error('設定の読み込みに失敗しました:', error);
@@ -186,11 +195,11 @@ export function useLibrary() {
       id: `local-${Date.now()}`,
       title: newBookTitle,
       author: newBookAuthor,
+      status: newBookStatus === 'all' ? 'planned' : newBookStatus,
       coverUrl: defaultCoverUrl,
       coverImage: defaultCoverUrl,
       description: '手動で追加された本です',
-      status: newBookStatus === 'all' ? 'planned' : newBookStatus
-    } as Book;
+    };
     try {
       await dispatch(addBookToLibraryAsync({ book: newBook, status: newBook.status })).unwrap();
       refreshBooks();

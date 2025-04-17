@@ -21,7 +21,7 @@ import { useAppDispatch } from '../../lib/hooks/useAppDispatch';
 import { useAppSelector } from '../../lib/hooks/useAppSelector';
 
 // ステータスのオプション
-const STATUS_OPTIONS = [
+const STATUS_OPTIONS: { value: BookStatus; label: string; color: string }[] = [
   { value: 'reading', label: 'books.reading', color: colors.primary.main },
   { value: 'completed', label: 'books.completed', color: colors.accent.main },
   { value: 'planned', label: 'books.toRead', color: colors.gray[500] },
@@ -479,7 +479,7 @@ export default function BookDetail() {
             <TouchableOpacity
               key={option.value}
               style={styles.statusOption}
-              onPress={() => handleSelectStatus(option.value as BookStatus)}
+              onPress={() => handleSelectStatus(option.value)}
             >
               <View style={[styles.statusColor, { backgroundColor: option.color }]} />
               <Typography variant="body" style={{ flex: 1 }}>
