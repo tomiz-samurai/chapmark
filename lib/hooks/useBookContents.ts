@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { Quote, Note } from '../types';
+import { Quote, Note } from '../../types/models';
 
 /**
  * 書籍に関連する引用とメモを取得するためのカスタムフック

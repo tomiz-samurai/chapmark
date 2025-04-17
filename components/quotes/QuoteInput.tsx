@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Typography } from '../Typography';
 import { Button } from '../common';
@@ -74,6 +74,9 @@ export const QuoteInput = ({ bookId, onSave, initialQuote }: QuoteInputProps) =>
     if (onSave) {
       onSave();
     }
+    
+    // 投稿成功アラート
+    Alert.alert(t('common.success'), t('common.post'));
     
     // フォームをリセット（必要に応じて）
     if (!initialQuote) {

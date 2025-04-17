@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Quote } from '../../types/models/quote';
+import { CreateQuoteInput } from '../../types/models/quote';
 
 export interface QuoteState {
   quotes: Quote[];
@@ -36,11 +37,12 @@ export const quoteSlice = createSlice({
     },
     
     // 引用の追加
-    addQuote: (state, action: PayloadAction<Omit<Quote, 'id' | 'createdAt'>>) => {
+    addQuote: (state, action: PayloadAction<CreateQuoteInput>) => {
       const newQuote: Quote = {
         ...action.payload,
         id: Date.now().toString(),
-        createdAt: new Date()
+        createdAt: new Date().toISOString(),
+        isPublic: action.payload.isPublic ?? false
       };
       state.quotes.push(newQuote);
     },
