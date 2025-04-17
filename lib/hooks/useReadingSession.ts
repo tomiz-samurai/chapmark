@@ -12,7 +12,7 @@ import { useAppTranslation } from '../../hooks/useAppTranslation';
 /**
  * 読書セッションの完了と保存に関するロジックをカプセル化するカスタムフック
  */
-export function useReadingSession() {
+export function useReadingSession(originalStatusRef?: React.RefObject<string | null>) {
   const { t } = useAppTranslation();
   const dispatch = useAppDispatch();
 
@@ -26,14 +26,15 @@ export function useReadingSession() {
   const [modalTotalPages, setModalTotalPages] = useState<number | undefined>(undefined);
   
   // 読書セッション完了時の処理
-  const handleFinishReading = (book: Book | null) => {
+  const handleFinishReading = (book: Book | null, originalStatus?: string | null) => {
     if (!book) return;
     // Redux経由で読書セッション完了処理
     dispatch(completeReadingSessionAsync({
       bookId: book.id,
       bookTitle: book.title,
       currentPage: book.currentPage,
-      totalPages: book.totalPages
+      totalPages: book.totalPages,
+      originalStatus: originalStatus ?? originalStatusRef?.current ?? null
     }));
     setModalCurrentPage(book.currentPage);
     setModalTotalPages(book.totalPages);
@@ -41,7 +42,7 @@ export function useReadingSession() {
   };
 
   // セッションの保存処理
-  const handleSaveSession = (book: Book | null) => {
+  const handleSaveSession = (book: Book | null, originalStatus?: string | null) => {
     if (!book) return;
     
     // 現在のページと総ページ数を更新

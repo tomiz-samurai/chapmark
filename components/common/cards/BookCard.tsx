@@ -3,7 +3,7 @@ import { View, StyleSheet, Image, TouchableOpacity, Dimensions, ImageSourcePropT
 import { Star } from 'lucide-react-native';
 import { colors, shadows, borderRadius, spacing, typography } from '../../../constants/theme';
 import { Typography } from '../../Typography';
-import { Book } from '../../lib/services/BookService';
+import { Book } from '../../../types/models/book';
 import { useAppTranslation } from '../../../hooks/useAppTranslation';
 
 interface BookCardProps {
@@ -50,12 +50,12 @@ export const BookCard: React.FC<BookCardProps> = ({
   };
   
   // 共通の画像ソース処理をuseMemoで効率化
-  const coverSource = useMemo(() => {
+  const coverSource: ImageSourcePropType = useMemo(() => {
     console.log(`Book: ${title} - coverUrl: ${coverUrl}, coverImage: ${coverImage}`);
     
     if (imageError) {
       console.log(`${title}: エラーが発生したため、デフォルト画像を使用`);
-      return { uri: defaultBookCover } as ImageSourcePropType;
+      return { uri: defaultBookCover };
     }
     
     // 修正されたURLを取得
@@ -64,16 +64,16 @@ export const BookCard: React.FC<BookCardProps> = ({
     
     if (fixedCoverUrl) {
       console.log(`${title}: coverUrlを使用 - ${fixedCoverUrl}`);
-      return { uri: fixedCoverUrl } as ImageSourcePropType;
+      return { uri: fixedCoverUrl };
     }
     
     if (fixedCoverImage) {
       console.log(`${title}: coverImageを使用 - ${fixedCoverImage}`);
-      return { uri: fixedCoverImage } as ImageSourcePropType;
+      return { uri: fixedCoverImage };
     }
     
     console.log(`${title}: デフォルト画像を使用`);
-    return { uri: defaultBookCover } as ImageSourcePropType;
+    return { uri: defaultBookCover };
   }, [book, imageError, coverUrl, coverImage, title]);
   
   // 画像読み込みエラー処理

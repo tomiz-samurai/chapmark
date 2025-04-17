@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Book, BookStatus } from '../../types/models';
 import { selectBook, updateCurrentPage, updateTotalPages, fetchBooksSuccess, fetchAllBooksAsync } from '../store/bookSlice';
 import { resetTimer } from '../store/timerSlice';
@@ -24,6 +24,9 @@ export function useBookSelection() {
     ? books.find(book => book.id === selectedBookId) || null
     : null;
   
+  // 本の元のステータスを保持
+  const originalStatus = useRef<BookStatus | null>(null);
+  
   // 初期データのロード
   useEffect(() => {
     // 利用可能な読書中の本がない場合はデータを取得
@@ -45,6 +48,7 @@ export function useBookSelection() {
   
   // 本の選択時に呼ばれる
   const handleSelectBook = (book: Book) => {
+    originalStatus.current = book.status;
     dispatch(selectBook(book.id));
     dispatch(resetTimer());
     setShowBookSelectorModal(false);
@@ -83,6 +87,7 @@ export function useBookSelection() {
     handleOpenBookSelector,
     handleCloseBookSelector,
     handleCurrentPageChange,
-    handleTotalPagesChange
+    handleTotalPagesChange,
+    originalStatus
   };
 } 

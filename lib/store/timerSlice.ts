@@ -32,15 +32,16 @@ export const notifyGoalReachedAsync = createAsyncThunk<void, { bookTitle: string
 // 非同期Thunk: 読書セッションの完了（副作用含む）
 export const completeReadingSessionAsync = createAsyncThunk<
   void,
-  { bookId: string; bookTitle: string; currentPage?: number; totalPages?: number },
+  { bookId: string; bookTitle: string; currentPage?: number; totalPages?: number; originalStatus?: string | null },
   { rejectValue: string }
 >(
   'timer/completeReadingSessionAsync',
-  async ({ bookId, bookTitle, currentPage, totalPages }, { dispatch, rejectWithValue }) => {
+  async ({ bookId, bookTitle, currentPage, totalPages, originalStatus }, { dispatch, rejectWithValue }) => {
     try {
       // 1. 本の進捗・ステータス更新
       if (bookId) {
-        await dispatch(updateBookStatusAsync({ id: bookId, status: 'completed' })).unwrap();
+        const statusToSet = originalStatus === 'completed' ? 'completed' : 'reading';
+        await dispatch(updateBookStatusAsync({ id: bookId, status: statusToSet })).unwrap();
         if (typeof currentPage === 'number') {
           dispatch({ type: 'book/updateCurrentPage', payload: { id: bookId, page: currentPage } });
         }

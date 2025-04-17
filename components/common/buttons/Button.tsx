@@ -20,7 +20,7 @@ export interface ButtonProps {
   onPress: () => void;
   variant?: ButtonVariant;
   size?: ButtonSize;
-  icon?: string;
+  icon?: keyof typeof Feather.glyphMap;
   disabled?: boolean;
   loading?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -144,7 +144,7 @@ export function Button({
         <View style={styles.buttonContent}>
           {icon && (
             <Feather
-              name={icon as any}
+              name={icon}
               size={getSizeStyle().icon}
               color={getVariantStyle(false).text.color as string}
               style={styles.icon}

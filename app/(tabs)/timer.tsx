@@ -49,7 +49,8 @@ export default function TimerScreen() {
     handleOpenBookSelector,
     handleCloseBookSelector,
     handleCurrentPageChange,
-    handleTotalPagesChange
+    handleTotalPagesChange,
+    originalStatus
   } = useBookSelection();
   
   // カスタムフックを使用して読書セッション機能を取得
@@ -62,7 +63,7 @@ export default function TimerScreen() {
     handleFinishReading,
     handleSaveSession,
     handleCloseCompletionModal
-  } = useReadingSession();
+  } = useReadingSession(originalStatus);
   
   // タイマーの状態
   const isTimerRunning = useAppSelector(state => state.timer?.isRunning || false);
@@ -120,7 +121,7 @@ export default function TimerScreen() {
             {/* タイマーコンポーネント */}
             <ReadingTimer 
               book={selectedBook}
-              onFinish={() => handleFinishReading(selectedBook)}
+              onFinish={() => handleFinishReading(selectedBook, originalStatus.current)}
               goalTime={goalTime}
               onSetGoalTime={handleSetGoalTime}
               compact={true}
@@ -173,7 +174,7 @@ export default function TimerScreen() {
       <CompletionModal
         visible={showCompletionModal}
         onClose={handleCloseCompletionModal}
-        onSave={() => handleSaveSession(selectedBook)}
+        onSave={() => handleSaveSession(selectedBook, originalStatus.current)}
         startPage={startPage}
         initialCurrentPage={modalCurrentPage}
         initialTotalPages={modalTotalPages}
