@@ -1,13 +1,13 @@
-import { recommendedBooks, newReleaseBooks, Book as MockBook } from '../mockData';
+import { recommendedBooks, newReleaseBooks } from '../mockData';
 // インポートエラーを修正、エクスポートが存在しない場合は空の配列を使用
 const libraryBooks: any[] = []; // libraryからのMOCK_BOOKSは存在しない
 const homeBooks: any[] = []; // indexからのRECOMMENDED_BOOKSが削除された
 
-import { Book as ModelBook, BookStatus } from '../../types/models';
+import { Book, BookStatus } from '../../types/models/book';
 
 // BookServiceで使用する書籍の型
 export type BookStatusWithoutAll = Exclude<BookStatus, 'all'>;
-export type Book = Omit<ModelBook, 'status'> & {
+export type Book = Omit<Book, 'status'> & {
   status?: BookStatusWithoutAll;
 };
 
@@ -26,58 +26,13 @@ const normalizeBook = (book: any): Book => {
     category: book.category,
     rating: book.rating,
     status: book.status,
+    totalPages: book.totalPages,
+    currentPage: book.currentPage,
+    genre: book.genre,
+    isbn: book.isbn,
+    startDate: book.startDate,
+    finishDate: book.finishDate,
   };
-};
-
-// 全ての本のデータを取得
-export const getAllBooks = (): Book[] => {
-  // 全てのデータソースから本を集める
-  const allMockBooks: Book[] = [];
-  
-  // 安全に各データソースを追加
-  try {
-    // recommendedBooksが存在する場合
-    if (recommendedBooks && Array.isArray(recommendedBooks)) {
-      allMockBooks.push(...recommendedBooks.map(book => normalizeBook(book)));
-    }
-    
-    // newReleaseBooksが存在する場合
-    if (newReleaseBooks && Array.isArray(newReleaseBooks)) {
-      allMockBooks.push(...newReleaseBooks.map(book => normalizeBook(book)));
-    }
-    
-    // libraryBooksが存在する場合
-    if (libraryBooks && Array.isArray(libraryBooks)) {
-      allMockBooks.push(...libraryBooks.map(book => normalizeBook(book)));
-    }
-    
-    // homeBooksが存在する場合
-    if (homeBooks && Array.isArray(homeBooks)) {
-      allMockBooks.push(...homeBooks.map(book => normalizeBook(book)));
-    }
-  } catch (error) {
-    console.error('Error adding books from sources:', error);
-  }
-
-  // 重複を削除（IDベースで）
-  const uniqueBooks = allMockBooks.reduce((acc: Book[], current) => {
-    const x = acc.find(item => item.id === current.id);
-    if (!x) {
-      return acc.concat([current]);
-    }
-    return acc;
-  }, []);
-
-  // userAddedBooksの内容で上書き
-  const mergedBooks = uniqueBooks.map(book => {
-    const userBook = userAddedBooks.find(b => b.id === book.id);
-    return userBook ? { ...book, ...userBook } : book;
-  });
-  // userAddedBooksにしか存在しない本も追加
-  const onlyUserBooks = userAddedBooks.filter(
-    userBook => !uniqueBooks.some(book => book.id === userBook.id)
-  );
-  return [...mergedBooks, ...onlyUserBooks];
 };
 
 // 追加した本を保存するための配列
@@ -165,8 +120,67 @@ let userAddedBooks: Book[] = [
   }
 ];
 
-// 本を本棚に追加
-export const addBookToLibrary = (book: Book, status: BookStatusWithoutAll = 'planned'): Book => {
+/**
+ * 全ての本のデータを取得
+ * @returns {Book[]} すべての書籍データ
+ */
+export const getAllBooks = (): Book[] => {
+  // 全てのデータソースから本を集める
+  const allMockBooks: Book[] = [];
+  
+  // 安全に各データソースを追加
+  try {
+    // recommendedBooksが存在する場合
+    if (recommendedBooks && Array.isArray(recommendedBooks)) {
+      allMockBooks.push(...recommendedBooks.map(book => normalizeBook(book)));
+    }
+    
+    // newReleaseBooksが存在する場合
+    if (newReleaseBooks && Array.isArray(newReleaseBooks)) {
+      allMockBooks.push(...newReleaseBooks.map(book => normalizeBook(book)));
+    }
+    
+    // libraryBooksが存在する場合
+    if (libraryBooks && Array.isArray(libraryBooks)) {
+      allMockBooks.push(...libraryBooks.map(book => normalizeBook(book)));
+    }
+    
+    // homeBooksが存在する場合
+    if (homeBooks && Array.isArray(homeBooks)) {
+      allMockBooks.push(...homeBooks.map(book => normalizeBook(book)));
+    }
+  } catch (error) {
+    console.error('Error adding books from sources:', error);
+  }
+
+  // 重複を削除（IDベースで）
+  const uniqueBooks = allMockBooks.reduce((acc: Book[], current) => {
+    const x = acc.find(item => item.id === current.id);
+    if (!x) {
+      return acc.concat([current]);
+    }
+    return acc;
+  }, []);
+
+  // userAddedBooksの内容で上書き
+  const mergedBooks = uniqueBooks.map(book => {
+    const userBook = userAddedBooks.find(b => b.id === book.id);
+    return userBook ? { ...book, ...userBook } : book;
+  });
+  // userAddedBooksにしか存在しない本も追加
+  const onlyUserBooks = userAddedBooks.filter(
+    userBook => !uniqueBooks.some(book => book.id === userBook.id)
+  );
+  return [...mergedBooks, ...onlyUserBooks];
+};
+
+/**
+ * 本を本棚に追加
+ * @param {Book} book - 追加する本
+ * @param {BookStatus} status - ステータス
+ * @returns {Book} 追加・更新後の本
+ */
+export const addBookToLibrary = (book: Book, status: BookStatus = 'planned'): Book => {
   // 既存の本が見つかるか確認
   const existingBookIndex = userAddedBooks.findIndex(b => b.id === book.id);
   
@@ -175,7 +189,7 @@ export const addBookToLibrary = (book: Book, status: BookStatusWithoutAll = 'pla
   const coverImage = book.coverImage || book.coverUrl;
   
   // 本に新しいステータスを設定
-  const updatedBook = {
+  const updatedBook: Book = {
     ...book,
     coverUrl,
     coverImage,
@@ -194,8 +208,13 @@ export const addBookToLibrary = (book: Book, status: BookStatusWithoutAll = 'pla
   return updatedBook;
 };
 
-// 本のステータスを変更
-export const updateBookStatus = (id: string, status: BookStatusWithoutAll): Book | undefined => {
+/**
+ * 本のステータスを変更
+ * @param {string} id - 本のID
+ * @param {BookStatus} status - 新しいステータス
+ * @returns {Book | undefined} 更新後の本
+ */
+export const updateBookStatus = (id: string, status: BookStatus): Book | undefined => {
   // まず、ユーザーが追加した本の中から検索
   const userBookIndex = userAddedBooks.findIndex(book => book.id === id);
   
@@ -217,7 +236,7 @@ export const updateBookStatus = (id: string, status: BookStatusWithoutAll): Book
     const coverImage = book.coverImage || book.coverUrl;
     
     // モックデータの本は直接変更できないため、ユーザーが追加した本としてコピーを作成
-    const updatedBook = {
+    const updatedBook: Book = {
       ...book,
       coverUrl,
       coverImage,
@@ -231,7 +250,10 @@ export const updateBookStatus = (id: string, status: BookStatusWithoutAll): Book
   return undefined;
 };
 
-// ユーザーが追加/更新した本を含む全ての本を取得
+/**
+ * 全てのユーザー本（追加/更新含む）を取得
+ * @returns {Book[]}
+ */
 export const getAllUserBooks = (): Book[] => {
   const allBooks = getAllBooks();
   
@@ -303,7 +325,11 @@ export const getUserBooksByStatus = (status: string): Book[] => {
   return userBooks.filter(book => book.status === status);
 };
 
-// IDから本を検索 (ユーザーが追加/更新した本を含む)
+/**
+ * IDから本を検索
+ * @param {string} id
+ * @returns {Book | undefined}
+ */
 export const getBookById = (id: string): Book | undefined => {
   // ユーザーが追加した本から検索
   const userBook = userAddedBooks.find(book => book.id === id);
@@ -328,7 +354,11 @@ export const getBooksByStatus = (status: string): Book[] => {
   return allBooks.filter(book => book.status === status);
 };
 
-// 本の検索
+/**
+ * 本の検索
+ * @param {string} query
+ * @returns {Book[]}
+ */
 export const searchBooks = (query: string): Book[] => {
   const allBooks = getAllBooks();
   const lowercaseQuery = query.toLowerCase();
