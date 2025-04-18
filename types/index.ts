@@ -12,4 +12,27 @@ export * from './models';
 // export * from './components';
 
 // その他の共通型（将来的に追加）
-// export * from './common'; 
+// export * from './common';
+
+// types/dto/BookDTO.ts
+export type BookCreateRequest = {
+  title: string;
+  author: string;
+  isbn?: string;
+  publishedDate?: string;
+  pageCount?: number;
+};
+
+export type BookResponse = {
+  id: string;
+  title: string;
+  author: string;
+  isbn?: string;
+  publishedDate?: string;
+  pageCount?: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// types/dto/index.ts
+export * from './dto'; 
