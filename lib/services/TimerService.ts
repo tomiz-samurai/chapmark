@@ -14,7 +14,7 @@ import {
   setBackgroundActive
 } from '../store/timerSlice';
 import { completeSession } from '../store/sessionSlice';
-import NotificationService from './NotificationService';
+import NotificationService, { NotificationServiceClass } from './NotificationService';
 import { TimerCompletionResult } from '../../types/models';
 
 // タイマー更新の間隔（ミリ秒）
@@ -25,8 +25,10 @@ export class TimerServiceClass {
   private timerId: number | null = null;
   private appState: AppStateStatus = AppState.currentState;
   private appStateSubscription: { remove: () => void } | null = null;
+  private notificationService: NotificationServiceClass;
 
-  constructor() {
+  constructor(notificationService: NotificationServiceClass = NotificationService) {
+    this.notificationService = notificationService;
     // AppStateの監視を初期化
     this.appStateSubscription = AppState.addEventListener('change', this.handleAppStateChange);
   }
@@ -93,7 +95,7 @@ export class TimerServiceClass {
     // 通知送信
     const selectedBook = book.books.find((b) => b.id === timer.activeBook);
     if (selectedBook) {
-      NotificationService.showGoalNotification(selectedBook.title);
+      this.notificationService.showGoalNotification(selectedBook.title);
     }
   }
 
