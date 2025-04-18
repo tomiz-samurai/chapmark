@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile || npm ci
+
+      - name: TypeScript 型チェック
+        run: |
+          if [ -f tsconfig.json ]; then yarn tsc --noEmit || npx tsc --noEmit; fi
+
+      - name: ESLint チェック
+        run: |
+          if [ -f package.json ]; then yarn lint || npx eslint .; fi
+
+      - name: Jest テスト
+        run: |
+          if [ -f package.json ]; then yarn test --ci --passWithNoTests || npx jest --ci --passWithNoTests; fi 
