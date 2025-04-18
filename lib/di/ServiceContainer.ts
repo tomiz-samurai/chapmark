@@ -1,3 +1,4 @@
+import type { Store } from '@reduxjs/toolkit';
 import { TimerServiceClass } from '../services/TimerService';
 import NotificationService, { NotificationServiceClass } from '../services/NotificationService';
 
@@ -10,11 +11,11 @@ export class ServiceContainer {
   private _notificationService: NotificationServiceClass;
   private _timerService: TimerServiceClass;
 
-  constructor() {
+  constructor(store: Store) {
     // NotificationServiceはシングルトン
     this._notificationService = NotificationService;
     // TimerServiceはNotificationServiceをDI
-    this._timerService = new TimerServiceClass(this._notificationService);
+    this._timerService = new TimerServiceClass(store, this._notificationService);
   }
 
   get notificationService(): NotificationServiceClass {

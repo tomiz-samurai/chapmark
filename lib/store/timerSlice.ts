@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { TimerState, StartTimerParams } from '../../types/models';
-import NotificationService from '../services/NotificationService';
 import { updateBookStatusAsync } from './bookSlice';
+import { ExtraArgument } from './index';
 
 const initialState: TimerState = {
   isRunning: false,
@@ -18,11 +18,11 @@ const initialState: TimerState = {
 };
 
 // 目標達成通知を送るThunk
-export const notifyGoalReachedAsync = createAsyncThunk<void, { bookTitle: string }, { rejectValue: string }>(
+export const notifyGoalReachedAsync = createAsyncThunk<void, { bookTitle: string }, { rejectValue: string; extra: ExtraArgument }>(
   'timer/notifyGoalReached',
-  async ({ bookTitle }, { rejectWithValue }) => {
+  async ({ bookTitle }, { rejectWithValue, extra }) => {
     try {
-      await NotificationService.showGoalNotification(bookTitle);
+      await extra.serviceContainer.notificationService.showGoalNotification(bookTitle);
     } catch (error: any) {
       return rejectWithValue(error?.message || '通知の送信に失敗しました');
     }
@@ -33,10 +33,10 @@ export const notifyGoalReachedAsync = createAsyncThunk<void, { bookTitle: string
 export const completeReadingSessionAsync = createAsyncThunk<
   void,
   { bookId: string; bookTitle: string; currentPage?: number; totalPages?: number; originalStatus?: string | null },
-  { rejectValue: string }
+  { rejectValue: string; extra: ExtraArgument }
 >(
   'timer/completeReadingSessionAsync',
-  async ({ bookId, bookTitle, currentPage, totalPages, originalStatus }, { dispatch, rejectWithValue }) => {
+  async ({ bookId, bookTitle, currentPage, totalPages, originalStatus }, { dispatch, rejectWithValue, extra }) => {
     try {
       // 1. 本の進捗・ステータス更新
       if (bookId) {
@@ -63,7 +63,7 @@ export const completeReadingSessionAsync = createAsyncThunk<
 export const startReadingSessionAsync = createAsyncThunk<
   void,
   { bookId: string; currentPage?: number },
-  { rejectValue: string }
+  { rejectValue: string; extra: ExtraArgument }
 >(
   'timer/startReadingSessionAsync',
   async ({ bookId, currentPage }, { dispatch, rejectWithValue }) => {

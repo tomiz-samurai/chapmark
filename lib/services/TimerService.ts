@@ -1,7 +1,7 @@
 import { AppState, AppStateStatus } from 'react-native';
 import BackgroundTimer from 'react-native-background-timer';
 import * as Haptics from 'expo-haptics';
-import { store, RootState } from '../store';
+import { RootState } from '../store';
 import { 
   startTimer, 
   pauseTimer, 
@@ -16,6 +16,7 @@ import {
 import { completeSession } from '../store/sessionSlice';
 import NotificationService, { NotificationServiceClass } from './NotificationService';
 import { TimerCompletionResult } from '../../types/models';
+import type { Store } from '@reduxjs/toolkit';
 
 // タイマー更新の間隔（ミリ秒）
 const TIMER_INTERVAL = 1000;
@@ -26,8 +27,10 @@ export class TimerServiceClass {
   private appState: AppStateStatus = AppState.currentState;
   private appStateSubscription: { remove: () => void } | null = null;
   private notificationService: NotificationServiceClass;
+  private store: Store;
 
-  constructor(notificationService: NotificationServiceClass = NotificationService) {
+  constructor(store: Store, notificationService: NotificationServiceClass = NotificationService) {
+    this.store = store;
     this.notificationService = notificationService;
     // AppStateの監視を初期化
     this.appStateSubscription = AppState.addEventListener('change', this.handleAppStateChange);
@@ -35,13 +38,13 @@ export class TimerServiceClass {
 
   // AppStateの変更を処理
   private handleAppStateChange = (nextAppState: AppStateStatus) => {
-    const state = store.getState(); // RootState型
+    const state = this.store.getState(); // RootState型
     const { timer } = state;
 
     // アプリがバックグラウンドに移動した場合
     if (this.appState === 'active' && nextAppState.match(/inactive|background/)) {
       // バックグラウンド状態をマーク
-      store.dispatch(setBackgroundActive(true));
+      this.store.dispatch(setBackgroundActive(true));
     }
     
     // バックグラウンドからフォアグラウンドに戻った場合
@@ -51,7 +54,7 @@ export class TimerServiceClass {
     ) {
       if (timer.isRunning) {
         // タイマーの状態を同期
-        store.dispatch(syncTimerFromBackground());
+        this.store.dispatch(syncTimerFromBackground());
         
         // 目標時間に達したかチェック
         if (timer.goalTime && timer.displaySeconds >= timer.goalTime && !timer.goalReached) {
@@ -60,7 +63,7 @@ export class TimerServiceClass {
       }
       
       // バックグラウンド状態を解除
-      store.dispatch(setBackgroundActive(false));
+      this.store.dispatch(setBackgroundActive(false));
     }
 
     // 現在のアプリ状態を更新
@@ -69,23 +72,23 @@ export class TimerServiceClass {
 
   // 目標時間の設定
   public setGoalTime(seconds: number) {
-    const state = store.getState(); // RootState型
+    const state = this.store.getState(); // RootState型
     const { timer } = state;
     
     // タップ感触フィードバック
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
     // 目標時間を設定
-    store.dispatch(setGoalTime(seconds));
+    this.store.dispatch(setGoalTime(seconds));
   }
 
   // 目標時間到達時の処理
   private handleGoalReached() {
-    const state = store.getState(); // RootState型
+    const state = this.store.getState(); // RootState型
     const { timer, book } = state;
     
     // 目標達成を記録
-    store.dispatch(setGoalReached(true));
+    this.store.dispatch(setGoalReached(true));
     
     // 触覚フィードバック（アプリがフォアグラウンドにいる場合のみ）
     if (this.appState === 'active') {
@@ -105,16 +108,16 @@ export class TimerServiceClass {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
     // Reduxアクションをディスパッチ
-    store.dispatch(startTimer({ bookId, currentPage }));
+    this.store.dispatch(startTimer({ bookId, currentPage }));
 
     // バックグラウンドタイマーの開始
     if (this.timerId === null) {
       this.timerId = BackgroundTimer.setInterval(() => {
         // タイマーを更新
-        store.dispatch(updateTimer());
+        this.store.dispatch(updateTimer());
         
         // 目標時間に達したかチェック
-        const state = store.getState(); // RootState型
+        const state = this.store.getState(); // RootState型
         const { timer } = state;
         
         if (timer.goalTime && timer.displaySeconds >= timer.goalTime && !timer.goalReached) {
@@ -131,7 +134,7 @@ export class TimerServiceClass {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
     // Reduxアクションをディスパッチ
-    store.dispatch(pauseTimer());
+    this.store.dispatch(pauseTimer());
 
     // バックグラウンドタイマーの停止
     if (this.timerId !== null) {
@@ -142,7 +145,7 @@ export class TimerServiceClass {
 
   // タイマーを再開
   public resumeTimer() {
-    const state = store.getState(); // RootState型
+    const state = this.store.getState(); // RootState型
     const { timer } = state;
     
     // タップ感触フィードバック
@@ -150,7 +153,7 @@ export class TimerServiceClass {
     
     if (!timer.isRunning) {
       // Reduxアクションをディスパッチ
-      store.dispatch(startTimer({ 
+      this.store.dispatch(startTimer({ 
         bookId: timer.activeBook || '', 
         currentPage: timer.startPage || undefined 
       }));
@@ -158,10 +161,10 @@ export class TimerServiceClass {
       // バックグラウンドタイマーの開始
       if (this.timerId === null) {
         this.timerId = BackgroundTimer.setInterval(() => {
-          store.dispatch(updateTimer());
+          this.store.dispatch(updateTimer());
           
           // 目標時間に達したかチェック
-          const currentState = store.getState(); // RootState型
+          const currentState = this.store.getState(); // RootState型
           const { timer: currentTimer } = currentState;
           
           if (currentTimer.goalTime && currentTimer.displaySeconds >= currentTimer.goalTime && !currentTimer.goalReached) {
@@ -179,7 +182,7 @@ export class TimerServiceClass {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
     // Reduxアクションをディスパッチ
-    store.dispatch(resetTimer());
+    this.store.dispatch(resetTimer());
 
     // バックグラウンドタイマーの停止
     if (this.timerId !== null) {
@@ -190,14 +193,14 @@ export class TimerServiceClass {
 
   // 読書セッションを完了
   public completeReading(currentPage?: number): TimerCompletionResult {
-    const state = store.getState();
+    const state = this.store.getState();
     
     // タイマー情報を取得
     const timerState = state.timer;
     const { displaySeconds, startPage } = timerState;
     
     // セッション完了アクションをディスパッチ
-    store.dispatch(completeReadingSession());
+    this.store.dispatch(completeReadingSession());
     
     // 現在のページ情報でセッションを保存
     const completionResult: TimerCompletionResult = {
@@ -256,8 +259,4 @@ export class TimerServiceClass {
 // 静的メソッドを直接エクスポート
 export const formatTime = TimerServiceClass.formatTime;
 export const calculateProgress = TimerServiceClass.calculateProgress;
-export const calculateReadPages = TimerServiceClass.calculateReadPages;
-
-// シングルトンインスタンスをエクスポート
-const TimerService = new TimerServiceClass();
-export default TimerService; 
+export const calculateReadPages = TimerServiceClass.calculateReadPages; 

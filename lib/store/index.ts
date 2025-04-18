@@ -12,6 +12,7 @@ import { BookState } from './bookSlice';
 import { SessionState } from './sessionSlice';
 import { QuoteState } from './quoteSlice';
 import { NoteState } from './noteSlice';
+import { ServiceContainer } from '../di/ServiceContainer';
 
 // persist configuration
 const persistConfig = {
@@ -39,6 +40,18 @@ const rootReducer = combineReducers({
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
+// 仮のstoreを先に生成
+const tempStore = configureStore({
+  reducer: persistedReducer,
+});
+// ServiceContainerをstore生成後に初期化
+export const serviceContainer = new ServiceContainer(tempStore);
+
+export interface ExtraArgument {
+  serviceContainer: ServiceContainer;
+}
+
+// storeをextraArgument付きで再生成
 export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
@@ -46,6 +59,9 @@ export const store = configureStore({
       serializableCheck: {
         // 永続化のためのnon-serializable値の警告を無視
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+      thunk: {
+        extraArgument: { serviceContainer },
       },
     }),
 });

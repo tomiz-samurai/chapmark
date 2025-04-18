@@ -6,8 +6,8 @@ import { useAppSelector } from './useAppSelector';
 import { updateCurrentPage, updateTotalPages } from '../store/bookSlice';
 import { clearCurrentSession } from '../store/sessionSlice';
 import { resetTimer, completeReadingSessionAsync } from '../store/timerSlice';
-import TimerService from '../services/TimerService';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { serviceContainer } from '../di/ServiceContainer';
 
 /**
  * 読書セッションの完了と保存に関するロジックをカプセル化するカスタムフック
